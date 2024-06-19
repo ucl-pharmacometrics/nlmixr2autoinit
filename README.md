@@ -11,4 +11,4 @@ Extract zip
 
 library(devtools)
 
-install("yourlocalpath/nlmixr2autoinit")
+install("yourlocalpath/nlmixr2autoinit-main")
