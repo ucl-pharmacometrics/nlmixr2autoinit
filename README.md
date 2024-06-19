@@ -5,7 +5,9 @@ How to install
 
 1. Local install.
 
-Code- Download zip
+Go to github Code- Download zip
+
+Extract zip
 
 library(devtools)
 
