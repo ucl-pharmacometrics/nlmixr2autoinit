@@ -3,4 +3,9 @@ Automatic Generation of Initial Estimates for Population Pharmacokinetic Modelli
 
 How to install
 
-devtools::install_github("git@github.com:myUsername/git@github.com:ucl-pharmacometrics/nlmixr2autoinit.git")
+1. Local install.
+
+Code- Download zip
+
+library(devtools)
+install("yourlocalpath/nlmixr2autoinit")
