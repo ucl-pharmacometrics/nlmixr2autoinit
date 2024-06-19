@@ -1,0 +1,20 @@
+Package: nlmixr2autoinit
+Title: Automatic Generation of Initial Estimates for Population Pharmacokinetic Modelling
+Version: 0.0.0.9000
+Authors@R: person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: This package provides various methods for calculating pharmacokinetic parameters, which can be used as initial estimates in population pharmacokinetic modelling. 
+Depends:
+    R (>= 3.5.0),
+    dplyr,
+    nlmixr2,
+    tidyr
+Imports:
+    dplyr,
+    nlmixr2,
+    tidyr
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1

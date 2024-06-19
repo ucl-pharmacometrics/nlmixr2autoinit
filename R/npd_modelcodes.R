@@ -1,0 +1,241 @@
+#' Fit intravenous pharmacokinetic data to a one-compartment model
+#'
+#' Perform parameter estimation using the naive pooled data approach with a one-compartment model for the provided intravenous pharmacokinetic data.
+#' @param data Intravenous pharmacokinetic data in the nlmixr2 format.
+#' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", "focei"). The default value is "nls".
+#' @param input.cl Initial estimate for clearance.
+#' @param input.vd Initial estimate for volume of distribution.
+#' @param input.add Initial estimate for additive error.
+#' @return An object of class 'nlmixr2' containing the results of the estimation.
+#' @import nlmixr2
+#' @examples
+#' dat <- Bolus_1CPT
+#' Fit_1cmpt_iv(dat=dat,est.method="nls",input.cl=4,input.vd=70,input.add=1)
+#' @export
+
+Fit_1cmpt_iv <- function(data,
+                    est.method,
+                    input.cl,
+                    input.vd,
+                    input.add) {
+
+  input.cl <<- input.cl
+  input.vd <<- input.vd
+  input.add <<- input.add
+
+  iv <- function() {
+    ini({
+      tcl <- round(log(input.cl), 2) # Clearance
+      tv  <- round(log(input.vd), 2) # Volume of distribution
+      add.err <-  input.add # Additive error
+    })
+    model({
+      cl <- exp(tcl)
+      v  <- exp(tv)
+      k  <- cl / v
+      d / dt(A1) = -k * A1
+      cp = A1 / v
+      cp ~ add(add.err)
+    })
+  }
+
+  fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(object = iv,
+                           data =  data,
+                           est = est.method)))
+
+  return(fit.1cmpt.lst)
+}
+
+
+#' Fit intravenous pharmacokinetic data to a one-compartment model with Michaelis-Menten Kinetics
+#'
+#' Perform parameter estimation using the naive pooled data approach with a one-compartment model with nonlinear elimination kinetics for the provided intravenous pharmacokinetic data.
+#' @param data Intravenous pharmacokinetic data in the nlmixr2 format.
+#' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
+#' @param input.vmax Initial estimate for Vmax.
+#' @param input.km Initial estimate for Km.
+#' @param input.vd Initial estimate for volume of distribution.
+#' @param input.add Initial estimate for additive error.
+#' @return An object of class 'nlmixr2' containing the results of the estimation.
+#' @import nlmixr2
+#' @examples
+#' dat <- Bolus_1CPTMM
+#' Fit_1cmpt_mm_iv(dat=dat,est.method="nls",input.vmax=1000,input.km=100,input.vd=70,input.add=1)
+#' @export
+
+Fit_1cmpt_mm_iv <- function(data,
+                       est.method,
+                       input.vmax,
+                       input.km,
+                       input.vd,
+                       input.add) {
+
+  input.vmax <<- input.vmax
+  input.km <<- input.km
+  input.vd <<- input.vd
+  input.add <<- input.add
+
+  iv.mm <- function() {
+    ini({
+      lvmax  <- round(log(input.vmax), 2) # Maximum elimination rate
+      lkm  <- round(log(input.km), 2) # Michaelis constant
+      tv  <- round(log(input.vd), 2) # Volume of distribution
+      add.err <- input.add # additive error
+    })
+    model({
+      vmax = exp(lvmax)
+      km = exp(lkm)
+      v  <- exp(tv)
+      d / dt(centr) <- -(vmax / (km + centr / v)) / v * centr
+      cp <- centr / v
+      cp ~ add(add.err)
+    })
+  }
+
+
+  fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2(object = iv.mm,
+                              data =  data,
+                              est = est.method)))
+
+  return(fit.1cmpt.mm.lst)
+}
+
+
+#' Fit intravenous pharmacokinetic data to a two-compartment model
+#'
+#' Perform parameter estimation using the naive pooled data approach with a one-compartment model for the provided intravenous pharmacokinetic data.
+#' @param data Intravenous pharmacokinetic data in the nlmixr2 format.
+#' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
+#' @param input.cl Initial estimate for clearance.
+#' @param input.vc2cmpt Initial estimate for the central volume of distribution in two-compartment model.
+#' @param input.vp2cmpt Initial estimate for the peripheral volume of distribution in a two-compartment model.
+#' @param input.q2cmpt Initial estimate for inter-compartmental clearance in a two-compartment model.
+#' @param input.add Initial estimate for additive error.
+#' @return An object of class 'nlmixr2' containing the results of the estimation.
+#' @import nlmixr2
+#' @examples
+#' dat <- Bolus_2CPT
+#' Fit_2cmpt_iv(dat=dat,est.method="nls",input.cl=4,input.vc2cmpt=70,input.vp2cmpt=35,input.q2cmpt=10,input.add=1)
+#' @export
+
+Fit_2cmpt_iv<-function(data,
+                        est.method,
+                        input.cl,
+                        input.vc2cmpt,
+                        input.vp2cmpt,
+                        input.q2cmpt,
+                        input.add){
+  input.cl<<-input.cl
+  input.vc2cmpt <<- input.vc2cmpt
+  input.vp2cmpt<<- input.vp2cmpt
+  input.q2cmpt<<-  input.q2cmpt
+  input.add <<- input.add
+
+
+  iv2 <- function() {
+    ini({
+      tcl <- round(log(input.cl),2) # Clearance
+      tv1  <- round(log(input.vc2cmpt),2) # Central Volume of distribution
+      tv2  <- round(log(input.vp2cmpt),2) # Peripheral volume of distribution
+      tq <- round(log(input.q2cmpt),2) # Inter-compartmental clearance
+      add.err <- input.add
+    })
+    model({
+      cl <- exp(tcl)
+      v1  <- exp(tv1)
+      v2  <- exp(tv2)
+      q  <- exp(tq)
+      k  <- cl / v1
+
+      k12<-q/v1
+      k21<-q/v2
+
+      d/dt(A1) = - k * A1   - k12 * A1 + k21*A2
+      d/dt(A2) =   k12 * A1 -  k21 * A2
+      cp = A1 / v1
+      cp ~ add(add.err)
+    })
+  }
+
+  fit.2cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv2,
+                            data =  data,
+                            est= est.method)))
+
+  return(fit.2cmpt.lst)
+}
+
+
+#' Fit intravenous pharmacokinetic data to a three-compartment model
+#'
+#' Perform parameter estimation using the naive pooled data approach with a one-compartment model for the provided intravenous pharmacokinetic data.
+#' @param data Intravenous pharmacokinetic data in the nlmixr2 format.
+#' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
+#' @param input.cl Initial estimate for clearance.
+#' @param input.vc3cmpt Initial estimate for the central volume of distribution in a three-compartment model.
+#' @param input.vp3cmpt Initial estimate for the first peripheral volume of distribution in a three-compartment model.
+#' @param input.vp23cmpt Initial estimate for the second peripheral volume of distribution in a three-compartment model.
+#' @param input.q3cmpt Initial estimate for first inter-compartmental clearance in a three-compartment model.
+#' @param input.q23cmpt Initial estimate for second inter-compartmental clearance in a three-compartment model.
+#' @param input.add Initial estimate for additive error.
+#' @return An object of class 'nlmixr2' containing the results of the estimation.
+#' @import nlmixr2
+#' @examples
+#' dat <- Bolus_2CPT
+#' Fit_3cmpt_iv(dat=dat,est.method="nls",input.cl=4,input.vc3cmpt=70,input.vp3cmpt=35,input.vp23cmpt=35,input.q3cmpt=10,input.q23cmpt=10,input.add=1)
+#' @export
+
+Fit_3cmpt_iv<-function(data,
+                        est.method,
+                        input.cl,
+                        input.vc3cmpt,
+                        input.vp3cmpt,
+                        input.vp23cmpt,
+                        input.q3cmpt,
+                        input.q23cmpt,
+                        input.add){
+
+  input.cl<<-input.cl
+  input.vc3cmpt <<- input.vc3cmpt
+  input.vp3cmpt<<- input.vp3cmpt
+  input.vp23cmpt<<- input.vp23cmpt
+  input.q3cmpt<<-  input.q3cmpt
+  input.q23cmpt<<-  input.q23cmpt
+  input.add <<- input.add
+
+  iv3 <- function() {
+    ini({
+      tcl <- round(log(input.cl),2) # Clearance
+      tv1  <- round(log(input.vc3cmpt),2) # Central Volume of Distribution
+      tv2  <- round(log(input.vp3cmpt),2) # First peripheral volume of distribution
+      tv3  <- round(log(input.vp23cmpt),2) # Second peripheral volume of distribution
+      tq <- round(log(input.q3cmpt),2) # First inter-compartmental clearance
+      tq2 <- round(log(input.q23cmpt),2) # Second inter-compartmental clearance
+      add.err <- input.add
+    })
+    model({
+      cl <- exp(tcl)
+      v1  <- exp(tv1)
+      v2  <- exp(tv2)
+      v3  <- exp(tv3)
+      q  <- exp(tq)
+      q2  <- exp(tq2)
+      k  <- cl / v1
+      k12<-q/v1
+      k21<-q/v2
+      k13<-q2/v1
+      k31<-q2/v3
+      d/dt(A1) = - k * A1   - k12 * A1 + k21*A2
+      d/dt(A2) =   k12 * A1 -  k21 * A2
+      d/dt(A3) =   k13 * A1 -  k31 * A3
+      cp = A1 / v1
+      cp ~ add(add.err)
+    })
+  }
+
+  fit.3cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv3,
+                            data =  data,
+                            est= est.method)))
+
+  return(fit.3cmpt.lst)
+}
+
