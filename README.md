@@ -1,6 +1,13 @@
 # nlmixr2autoinit
-Automatic Generation of Initial Estimates for Population Pharmacokinetic Modelling
+Automated Generation of Initial Estimates for Population Pharmacokinetic Modelling
 
+Installation nlmixr2autoinit and nlmixr2auto:
+``` r
+library(devtools)
+install_github("ucl-pharmacometrics/nlmixr2autoinit")
+install_github("ucl-pharmacometrics/nlmixr2auto")
+```
+Example
 ``` r
 library(nlmixr2autoinit)
 d1<-pheno_sd
