@@ -5,7 +5,6 @@ Installation nlmixr2autoinit and nlmixr2auto:
 ``` r
 library(devtools)
 install_github("ucl-pharmacometrics/nlmixr2autoinit")
-install_github("ucl-pharmacometrics/nlmixr2auto")
 ```
 Example
 ``` r
