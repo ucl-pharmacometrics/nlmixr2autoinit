@@ -161,6 +161,7 @@ getppkinit <- function(dat,
 
   nca.results_all <- nca.results$nca.results
   nca.results_fd <- nca.results$nca.fd.results
+  nca.results_efd <- nca.results$nca.efd.results
 
   nca.APE <- Inf
   nca.MAPE <- Inf
@@ -196,6 +197,28 @@ getppkinit <- function(dat,
       nca_fd.APE <- sum(abs(nca_fd_sim$cp - nca_fd_sim$DV))
       nca_fd.MAPE <-
         round(sum(abs(nca_fd_sim$cp - nca_fd_sim$DV) / nca_fd_sim$DV) / nrow(nca_fd_sim) *
+                100, 1)
+    }
+
+  }
+
+
+  nca_efd.APE <- Inf
+  nca_efd.MAPE <- Inf
+  if (!is.na(nca.results_efd$cl) & !is.na(nca.results_efd$vd)) {
+    if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0) {
+      nca_efd_sim <- Fit_1cmpt_iv(
+        data = dat[dat$EVID != 2,],
+        est.method = "rxSolve",
+        input.cl = nca.results_efd$cl,
+        input.vd = nca.results_efd$vd,
+        input.add = 0
+      )
+
+      nca_efd_sim$DV <- dat[dat$EVID == 0,]$DV
+      nca_efd.APE <- sum(abs(nca_efd_sim$cp - nca_efd_sim$DV))
+      nca_efd.MAPE <-
+        round(sum(abs(nca_efd_sim$cp - nca_efd_sim$DV) / nca_efd_sim$DV) / nrow(nca_efd_sim) *
                 100, 1)
     }
 

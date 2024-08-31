@@ -15,7 +15,7 @@
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
 #' dat$DVnor<-dat$DV/dat$dose
-#' run_nca_iv.normalised(dat, nlastpoints = 3, nbins = 8, fdobsflag = 1)
+#' run_nca_iv.normalised(dat, nlastpoints = 3, nbins = 8, fdobsflag = 1,sdflag=0)
 #' @export
 
 run_nca_iv.normalised <- function(dat,
@@ -66,7 +66,31 @@ run_nca_iv.normalised <- function(dat,
       time.spent = time.spent
     )
 
+    if (sdflag == 0) {
+      # Analysis data with dose number >1 (repeated dose data)
+      start.time <- Sys.time()
+      dat$DVnor <- dat$DV / dat$dose
 
+      dat_efd <- dat[dat$dose_number != 1, ]
+      datpooled_efd <- pk.time.binning(testdat = dat_efd,
+                                       nbins = nbins)
+
+      nca.output <-
+        nca.iv.normalised(dat = datpooled_efd$test.pool.normalised,
+                          nlastpoints = nlastpoints)
+
+      end.time <- Sys.time()
+      time.spent <- round(difftime(end.time, start.time), 4)
+
+      nca.efd.results <- data.frame(
+        cl = signif(nca.output[1], 3),
+        vd = signif(nca.output[2], 3),
+        slope = signif(nca.output[3], 3),
+        half_life = signif(nca.output[4], 3),
+        start.time = start.time,
+        time.spent = time.spent
+      )
+    }
     # Ncacalplot(dat = dat,datpooled = datpooled_fd,ncasubfd = T,nlastpoints=nlastpoints)
   }
 
@@ -90,9 +114,8 @@ run_nca_iv.normalised <- function(dat,
     time.spent = time.spent
   )
 
-  # Ncacalplot(dat = dat,datpooled = datpooled_all,ncasubfd = F,nlastpoints=nlastpoints)
-
   return(list(nca.fd.results = nca.fd.results,
+              nca.efd.results = nca.efd.results,
               nca.results = nca.results))
 
 }
