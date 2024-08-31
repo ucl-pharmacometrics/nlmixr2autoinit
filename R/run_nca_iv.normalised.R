@@ -31,23 +31,32 @@ run_nca_iv.normalised <- function(dat,
     start.time = NA,
     time.spent = 0
   )
-  
+
+  nca.efd.results <- data.frame(
+    cl = NA,
+    vd = NA,
+    slope = NA,
+    half_life = NA,
+    start.time = NA,
+    time.spent = 0
+  )
+
   # If there are multiple doses, consider pooling the data of the first dose together first
   if (fdobsflag == 1) {
     start.time <- Sys.time()
     dat$DVnor <- dat$DV / dat$dose
-    
+
     dat_fd <- dat[dat$dose_number == 1, ]
     datpooled_fd <- pk.time.binning(testdat = dat_fd,
                                     nbins = nbins)
-    
+
     nca.output <-
       nca.iv.normalised(dat = datpooled_fd$test.pool.normalised,
                         nlastpoints = nlastpoints)
-    
+
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
-    
+
     nca.fd.results <- data.frame(
       cl = signif(nca.output[1], 3),
       vd = signif(nca.output[2], 3),
@@ -56,16 +65,16 @@ run_nca_iv.normalised <- function(dat,
       start.time = start.time,
       time.spent = time.spent
     )
-    
-    
+
+
     # Ncacalplot(dat = dat,datpooled = datpooled_fd,ncasubfd = T,nlastpoints=nlastpoints)
   }
-  
+
   start.time <- Sys.time()
   dat$DVnor <- dat$DV / dat$dose
   datpooled_all <- pk.time.binning(testdat = dat,
                                    nbins = nbins)
-  
+
   datpooled_all$test.pool.normalised
   nca.output <-
     nca.iv.normalised(dat = datpooled_all$test.pool.normalised,
@@ -80,12 +89,12 @@ run_nca_iv.normalised <- function(dat,
     start.time = start.time,
     time.spent = time.spent
   )
-  
+
   # Ncacalplot(dat = dat,datpooled = datpooled_all,ncasubfd = F,nlastpoints=nlastpoints)
-  
+
   return(list(nca.fd.results = nca.fd.results,
               nca.results = nca.results))
-  
+
 }
 
 
@@ -106,40 +115,40 @@ nca.iv.normalised <- function(dat,
   if (missing(nlastpoints)) {
     nlastpoints <- 4
   }
-  
+
   trap.rule <-
     function(x, y)
       sum(diff(x) * (y[-1] + y[-length(y)])) / 2
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
-  
+
   auct <- trap.rule(dat$TIME, dat$DV)
-  
+
   # Select last 4/specified number for slope calculation
   temp1 <- tail(dat, n = nlastpoints)
-  
+
   # linear regression for slope of log of DVs
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
-  
+
   slope <- summary(abc)[[4]][[2]]
-  
+
   ke <- -slope
-  
+
   half_life <- 0.693 / ke
-  
+
   C_last <- tail(temp1$DV, 1)
-  
+
   auct_inf <- C_last / ke
-  
+
   auc0_inf <- auct + auct_inf
-  
+
   clnormalised <- 1 / auc0_inf
-  
+
   vdnormalised <- clnormalised / ke
-  
+
   cl <- clnormalised
-  
+
   vd <- vdnormalised
-  
+
   return(c(cl, vd, slope, half_life))
 }
