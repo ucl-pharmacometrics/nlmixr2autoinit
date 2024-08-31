@@ -265,15 +265,15 @@ getppkinit <- function(dat,
   #   usedslope <- nca.results_all$slope
   # }
 
-  if (min(c(nca_fd.MAPE,nca.efd.MAPE,nca.MAPE))==nca_fd.MAPE) {
+  if (min(c(nca_fd.MAPE,nca_efd.MAPE,nca.MAPE))==nca_fd.MAPE) {
     usedslope <- nca.results_fd$slope
   }
 
-  if (min(c(nca_fd.MAPE,nca.efd.MAPE,nca.MAPE))==nca_efd.MAPE) {
+  if (min(c(nca_fd.MAPE,nca_efd.MAPE,nca.MAPE))==nca_efd.MAPE) {
     usedslope <- nca.results_efd$slope
   }
 
-  if (min(c(nca_fd.MAPE,nca.efd.MAPE,nca.MAPE))==nca.MAPE) {
+  if (min(c(nca_fd.MAPE,nca_efd.MAPE,nca.MAPE))==nca.MAPE) {
     usedslope <- nca.results_all$slope
   }
 

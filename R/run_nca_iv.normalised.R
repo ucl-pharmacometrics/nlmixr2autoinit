@@ -21,7 +21,8 @@
 run_nca_iv.normalised <- function(dat,
                                   nlastpoints,
                                   nbins,
-                                  fdobsflag) {
+                                  fdobsflag,
+                                  sdflag) {
   # default settings
   nca.fd.results <- data.frame(
     cl = NA,
