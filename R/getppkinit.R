@@ -156,7 +156,8 @@ getppkinit <- function(dat,
     dat = dat,
     nlastpoints = nlastpoints,
     nbins = nbins,
-    fdobsflag = fdobsflag
+    fdobsflag = fdobsflag,
+    sdflag=sdflag
   )
 
   nca.results_all <- nca.results$nca.results
@@ -256,13 +257,26 @@ getppkinit <- function(dat,
   ############Hybrid simplified calculation##########################
   # volume of distribution was calculated by slope
   # Find an appropriate slope
-  if (nca_fd.MAPE < nca.MAPE) {
+  # if (nca_fd.MAPE < nca.MAPE) {
+  #   usedslope <- nca.results_fd$slope
+  # }
+  #
+  # if (nca_fd.MAPE >= nca.MAPE) {
+  #   usedslope <- nca.results_all$slope
+  # }
+
+  if (min(c(nca_fd.MAPE,nca.efd.MAPE,nca.MAPE))==nca_fd.MAPE) {
     usedslope <- nca.results_fd$slope
   }
 
-  if (nca_fd.MAPE >= nca.MAPE) {
+  if (min(c(nca_fd.MAPE,nca.efd.MAPE,nca.MAPE))==nca_efd.MAPE) {
+    usedslope <- nca.results_efd$slope
+  }
+
+  if (min(c(nca_fd.MAPE,nca.efd.MAPE,nca.MAPE))==nca.MAPE) {
     usedslope <- nca.results_all$slope
   }
+
 
   hybrid_cl <- NA
   hybrid_vd <- NA
@@ -297,6 +311,7 @@ getppkinit <- function(dat,
       "Simplified calculation",
       "Graphic calculation",
       "NCA (only first dose)",
+      "NCA (data exclude first-dose part)",
       "NCA (all pooled)",
       "Hybrid simplified calculation"
     ),
@@ -304,6 +319,7 @@ getppkinit <- function(dat,
       simpcal.out$cl,
       graph.results_fd$cl,
       nca.results_fd$cl,
+      nca.results_efd$cl,
       nca.results_all$cl,
       hybrid_cl
     ),
@@ -311,21 +327,24 @@ getppkinit <- function(dat,
       simpcal.out$vd,
       graph.results_fd$vd,
       nca.results_fd$vd,
+      nca.results_efd$vd,
       nca.results_all$vd,
       hybrid_vd
     ),
-    simAPE = c(simpcal.APE, graph_fd.APE, nca_fd.APE, nca.APE, hybrid.APE),
+    simAPE = c(simpcal.APE, graph_fd.APE, nca_fd.APE, nca_efd.APE,nca.APE, hybrid.APE),
     simMAPE = c(
       simpcal.MAPE,
       graph_fd.MAPE,
-      nca.MAPE,
       nca_fd.MAPE,
+      nca_efd.MAPE,
+      nca.MAPE,
       hybrid.MAPE
     ),
     time.spent = c(
       simpcal.out$time.spent,
       graph.results_fd$time.spent,
       nca.results_fd$time.spent,
+      nca.results_efd$time.spent,
       nca.results_all$time.spent,
       simpcal.out$time.spent
     )
