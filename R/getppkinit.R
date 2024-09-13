@@ -11,6 +11,7 @@
 #' @examples
 #' getppkinit(dat = Bolus_1CPT,runnpd = 0)
 #' getppkinit(dat = Bolus_1CPT,runnpd = 1)
+#' getppkinit(dat = Bolus_1CPT,runnpd = 0, getinit.settings=c(trap.rule.method =2))
 #' @export
 
 getppkinit <- function(dat,
@@ -39,11 +40,15 @@ getppkinit <- function(dat,
     common_cols <-
       intersect(names(getinit.settings), names(getinit.settings0))
     getinit.settings0[common_cols] <- getinit.settings[common_cols]
+
   }
+
+  print(paste0("Current settings: ", getinit.settings0))
 
   # Extract the final values
   half_life <- as.numeric(getinit.settings0$half_life)
   nlastpoints <- as.numeric(getinit.settings0$nlastpoints)
+  trap.rule.method <- as.numeric(getinit.settings0$trap.rule.method)
   nbins <- as.numeric(getinit.settings0$nbins)
   est.method <- getinit.settings0$est.method
   ############################## Data processing###################################
