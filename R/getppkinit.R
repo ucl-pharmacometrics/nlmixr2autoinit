@@ -23,6 +23,7 @@ getppkinit <- function(dat,
   getinit.settings0 <- data.frame(
     half_life = NA,
     nlastpoints = 4,
+    trap.rule.method=1,
     nbins = 8,
     est.method = "nls"
   )
@@ -155,6 +156,7 @@ getppkinit <- function(dat,
   nca.results <- run_nca_iv.normalised(
     dat = dat,
     nlastpoints = nlastpoints,
+    trap.rule.method=trap.rule.method,
     nbins = nbins,
     fdobsflag = fdobsflag,
     sdflag=sdflag
