@@ -4,6 +4,10 @@
 #'
 #' @param dat A data frame containing the intravenous pharmacokinetic data which include at least columns for ID, TIME, EVID, AMT, DV, and dose_number.
 #' @param nlastpoints The number of last points to be used for slope calculation.
+#' @param trap.rule.method A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
+#'        1 for the standard linear trapezoidal method.
+#'        2 for the linear up and logarithmic down method, where the concentration increase is treated linearly,
+#'        and the concentration decrease is treated logarithmically.
 #' @param nbins The number of bins for time binning.
 #' @param fdobsflag A flag indicating whether the dataset includes first-dose observations. Set to 1 if the data includes first-dose observations, otherwise set to 0.
 #' @return A list containing the results of the NCA calculation for the first dose (`nca.fd.results`) and for all data (`nca.results`).
@@ -15,11 +19,13 @@
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
 #' dat$DVnor<-dat$DV/dat$dose
-#' run_nca_iv.normalised(dat, nlastpoints = 3, nbins = 8, fdobsflag = 1,sdflag=0)
+#' run_nca_iv.normalised(dat, nlastpoints = 3, trap.rule.method=1,nbins = 8, fdobsflag = 1,sdflag=0)
+#' run_nca_iv.normalised(dat, nlastpoints = 3, trap.rule.method=2,nbins = 8, fdobsflag = 1,sdflag=0)
 #' @export
 
 run_nca_iv.normalised <- function(dat,
                                   nlastpoints,
+                                  trap.rule.method,
                                   nbins,
                                   fdobsflag,
                                   sdflag) {
@@ -53,6 +59,7 @@ run_nca_iv.normalised <- function(dat,
 
     nca.output <-
       nca.iv.normalised(dat = datpooled_fd$test.pool.normalised,
+                        trap.rule.method=trap.rule.method,
                         nlastpoints = nlastpoints)
 
     end.time <- Sys.time()
@@ -78,6 +85,7 @@ run_nca_iv.normalised <- function(dat,
 
       nca.output <-
         nca.iv.normalised(dat = datpooled_efd$test.pool.normalised,
+                          trap.rule.method=trap.rule.method,
                           nlastpoints = nlastpoints)
 
       end.time <- Sys.time()
@@ -103,6 +111,7 @@ run_nca_iv.normalised <- function(dat,
   datpooled_all$test.pool.normalised
   nca.output <-
     nca.iv.normalised(dat = datpooled_all$test.pool.normalised,
+                      trap.rule.method=trap.rule.method,
                       nlastpoints = nlastpoints)
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
@@ -110,7 +119,7 @@ run_nca_iv.normalised <- function(dat,
     cl = signif(nca.output[1], 3),
     vd = signif(nca.output[2], 3),
     slope = signif(nca.output[3], 3),
-    half_life = signif(nca.output[3], 3),
+    half_life = signif(nca.output[4], 3),
     start.time = start.time,
     time.spent = time.spent
   )
@@ -135,18 +144,27 @@ run_nca_iv.normalised <- function(dat,
 #' @export
 
 nca.iv.normalised <- function(dat,
+                              trap.rule.method,
                               nlastpoints) {
+
+  if (missing(trap.rule.method)){
+    trap.rule.method=1
+  }
+
   if (missing(nlastpoints)) {
     nlastpoints <- 4
   }
 
-  trap.rule <-
-    function(x, y)
-      sum(diff(x) * (y[-1] + y[-length(y)])) / 2
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
 
-  auct <- trap.rule(dat$TIME, dat$DV)
+  if (trap.rule.method==1){
+    auct <- trap.rule(dat$TIME, dat$DV)
+  }
+
+  if (trap.rule.method==2){
+    auct <- trap.rule_linear_up_log_down(dat$TIME, dat$DV)
+  }
 
   # Select last 4/specified number for slope calculation
   temp1 <- tail(dat, n = nlastpoints)
@@ -176,3 +194,77 @@ nca.iv.normalised <- function(dat,
 
   return(c(cl, vd, slope, half_life))
 }
+
+
+
+#' Calculate Area Under the Curve (AUC) using the trapezoidal rule
+#'
+#' This function computes the area under the curve (AUC) using the linear trapezoidal rule.
+#'
+#' @param x A numeric vector representing the time points.
+#' @param y A numeric vector representing the corresponding concentration at each time point.
+#'
+#' @return A numeric value representing the estimated AUC using the trapezoidal rule.
+#'
+#' @examples
+#' x <- c(0.5, 1, 2, 4, 6, 8, 10)
+#' y <- c(12, 8, 5, 3, 2, 1.5, 1)
+#' trap.rule(x, y)
+#'
+trap.rule <- function(x, y){
+  sum(diff(x) * (y[-1] + y[-length(y)])) / 2
+}
+
+#' Calculate AUC using linear up and log down trapezoidal rule
+#'
+#' This function computes the area under the curve (AUC) by using the trapezoidal rule
+#' for phases where concentration is increasing, and a logarithmic rule for phases
+#' where concentration is decreasing.
+#'
+#' @param x A numeric vector representing the time points.
+#' @param y A numeric vector representing the corresponding concentration at each time point.
+#'
+#' @return A numeric value representing the estimated AUC using the linear up/log down method.
+#'
+#' @examples
+#' x <- c(0.5, 1, 2, 4, 6, 8, 10)
+#' y <- c(12, 8, 5, 3, 2, 1.5, 1)
+#' trap.rule_linear_up_log_down(x, y)
+#'
+#' @export
+#
+trap.rule_linear_up_log_down <- function(x, y) {
+
+  delta_x <- diff(x)
+  delta_y <- diff(y)
+
+  linear_up_ <- delta_y > 0
+  log_down_ <- delta_y < 0
+
+  # For the linear up phase
+  linear_up_auc <- (y[-length(y)][linear_up_] + y[-1][linear_up_]) / 2 * delta_x[linear_up_]
+
+  # For the log down phase
+  log_down_auc <- ((y[-length(y)][log_down_] - y[-1][log_down_]) /
+                     log(y[-length(y)][log_down_] / y[-1][log_down_])) * delta_x[log_down_]
+
+  # Sum the AUC from both the linear up and log down phases
+  total_auc <- sum(linear_up_auc) + sum(log_down_auc)
+
+  return(total_auc)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
