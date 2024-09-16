@@ -1153,6 +1153,7 @@ if ( noniv_flag==0 ){
   colnames(all.out) <-
     c(
       "Method",
+      "Calculated Ka",
       "Calculated CL",
       "Calculated Vd",
       "Absolute prediction error (APE)",
