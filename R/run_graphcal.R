@@ -1,4 +1,4 @@
-#' Run graphical calculation for intravenous data
+#' Run graphical calculation
 #'
 #' Performs a graphical calculation of clearance and volume of distribution based on provided pharmacokinetic data with concentration normalised by dose
 #'
@@ -10,16 +10,34 @@
 #' @importFrom dplyr %>% mutate if_else group_by ungroup
 #' @import nlmixr2
 #' @examples
+#' # example 1 (iv case)
+#'
 #' dat <- Bolus_1CPT
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
-#' run_graphcal_iv(dat, fdobsflag = 1, nbins = 8, nlastpoints = 4)
+#' run_graphcal(dat, fdobsflag = 1, noniv_flag=0, nbins = 8, nlastpoints = 4)
+#'
+#' # example2 (oral case)
+#' dat <- Oral_1CPT
+#' dat <- nmpkconvert(dat)
+#' dat <- calculate_tad(dat)
+#' run_graphcal(dat, fdobsflag = 1,  noniv_flag=1, nbins = 8, nlastpoints = 4)
 #' @export
 
-run_graphcal_iv <- function(dat,
+run_graphcal <- function(dat,
                          fdobsflag,
+                         noniv_flag,
                          nbins,
                          nlastpoints) {
+
+  if (missing(fdobsflag)){
+    stop("Whether samples after first dose is available is unknown, please set it by fdobsflag")
+  }
+  if (missing(noniv_flag)){
+    stop("Whether this is a oral case is unknown, please set it bynoniv_flag")
+  }
+
+  if (noniv_flag==0){
   graph.fd.results <- data.frame(
     cl = NA,
     vd = NA,
@@ -27,7 +45,6 @@ run_graphcal_iv <- function(dat,
     time.spent = 0
   )
 
-  ####################Calculation only based on pooled data of first dose#############
   if (fdobsflag == 1) {
     start.time <- Sys.time()
     dat$DVnor <- dat$DV / dat$dose
@@ -48,6 +65,42 @@ run_graphcal_iv <- function(dat,
       slope = signif(graph.fd.output[3], 3),
       time.spent = time.spent
     )
+  }
+
+  }
+
+  if (noniv_flag==1){
+    graph.fd.results <- data.frame(
+      ka=NA,
+      cl = NA,
+      vd = NA,
+      slope = NA,
+      time.spent = 0
+    )
+
+    if (fdobsflag == 1) {
+      start.time <- Sys.time()
+      dat$DVnor <- dat$DV / dat$dose
+      dat_fd <- dat[dat$dose_number == 1,]
+      datpooled_fd <- pk.time.binning(testdat = dat_fd,
+                                      nbins = nbins)
+
+      graph.fd.output <-
+        graphcal_oral(dat = datpooled_fd$test.pool.normalised,
+                    nlastpoints = nlastpoints)
+
+      end.time <- Sys.time()
+      time.spent <- round(difftime(end.time, start.time), 4)
+
+      graph.fd.results <- data.frame(
+        ka = signif(graph.fd.output[1], 3),
+        cl = signif(graph.fd.output[2], 3),
+        vd = signif(graph.fd.output[3], 3),
+        slope = signif(graph.fd.output[4], 3),
+        time.spent = time.spent
+      )
+    }
+
   }
 
   return(graph.fd.results)
