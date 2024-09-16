@@ -22,4 +22,5 @@ Calculates initial pharmacokinetic parameters using multiple methods including s
 \examples{
 getppkinit(dat = Bolus_1CPT,runnpd = 0)
 getppkinit(dat = Bolus_1CPT,runnpd = 1)
+getppkinit(dat = Bolus_1CPT,runnpd = 0, getinit.settings=c(trap.rule.method =2))
 }
