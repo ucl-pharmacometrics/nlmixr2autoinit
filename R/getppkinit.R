@@ -250,9 +250,10 @@ getppkinit <- function(dat,
 # iv case
 if ( noniv_flag==0 ){
 
-  graph.results_fd <- run_graphcal_iv(
+  graph.results_fd <- run_graphcal(
     dat = dat,
     fdobsflag =  fdobsflag,
+    noniv_flag =  noniv_flag,
     nbins = nbins,
     nlastpoints = nlastpoints
   )
