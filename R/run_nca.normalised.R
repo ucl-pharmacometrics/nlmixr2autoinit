@@ -23,7 +23,7 @@
 #' run_nca_iv.normalised(dat, nlastpoints = 3, trap.rule.method=2,nbins = 8, fdobsflag = 1,sdflag=0)
 #' @export
 
-run_nca_iv.normalised <- function(dat,
+run_nca.normalised <- function(dat,
                                   nlastpoints,
                                   trap.rule.method,
                                   nbins,

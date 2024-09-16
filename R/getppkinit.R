@@ -87,7 +87,11 @@ getppkinit <- function(dat,
     if (length(unique(dat$CMT)) > 1) {
       noniv_flag <- 1
       noniv_flag_c <- "Y"
-      stop("Warning: Non-intravenous case(s) detected")
+      message(red(
+        paste0(
+          "Non-intravenous case(s) detected, Oral administration was assumed---------------------------------------- ",
+        )
+      ))
     }
   }
 
@@ -122,23 +126,26 @@ getppkinit <- function(dat,
       ", Is single dose? ",
       sdflag_c,
       ", First-dose data available? ",
-      fdobsflag_c
+      fdobsflag_c,
+
+      ", is Oral case? ",
+      noniv_flag_c
     )
 
 
   ##############Simplified calculation############################################
-  simpcal.results <- run_simpcal_iv(
+  simpcal.APE <- Inf
+  simpcal.MAPE <- Inf
+
+  if (noniv_flag ==0){
+      simpcal.results <- run_simpcal_iv(
     dat = dat,
     infusion_flag = infusion_flag,
     sdflag = sdflag,
     fdobsflag = fdobsflag,
     half_life = half_life
   )
-
   simpcal.out <- simpcal.results$simpcal.results
-  simpcal.APE <- Inf
-  simpcal.MAPE <- Inf
-  # In case vd is not available.
 
   if (!is.na(simpcal.out$cl) & !is.na(simpcal.out$vd)) {
     simpcal_sim <-
@@ -155,10 +162,12 @@ getppkinit <- function(dat,
     simpcal.MAPE <-
       round(sum(abs(simpcal_sim$cp - simpcal_sim$DV) / simpcal_sim$DV) / nrow(simpcal_sim) *
               100, 1)
+   }
   }
 
+
   #################Non-compartmental analysis ##################################
-  nca.results <- run_nca_iv.normalised(
+  nca.results <- run_nca.normalised(
     dat = dat,
     nlastpoints = nlastpoints,
     trap.rule.method=trap.rule.method,
@@ -167,12 +176,15 @@ getppkinit <- function(dat,
     sdflag=sdflag
   )
 
+  # add ka estimation
+ if ( noniv_flag==0 ){
+  # All pooled
+  nca.APE <- Inf
+  nca.MAPE <- Inf
   nca.results_all <- nca.results$nca.results
   nca.results_fd <- nca.results$nca.fd.results
   nca.results_efd <- nca.results$nca.efd.results
 
-  nca.APE <- Inf
-  nca.MAPE <- Inf
   if (nca.results_all$cl > 0 & nca.results_all$vd > 0) {
     nca_sim <- Fit_1cmpt_iv(
       data = dat[dat$EVID != 2,],
@@ -210,7 +222,6 @@ getppkinit <- function(dat,
 
   }
 
-
   nca_efd.APE <- Inf
   nca_efd.MAPE <- Inf
   if (!is.na(nca.results_efd$cl) & !is.na(nca.results_efd$vd)) {
@@ -232,7 +243,13 @@ getppkinit <- function(dat,
 
   }
 
+ }
+
   ##############Graphic calculation##################################################
+
+# iv case
+if ( noniv_flag==0 ){
+
   graph.results_fd <- run_graphcal_iv(
     dat = dat,
     fdobsflag =  fdobsflag,
@@ -260,6 +277,7 @@ getppkinit <- function(dat,
     }
 
   }
+}
 
   ############Hybrid simplified calculation##########################
   # volume of distribution was calculated by slope
@@ -292,7 +310,8 @@ getppkinit <- function(dat,
     hybrid_vd <-  signif(-simpcal.out$cl / usedslope, 3)
   }
 
-
+#iv case
+ if ( noniv_flag==0 ){
   hybrid.APE <- Inf
   hybrid.MAPE <- Inf
   if (!is.na(hybrid_vd) & !is.na(simpcal.out$cl)) {
@@ -311,6 +330,8 @@ getppkinit <- function(dat,
               100, 1)
 
   }
+ }
+
 
   # Output all of test
   all.out <- data.frame(
@@ -322,6 +343,7 @@ getppkinit <- function(dat,
       "NCA (all pooled)",
       "Hybrid simplified calculation"
     ),
+    ka=c(NA,NA,NA,NA,NA,NA),
     cl = c(
       simpcal.out$cl,
       graph.results_fd$cl,
@@ -368,6 +390,7 @@ getppkinit <- function(dat,
         "NCA (only first dose)",
         "Hybrid simplified calculation"
       ),
+      ka=c(NA,NA,NA,NA),
       cl = c(
         simpcal.out$cl,
         graph.results_fd$cl,
@@ -394,6 +417,7 @@ getppkinit <- function(dat,
   colnames(all.out) <-
     c(
       "Method",
+      "Calculated Ka",
       "Calculated CL",
       "Calculated Vd",
       "Absolute Prediction Error (APE)",
@@ -410,10 +434,15 @@ getppkinit <- function(dat,
   # base.vd.best= as.numeric(min_mape_rows[min_mape_rows$`Mean absolute prediction error (MAPE)` ==
   #                                min(min_mape_rows$`Mean absolute prediction error (MAPE)`),]$`Calculated Vd`)
 
+  base.ka.best <-
+    all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated Ka`
+
   base.cl.best <-
     all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated CL`
+
   base.vd.best <-
     all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated Vd`
+
   ##############Naive pooled data approach for one-compartment model###############
 
   # Start from one compartment to estimate cl and Vd.
