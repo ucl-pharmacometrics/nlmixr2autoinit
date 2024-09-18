@@ -17,10 +17,11 @@
 getppkinit <- function(dat,
                        runnpd,
                        getinit.settings) {
+  # do not run parameter estimation of model fitting
   if (missing(runnpd)) {
-    runnpd = 0  # only run naive pooled approach for the estimation of vmax and km
+    runnpd = 0
   }
-
+ # tool setting
   getinit.settings0 <- data.frame(
     half_life = NA,
     nlastpoints = 4,
@@ -33,6 +34,7 @@ getppkinit <- function(dat,
   if (missing(getinit.settings)) {
     getinit.settings <- getinit.settings0
   }
+
   else {
     getinit.settings <-
       as.data.frame(t(as.data.frame(getinit.settings)))
@@ -43,7 +45,28 @@ getppkinit <- function(dat,
 
   }
 
-  print(paste0("Current settings: ", getinit.settings0))
+  message(black(
+    paste0( "Settings of running nlmixr2autoinit",
+            "\n")))
+
+  message(blue(
+      paste0(
+            "Provided reference half-life------------------------------------------------------------------------------- ",
+            getinit.settings0[1],
+            "\n",
+            "Number of plasma samples selected for linear regression on terminal phase slope---------------------------- ",
+            getinit.settings0[2],
+            "\n",
+            "Trapezoidal rule method----------------------------------------------------------------------------------- ",
+            getinit.settings0[3],
+            "\n",
+            "Number of bins during the naive pooled median data processing--------------------------------------------- ",
+            getinit.settings0[4],
+            "\n",
+            "Estimated method for naive pooled approach data---------------------------------------------------------- ",
+            getinit.settings0[5]
+    )
+  ))
 
   # Extract the final values
   half_life <- as.numeric(getinit.settings0$half_life)
