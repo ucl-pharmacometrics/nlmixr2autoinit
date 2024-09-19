@@ -163,7 +163,6 @@ getppkinit <- function(dat,
 
   message(black(
     paste0( "Estimated half_life: ",
-            "\n",
              half_life)))
 
   ##############Quick calculation############################################
