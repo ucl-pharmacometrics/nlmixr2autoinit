@@ -129,7 +129,7 @@ run_nca.normalised <- function(dat,
                       nlastpoints = nlastpoints)
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
-  nca.results.all <- data.frame(
+  nca.all.results  <- data.frame(
     cl = signif(nca.output[1], 3),
     vd = signif(nca.output[2], 3),
     slope = signif(nca.output[3], 3),
