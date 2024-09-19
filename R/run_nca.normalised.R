@@ -48,6 +48,16 @@ run_nca.normalised <- function(dat,
     time.spent = 0
   )
 
+  nca.all.results <- data.frame(
+    cl = NA,
+    vd = NA,
+    slope = NA,
+    half_life = NA,
+    start.time = NA,
+    time.spent = 0
+  )
+
+
   # Analyse data after the first dose
   if (fdobsflag == 1) {
     start.time <- Sys.time()
@@ -131,7 +141,7 @@ run_nca.normalised <- function(dat,
 
   return(list(nca.fd.results = nca.fd.results,
               nca.efd.results = nca.efd.results,
-              nca.all.results = nca.results.all))
+              nca.all.results = nca.all.results))
 
 }
 
