@@ -186,14 +186,12 @@ getppkinit <- function(dat,
       sdflag = sdflag,
       fdobsflag = fdobsflag,
       half_life = NA
-
-
   )
 
   simpcal.out <- simpcal.results$simpcal.results
   simpcal.out.2 <- simpcal.results.2$simpcal.results
 
-
+ # Evaluate the provided initial values of cl and vd by their goodness of fit
   if (!is.na(simpcal.out$cl) & !is.na(simpcal.out$vd)) {
     simpcal_sim <-
       Fit_1cmpt_iv(
@@ -211,6 +209,25 @@ getppkinit <- function(dat,
               100, 1)
    }
   }
+
+  # Evaluate the provided initial values of cl and vd by their goodness of fit
+  if (!is.na(simpcal.out.2$cl) & !is.na(simpcal.out.2$vd)) {
+    simpcal_sim_2 <-
+      Fit_1cmpt_iv(
+        data = dat[dat$EVID != 2,],
+        est.method = "rxSolve",
+        input.cl = simpcal.out.2$cl,
+        input.vd = simpcal.out.2$vd,
+        input.add = 0
+      )
+    simpcal_sim_2$DV <- dat[dat$EVID == 0,]$DV
+    # Absolute prediction error
+    simpcal2.APE <- sum(abs(simpcal_sim_2$cp - simpcal_sim_2$DV))
+    simpcal2.MAPE <-
+      round(sum(abs(simpcal_sim_2$cp - simpcal_sim_2$DV) / simpcal_sim_2$DV) / nrow(simpcal_sim_2) *
+              100, 1)
+  }
+}
 
 
   #################Non-compartmental analysis ##################################
