@@ -155,8 +155,12 @@ getppkinit <- function(dat,
       noniv_flag_c
     )
 
-
-  ##############Simplified calculation############################################
+  ########################Half-life estimated ##############################
+   half_life<-half_life_estimated(dat = dat,
+                                  sdflag = sdflag,
+                                  fdobsflag = fdobsflag,
+                                  nlastpoints = nlastpoints)
+  ##############Quick calculation############################################
   simpcal.APE <- Inf
   simpcal.MAPE <- Inf
 
