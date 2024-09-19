@@ -48,7 +48,7 @@ run_nca.normalised <- function(dat,
     time.spent = 0
   )
 
-  # If there are multiple doses, consider pooling the data of the first dose together first
+  # Analyse data after the first dose
   if (fdobsflag == 1) {
     start.time <- Sys.time()
     dat$DVnor <- dat$DV / dat$dose
@@ -73,9 +73,11 @@ run_nca.normalised <- function(dat,
       start.time = start.time,
       time.spent = time.spent
     )
+  }
 
-    if (sdflag == 0) {
-      # Analysis data with dose number >1 (repeated dose data)
+  # Analyse data after the repeated dose
+
+  if (sdflag == 0) {
       start.time <- Sys.time()
       dat$DVnor <- dat$DV / dat$dose
 
@@ -100,8 +102,10 @@ run_nca.normalised <- function(dat,
         time.spent = time.spent
       )
     }
-    # Ncacalplot(dat = dat,datpooled = datpooled_fd,ncasubfd = T,nlastpoints=nlastpoints)
-  }
+
+  # Analyse data after the first dose and repeated dose
+
+  if (fdobsflag==1 & sdflag==0){
 
   start.time <- Sys.time()
   dat$DVnor <- dat$DV / dat$dose
@@ -115,7 +119,7 @@ run_nca.normalised <- function(dat,
                       nlastpoints = nlastpoints)
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
-  nca.results <- data.frame(
+  nca.results.all <- data.frame(
     cl = signif(nca.output[1], 3),
     vd = signif(nca.output[2], 3),
     slope = signif(nca.output[3], 3),
@@ -123,10 +127,11 @@ run_nca.normalised <- function(dat,
     start.time = start.time,
     time.spent = time.spent
   )
+  }
 
   return(list(nca.fd.results = nca.fd.results,
               nca.efd.results = nca.efd.results,
-              nca.results = nca.results))
+              nca.all.results = nca.results.all))
 
 }
 
