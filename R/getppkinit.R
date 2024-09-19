@@ -74,7 +74,7 @@ getppkinit <- function(dat,
   trap.rule.method <- as.numeric(getinit.settings0$trap.rule.method)
   nbins <- as.numeric(getinit.settings0$nbins)
   est.method <- getinit.settings0$est.method
-  ############################## Data processing###################################
+  ############################## Data information summary#######################
 
   # Calculate tad and dose number
   column_names <- toupper(colnames(dat))
