@@ -41,7 +41,8 @@
 half_life_estimated<-function(dat,
                               sdflag,
                               fdobsflag,
-                              nlastpoints){
+                              nlastpoints,
+                              nbins){
 
 # split the data into three types
 dat$DVnor <- dat$DV / dat$dose

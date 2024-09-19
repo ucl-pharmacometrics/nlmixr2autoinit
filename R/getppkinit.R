@@ -159,7 +159,8 @@ getppkinit <- function(dat,
    half_life<-half_life_estimated(dat = dat,
                                   sdflag = sdflag,
                                   fdobsflag = fdobsflag,
-                                  nlastpoints = nlastpoints)
+                                  nlastpoints = nlastpoints,
+                                  nbins=nbins)
 
   message(black(
     paste0( "Estimated half_life: ",
