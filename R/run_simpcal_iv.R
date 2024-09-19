@@ -25,13 +25,13 @@ run_simpcal_iv <- function(dat,
   if (missing(half_life)) {
     half_life <- NA
   }
-  
+
   ##################################Calculate of clearance######################
   median.simpcal.cl <- NA
   dat.ss.obs <- NA
   median.simpcal.vd <- NA
   dat.fd.obs <- NA
-  
+
   if (sdflag == 0) {
     # Calculate the most commonly used dose interval
     dose_data <- dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0, ]
@@ -47,32 +47,32 @@ run_simpcal_iv <- function(dat,
       round(dose_data$interval[!is.na(dose_data$interval)], 0)
     most_commonly_used_dose_interval <-
       as.numeric(names(sort(table(dose_intervals), decreasing = TRUE)[1]))
-    
-    
+
+
     if (exists("half_life")) {
       if (is.na(half_life)) {
         half_life = most_commonly_used_dose_interval
         cat(
-          "Warning: Half-life not provided. Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
+          "Warning: Half-life was not available due to some reasons. Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
         )
       }
     }
-    
+
     if (is.null(half_life)) {
       half_life = most_commonly_used_dose_interval
       cat(
-        "Warning: Half-life not provided. Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
+        "Warning: Half-life was not available due to some reasons. Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
       )
     }
-    
+
     # Identify potential points at the steady state.
     dat <- is_ss(df = dat,
                  half_life = half_life ,
                  dose_interval = most_commonly_used_dose_interval)
-    
+
     # First selection, identify points during the steady-state phase.
     dat.ss.obs <- dat[dat$SteadyState == T,]
-    
+
     if (nrow(dat.ss.obs) > 0) {
       # If there are multiple points within the same dose interval, only the minimum and maximum values are selected as the steady-state points for calculation
       dat.ss.obs <- dat.ss.obs %>%
@@ -85,12 +85,12 @@ run_simpcal_iv <- function(dat,
           min_interval = ifelse(DV == min(DV), TRUE, FALSE)
         ) %>%
         ungroup()
-      
+
       # Extract rows to be marked in dat.ss.obs
       rows_to_mark <- dat.ss.obs %>%
         filter(max_interval == TRUE | min_interval == TRUE) %>%
         select(ID, dose_number, TIME)
-      
+
       dat <- dat %>%
         rowwise() %>%
         mutate(SteadyState = ifelse(
@@ -103,7 +103,7 @@ run_simpcal_iv <- function(dat,
           FALSE
         )) %>%
         ungroup()
-      
+
       # Same for dat.ss.obs
       dat.ss.obs  <- dat.ss.obs  %>%
         rowwise() %>%
@@ -117,7 +117,7 @@ run_simpcal_iv <- function(dat,
           FALSE
         )) %>%
         ungroup()
-      
+
       # Second selection， only select the max, min points
       dat.ss.obs <- dat.ss.obs[dat.ss.obs$SteadyState == T,]
       dat.ss.obs$cl <- NA
@@ -140,17 +140,17 @@ run_simpcal_iv <- function(dat,
             )
         }
       }
-      
+
       median.simpcal.cl <- median(dat.ss.obs$cl)
     }
-    
+
     # No selected points
     if (nrow(dat.ss.obs) == 0) {
       median.simpcal.cl <- NA
     }
-    
+
   }
-  
+
   ########################### Calculate the Volume of distribution###############
   if (fdobsflag == 1) {
     dat$fdflag <- 0
@@ -163,8 +163,8 @@ run_simpcal_iv <- function(dat,
       group_by(ID) %>%
       slice_min(order_by = TIME, n = 1) %>%
       ungroup()
-    
-    
+
+
     # Extract rows to be marked in dat.ss.obs
     dat <- dat %>%
       rowwise() %>%
@@ -178,12 +178,12 @@ run_simpcal_iv <- function(dat,
         0
       )) %>%
       ungroup()
-    
+
     # Bolus case calculation
     if (infusion_flag == 0) {
       dat.fd.obs$vd <- signif(dat.fd.obs$dose / dat.fd.obs$DV, 3)
     }
-    
+
     if (infusion_flag == 1) {
       # If less than infusion time, then it needs to multiply the time
       dat.fd.obs <- dat.fd.obs %>%
@@ -194,8 +194,8 @@ run_simpcal_iv <- function(dat,
           signif(dose / DV, 3)
         )) %>%
         ungroup()
-      
-      
+
+
     }
     # if no enough points for statistics, even no available points found
     if (nrow(dat.fd.obs) < 3) {
@@ -204,9 +204,9 @@ run_simpcal_iv <- function(dat,
     if (nrow(dat.fd.obs) > 2) {
       median.simpcal.vd <- median(dat.fd.obs$vd)
     }
-    
+
   }
-  
+
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
   # Only selected the key columns
@@ -216,8 +216,8 @@ run_simpcal_iv <- function(dat,
     starttime = Sys.time(),
     time.spent = time.spent
   )
-  
-  
+
+
   return(
     list(
       simpcal.results = simpcal.results,
@@ -226,5 +226,5 @@ run_simpcal_iv <- function(dat,
       dat.fd.obs = dat.fd.obs
     )
   )
-  
+
 }
