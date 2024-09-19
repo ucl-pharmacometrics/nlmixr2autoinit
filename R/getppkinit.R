@@ -240,7 +240,11 @@ getppkinit <- function(dat,
     sdflag=sdflag
   )
 
-  # add ka estimation
+  # In the NCA analysis, ka was estimated by statistical moments.
+
+
+
+ # iv case
  if ( noniv_flag==0 ){
   # All pooled
   nca.APE <- Inf
