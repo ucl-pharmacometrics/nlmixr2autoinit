@@ -160,6 +160,12 @@ getppkinit <- function(dat,
                                   sdflag = sdflag,
                                   fdobsflag = fdobsflag,
                                   nlastpoints = nlastpoints)
+
+  message(black(
+    paste0( "Estimated half_life: ",
+            "\n",
+             half_life)))
+
   ##############Quick calculation############################################
   simpcal.APE <- Inf
   simpcal.MAPE <- Inf
