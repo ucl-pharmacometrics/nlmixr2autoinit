@@ -53,7 +53,7 @@ run_simpcal_iv <- function(dat,
       if (is.na(half_life)) {
         half_life = most_commonly_used_dose_interval
         cat(
-          "Warning: Half-life was not available due to some reasons. Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
+          "Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
         )
       }
     }

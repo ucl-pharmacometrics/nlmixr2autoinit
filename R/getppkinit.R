@@ -171,14 +171,28 @@ getppkinit <- function(dat,
   simpcal.MAPE <- Inf
 
   if (noniv_flag ==0){
-      simpcal.results <- run_simpcal_iv(
+    # half_life is estimated
+    simpcal.results <- run_simpcal_iv(
     dat = dat,
     infusion_flag = infusion_flag,
     sdflag = sdflag,
     fdobsflag = fdobsflag,
-    half_life = half_life
+    half_life = half_life)
+
+    # use most commonly used dose-interval to replace half life
+    simpcal.results.2 <- run_simpcal_iv(
+      dat = dat,
+      infusion_flag = infusion_flag,
+      sdflag = sdflag,
+      fdobsflag = fdobsflag,
+      half_life = NA
+
+
   )
+
   simpcal.out <- simpcal.results$simpcal.results
+  simpcal.out.2 <- simpcal.results.2$simpcal.results
+
 
   if (!is.na(simpcal.out$cl) & !is.na(simpcal.out$vd)) {
     simpcal_sim <-
