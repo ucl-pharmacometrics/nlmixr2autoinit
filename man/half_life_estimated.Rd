@@ -4,7 +4,7 @@
 \alias{half_life_estimated}
 \title{Estimate half-life from given pharmacokinetic Data}
 \usage{
-half_life_estimated(dat, sdflag, fdobsflag, nlastpoints)
+half_life_estimated(dat, sdflag, fdobsflag, nlastpoints, nbins)
 }
 \arguments{
 \item{dat}{A data frame containing the pharmacokinetic data. It should include columns
@@ -47,6 +47,6 @@ subsets.
 dat <- Bolus_1CPT
 dat <- nmpkconvert(dat)
 dat <- calculate_tad(dat)
-half_life_estimated(dat, sdflag = 0, fdobsflag = 1, nlastpoints = 4)
+half_life_estimated(dat, sdflag = 0, fdobsflag = 1, nlastpoints = 4,nbins=8)
 
 }
