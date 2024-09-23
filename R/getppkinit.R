@@ -249,7 +249,7 @@ getppkinit <- function(dat,
   # All pooled
   nca.APE <- Inf
   nca.MAPE <- Inf
-  nca.results_all <- nca.results$nca.results
+  nca.results_all <- nca.results$nca.all.results
   nca.results_fd <- nca.results$nca.fd.results
   nca.results_efd <- nca.results$nca.efd.results
 
