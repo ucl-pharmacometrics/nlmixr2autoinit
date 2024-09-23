@@ -208,7 +208,6 @@ getppkinit <- function(dat,
       round(sum(abs(simpcal_sim$cp - simpcal_sim$DV) / simpcal_sim$DV) / nrow(simpcal_sim) *
               100, 1)
    }
-  }
 
   # Evaluate the provided initial values of cl and vd by their goodness of fit
   if (!is.na(simpcal.out.2$cl) & !is.na(simpcal.out.2$vd)) {
