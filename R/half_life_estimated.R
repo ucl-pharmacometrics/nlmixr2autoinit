@@ -61,7 +61,7 @@ if (fdobsflag==1){
   fslope <- lm(log(temp1$Conc) ~ temp1$Time)
   slope_fd <- summary(fslope)[[4]][[2]]
   ke_fd <-  - slope_fd
-  half_life_fd <- 0.693 / ke_fd # change to log(2)
+  half_life_fd <- log(2) / ke_fd # change to log(2)
 }
 
 if (sdflag == 0){
@@ -75,7 +75,7 @@ if (sdflag == 0){
   fslope <- lm(log(temp1$Conc) ~ temp1$Time)
   slope_efd <- summary(fslope)[[4]][[2]]
   ke_efd <-  - slope_efd
-  half_life_efd <- 0.693 / ke_efd
+  half_life_efd <- log(2) / ke_efd
 }
 
 # Data with samples after the first dose and repeated dose
@@ -88,7 +88,7 @@ if (fdobsflag==1 & sdflag==0){
   fslope <- lm(log(temp1$Conc) ~ temp1$Time)
   slope_all <- summary(fslope)[[4]][[2]]
   ke_all <-  - slope_all
-  half_life_all <- 0.693 / ke_all
+  half_life_all <- log(2) / ke_all
 }
 
 
