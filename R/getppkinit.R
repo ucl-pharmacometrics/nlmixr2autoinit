@@ -8,6 +8,7 @@
 #' @importFrom dplyr %>% mutate filter select
 #' @import nlmixr2
 #' @importFrom tidyr fill
+#' @import crayon
 #' @examples
 #' getppkinit(dat = Bolus_1CPT,runnpd = 0)
 #' getppkinit(dat = Bolus_1CPT,runnpd = 1)
