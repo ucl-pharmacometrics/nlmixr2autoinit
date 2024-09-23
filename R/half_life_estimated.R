@@ -32,7 +32,7 @@
 #' dat <- Bolus_1CPT
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
-#' half_life_estimated(dat, sdflag = 0, fdobsflag = 1, nlastpoints = 4)
+#' half_life_estimated(dat, sdflag = 0, fdobsflag = 1, nlastpoints = 4,nbins=8)
 #'
 #' @importFrom stats lm
 #' @export
@@ -44,7 +44,7 @@ half_life_estimated<-function(dat,
                               nlastpoints,
                               nbins){
 
-# split the data into three types
+# Split the data into three types
 dat$DVnor <- dat$DV / dat$dose
 half_life_fd<-NA
 half_life_efd<-NA
@@ -61,7 +61,7 @@ if (fdobsflag==1){
   fslope <- lm(log(temp1$Conc) ~ temp1$Time)
   slope_fd <- summary(fslope)[[4]][[2]]
   ke_fd <-  - slope_fd
-  half_life_fd <- 0.693 / ke_fd
+  half_life_fd <- 0.693 / ke_fd # change to log(2)
 }
 
 if (sdflag == 0){
@@ -78,7 +78,7 @@ if (sdflag == 0){
   half_life_efd <- 0.693 / ke_efd
 }
 
-# data with samples after the first dose and repeated dose
+# Data with samples after the first dose and repeated dose
 if (fdobsflag==1 & sdflag==0){
   datpooled_all <- pk.time.binning(testdat = dat,
                                    nbins = nbins)
