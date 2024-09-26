@@ -207,7 +207,7 @@ nca.iv.normalised <- function(dat,
 
   vd <- vdnormalised
 
-  return(c(cl, vd, slope, half_life))
+  return(c(cl, vd, slope, half_life, auct_inf, Clast, ke))
 }
 
 
@@ -226,8 +226,18 @@ nca.iv.normalised <- function(dat,
 #' y <- c(12, 8, 5, 3, 2, 1.5, 1)
 #' trap.rule(x, y)
 #'
-trap.rule <- function(x, y){
-  sum(diff(x) * (y[-1] + y[-length(y)])) / 2
+
+trap.rule <- function(x, y) {
+  # Calculate the first triangle (between the first two points)
+  first_triangle_area <- x[1] * y[1] / 2
+
+  # Calculate the trapezoidal areas for the middle points (excluding first and last segments)
+  trapezoidal_area <- sum(diff(x) * (y[-1] + y[-length(y)])) / 2
+
+  # Total area is the sum of the first triangle and middle trapezoids.
+  total_area <- first_triangle_area + trapezoidal_area
+
+  return(total_area)
 }
 
 #' Calculate AUC using linear up and log down trapezoidal rule
