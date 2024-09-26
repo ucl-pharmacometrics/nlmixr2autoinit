@@ -207,7 +207,7 @@ nca.iv.normalised <- function(dat,
 
   vd <- vdnormalised
 
-  return(c(cl, vd, slope, half_life, auct_inf, Clast, ke))
+  return(c(cl, vd, slope, half_life,  auct, auc0_inf, C_last, ke))
 }
 
 
