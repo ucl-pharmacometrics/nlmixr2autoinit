@@ -78,7 +78,7 @@ ka_wanger_nelson<-function(dat,nlastpoints){
 
 #' Calculate absorption rate constant (ka) using statistical moments
 #'
-#' Calculation the absorption rate constant (ka) for oral drug administration using statistical moments.
+#' Calculates the absorption rate constant (ka) for oral drug administration using statistical moments.
 #' It calculates the area under the concentration-time curve (AUC) and the area under the moment curve (AUMC) based on non-compartmental analysis (NCA).
 #' The absorption rate constant is derived from the mean absorption time (MAT), which is calculated using the difference between
 #' the mean residence time (MRT) for oral and intravenous (IV) administration.
