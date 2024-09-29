@@ -165,49 +165,50 @@ nca.iv.normalised <- function(dat,
   if (missing(trap.rule.method)){
     trap.rule.method=1
   }
-
   if (missing(nlastpoints)) {
     nlastpoints <- 4
   }
-
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
 
   if (trap.rule.method==1){
     auct <- trap.rule(dat$TIME, dat$DV)
   }
-
   if (trap.rule.method==2){
     auct <- trap.rule_linear_up_log_down(dat$TIME, dat$DV)
   }
 
   # Select last 4/specified number for slope calculation
   temp1 <- tail(dat, n = nlastpoints)
-
   # linear regression for slope of log of DVs
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
-
   slope <- summary(abc)[[4]][[2]]
-
   ke <- -slope
-
-  half_life <- 0.693 / ke
-
+  lambda_z<- ke
+  half_life <- log(2) / ke
   C_last <- tail(temp1$DV, 1)
+  t_last <- tail(temp1$TIME, 1)
 
   auct_inf <- C_last / ke
-
   auc0_inf <- auct + auct_inf
-
   clnormalised <- 1 / auc0_inf
-
   vdnormalised <- clnormalised / ke
-
   cl <- clnormalised
-
   vd <- vdnormalised
 
-  return(c(cl, vd, slope, half_life,  auct, auc0_inf, C_last, ke))
+  # AUMC calculation
+  time<-dat$TIME
+  concentration<-dat$DV
+  moment_curve <- time * concentration
+
+  # Calculate AUMC from 0 to t_last
+  aumc0_t <- trap.rule(time, moment_curve)
+  # Calculate AUMC from t_last to infinity
+  aumc_tlast_to_inf <- (C_last * t_last) / lambda_z + C_last / (lambda_z^2)
+  # Calculate AUMC from 0 to infinity
+  aumc_0_inf<- aumc0_t + aumc_tlast_to_inf
+
+  return(c(cl, vd, slope, half_life, auct, auc0_inf, C_last, ke, aumc_0_inf))
 }
 
 
