@@ -1131,14 +1131,14 @@ message(black(
 
     sel.method.multi <- "Sensitivity analysis by simulation "
 
-    sel.method.ka<-"wanger_nelson"
+    sel.method.ka<-"Wanger_nelson"
 
     if (sel.method.ka.cl.vd== "Hybrid simplified calculation"){
-        sel.method.ka<-"wanger_nelson_ (median)"
+        sel.method.ka<-"Wanger_nelson_ (median)"
     }
 
     if (sel.method.ka.cl.vd== "Graphic calculation"){
-      sel.method.ka<-"methods of residuals"
+      sel.method.ka<-"Methods of residuals"
     }
 
     init.params.out.ka <- data.frame(method = sel.method.ka,
