@@ -19,13 +19,22 @@ sim_sens_vmax_km <- function(dat,
                              sim_km_list,
                              estvd,
                              estcl,
-                             estcmax) {
+                             estcmax,
+                             estka,
+                             noniv_flag) {
+
+  if (missing(estka)){
+    estka<-NA
+  }
+  if(missing(noniv_flag)){
+    noniv_flag<-0
+  }
   start.time <- Sys.time()
-  
+
   if (missing(estvd)) {
     stop("Error: no volume of distribution for simulation was provided")
   }
-  
+
   if (missing(sim_vmax_list) || missing(sim_km_list)) {
     if (missing(estcl)) {
       stop("Error: no estimated clearance for simulation was provided")
@@ -33,32 +42,33 @@ sim_sens_vmax_km <- function(dat,
     else if (missing(estcmax)) {
       stop("Error, no estimated cmax for simuation was provided")
     }
-    
+
     else{
       # generate the default vman and km test list from linear kinetcs to nonlinear kinetics
       km_range <- c(4, 2, 1, 0.5, 0.25, 0.125, 0.1, 0.05) * estcmax
       # cl ~ range (0, vmax/km)
       # assume several concentration values.
       conc_range <- c(0.1, 0.25, 0.5, 0.75) * estcmax
-      
+
       combs <- expand.grid(km_range, conc_range)
       combs_df <- data.frame(combs)
       colnames(combs_df) <- c("km", "conc")
       combs_df$vmax <- (combs_df$km + combs_df$conc) * estcl
     }
   }
-  
+
   else{
     combs_df <- data.frame(vmax = sim_vmax_list, km = sim_km_list)
-    
+
   }
-  
+
   # start simulation
   sim.vmax.km.results.all <- NULL
   for (loopmm in 1:nrow(combs_df)) {
     input.vmax <- combs_df[loopmm,]$vmax
     input.km <- combs_df[loopmm,]$km
-    
+
+    if (noniv_flag==0){
     sim.lst <- Fit_1cmpt_mm_iv(
       data = dat[dat$EVID != 2,],
       est.method = "rxSolve",
@@ -67,17 +77,30 @@ sim_sens_vmax_km <- function(dat,
       input.vd = estvd,
       input.add = 0
     )
-    
+    }
+
+   if (noniv_flag==1){
+    sim.lst <- Fit_1cmpt_mm_oral(
+      data = dat[dat$EVID != 2,],
+      est.method = "rxSolve",
+      input.ka = input.ka,
+      input.vmax = input.vmax,
+      input.km = input.km,
+      input.vd = estvd,
+      input.add = 0
+    )
+   }
+
     sim.lst$DV <- dat[dat$EVID == 0,]$DV
     #  absolute percentage error  (APE)
     sim.APE <- sum(abs(sim.lst$cp - sim.lst$DV), na.rm = T)
     #  mean absolute percentage error  (MAPE)
     sim.MAPE <-
       sum(abs(sim.lst$cp - sim.lst$DV) / sim.lst$DV, na.rm = T)
-    
+
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
-    
+
     sim.vmax.km.results <-
       data.frame(
         vmax = input.vmax,
@@ -118,11 +141,11 @@ sim_sens_2cmpt <- function(dat,
   if (missing(estcl)) {
     stop("Error: no estimated clearance for simulation was provided")
   }
-  
+
   if (missing(estq)) {
     estq = estcl
   }
-  
+
   if (missing(sim_vc_list) || missing(sim_vp_list)) {
     if (missing(estvd)) {
       stop("Error: no estimated volume of distribution for simulation was provided")
@@ -139,14 +162,14 @@ sim_sens_2cmpt <- function(dat,
         signif(estvd * (1 - vc_vp_ratio_range / (vc_vp_ratio_range + 1)), 3)
     }
   }
-  
-  
+
+
   sim.2cmpt.results.all <- NULL
-  
+
   for (loop2cmpt in 1:length(sim_vc_list)) {
     input.vc <- sim_vc_list[loop2cmpt]
     input.vp <- sim_vp_list[loop2cmpt]
-    
+
     sim.lst <- Fit_2cmpt_iv(
       data = dat[dat$EVID != 2,],
       est.method = "rxSolve",
@@ -156,16 +179,16 @@ sim_sens_2cmpt <- function(dat,
       input.q2cmpt = estq,
       input.add = 0
     )
-    
+
     sim.lst$DV <- dat[dat$EVID == 0,]$DV
     sim.APE <- sum(abs(sim.lst$cp - sim.lst$DV), na.rm = T)
     sim.MAPE <-
       round(sum(abs(sim.lst$cp - sim.lst$DV) / sim.lst$DV) / nrow(sim.lst) *
               100, 1)
-    
+
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
-    
+
     sim.2cmpt.results <- data.frame(
       vc = input.vc,
       vp = input.vp,
@@ -173,12 +196,12 @@ sim_sens_2cmpt <- function(dat,
       sim.2cmpt.MAPE = sim.MAPE,
       time.spent = time.spent
     )
-    
+
     sim.2cmpt.results.all <-
       rbind(sim.2cmpt.results.all, sim.2cmpt.results)
-    
+
   }
-  
+
   return(sim.2cmpt.results.all)
 }
 
@@ -215,12 +238,12 @@ sim_sens_3cmpt <- function(dat,
   if (missing(estq)) {
     estq = estcl
   }
-  
+
   if (missing(estq2)) {
     estq2 = estcl
   }
-  
-  
+
+
   if (missing(sim_vc_list) ||
       missing(sim_vp_list) || missing(sim_vp2_list)) {
     if (missing(estvd)) {
@@ -231,16 +254,16 @@ sim_sens_3cmpt <- function(dat,
       start.time <- Sys.time()
       vc_vp_ratio_range <- c(5, 2, 1, 0.5, 0.25)
       vp_vp2_ratio_range <- c(5, 2, 1, 0.5, 0.25)
-      
+
       # Generate the matrix of all combinations
       combs <- expand.grid(vc_vp_ratio_range,  vp_vp2_ratio_range)
       combs_df <- data.frame(combs)
       combs_df$Var3 <- 1
-      
+
       vc_ratio_range <-  combs_df[, 1] * combs_df[, 2]
       vp_ratio_range <-  combs_df[, 2]
       vp2_ratio_range <-  combs_df[, 3]
-      
+
       sim_vc_list <-
         signif(estvd *  vc_ratio_range / (vc_ratio_range + vp_ratio_range + vp2_ratio_range),
                3)
@@ -252,14 +275,14 @@ sim_sens_3cmpt <- function(dat,
                3)
     }
   }
-  
+
   sim.3cmpt.results.all <- NULL
-  
+
   for (loop3cmpt in 1:length(sim_vc_list)) {
     input.vc <- sim_vc_list[loop3cmpt]
     input.vp <- sim_vp_list[loop3cmpt]
     input.vp2 <- sim_vp2_list[loop3cmpt]
-    
+
     sim.lst <- Fit_3cmpt_iv(
       data = dat[dat$EVID != 2,],
       est.method = "rxSolve",
@@ -271,16 +294,16 @@ sim_sens_3cmpt <- function(dat,
       input.q23cmpt = 10,
       input.add = 0
     )
-    
+
     sim.lst$DV <- dat[dat$EVID == 0,]$DV
     sim.APE <- sum(abs(sim.lst$cp - sim.lst$DV), na.rm = T)
     sim.MAPE <-
       round(sum(abs(sim.lst$cp - sim.lst$DV) / sim.lst$DV) / nrow(sim.lst) *
               100, 1)
-    
+
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
-    
+
     sim.3cmpt.results <- data.frame(
       vc = input.vc,
       vp = input.vp,
@@ -289,11 +312,11 @@ sim_sens_3cmpt <- function(dat,
       sim.3cmpt.MAPE = sim.MAPE,
       time.spent = time.spent
     )
-    
+
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results)
   }
-  
+
   return(sim.3cmpt.results.all)
-  
+
 }
