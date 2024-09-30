@@ -133,7 +133,8 @@ getppkinit(dat = d1,runnpd = 0)
 # [9] "Q2: inter-compartmental clearance between central and second peripheral compartment"
 ```
 Oral case example
-```
+
+``` r
 library(nlmixr2autoinit)
 d1<-Oral_1CPT
 getppkinit(dat = d1,runnpd = 0)
