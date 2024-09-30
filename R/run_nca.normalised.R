@@ -71,6 +71,10 @@ run_nca.normalised <- function(dat,
     time.spent = 0
   )
 
+  datpooled_fd<-NA
+  datpooled_efd<-NA
+  datpooled_all<-NA
+
   # Analyse data after the first dose
   if (fdobsflag == 1) {
     start.time <- Sys.time()
@@ -169,7 +173,11 @@ run_nca.normalised <- function(dat,
 
   return(list(nca.fd.results = nca.fd.results,
               nca.efd.results = nca.efd.results,
-              nca.all.results = nca.all.results))
+              nca.all.results = nca.all.results,
+              datpooled_fd=datpooled_fd,
+              datpooled_efd=datpooled_efd,
+              datpooled_all=datpooled_all
+              ))
 
 }
 
