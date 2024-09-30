@@ -42,6 +42,8 @@
 #'
 ka_wanger_nelson<-function(dat,nlastpoints){
 
+  colnames(dat)[1]<-"TIME"
+  colnames(dat)[2]<-"DV"
   x<-dat$TIME
   y<-dat$DV
   nca.out<-nca.iv.normalised(dat = data.frame(time=x,conc=y),nlastpoints=nlastpoints)
@@ -114,7 +116,7 @@ calculate_ka_statistical_moments <- function(x, y, nlastpoints) {
   auc_ <- nca.out[6]
   aumc_ <- nca.out[9]
   mrt_oral <- aumc_ / auc_
-  # Calculate MRT for i.v. by half life
+  # Calculate MRT, Vss = CL * MRT
   mrt_iv <- nca.out[4]/log(2)
   # Calculate Mean Absorption Time (MAT)
   mat <- mrt_oral - mrt_iv

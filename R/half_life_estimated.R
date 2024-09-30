@@ -99,8 +99,8 @@ half_life_values<-c( half_life_fd ,half_life_efd , half_life_all)
 positive_values <-  half_life_values[ half_life_values > 0 &  !is.na( half_life_values)]
 
 # Calculate geometric mean of the positive values
-half_life_mean <- round(exp(mean(log(positive_values))),2)
-
-return(half_life_mean)
+# half_life_geom_mean <- round(exp(mean(log(positive_values))),2)
+half_life_median <- round(median(positive_values),2)
+return(half_life_median)
 
 }
