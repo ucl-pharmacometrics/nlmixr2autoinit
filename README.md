@@ -131,4 +131,140 @@ getppkinit(dat = d1,runnpd = 0)
 # [7] "Vp: volume of distribution of the second peripheral compartment"                    
 # [8] "Q: inter-compartmental clearance"                                                   
 # [9] "Q2: inter-compartmental clearance between central and second peripheral compartment"
-``` 
+```
+Oral case example
+```
+library(nlmixr2autoinit)
+d1<-Oral_1CPT
+getppkinit(dat = d1,runnpd = 0)
+# Settings of running nlmixr2autoinit
+# 
+# Provided reference half-life------------------------------------------------------------------------------- NA
+# Number of plasma samples selected for linear regression on terminal phase slope---------------------------- 4
+# Trapezoidal rule method----------------------------------------------------------------------------------- 1
+# Number of bins during the naive pooled median data processing--------------------------------------------- 8
+# Estimated method for naive pooled approach data---------------------------------------------------------- nls
+# Non-intravenous case(s) detected, Oral administration was assumed---------------------------------------- 
+#   Performed linear regression on the terminal phase of pooled dose-normalized data, estimated half-life: NA
+# Run quick calculation with estimated half-life: 12.18
+# Run quick calculation without estimated half-life: 
+#   Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered.Base parameter estimation finished. Estimated ka :0.89, estimated CL : 4.18, estimated Vd : 73.5
+# $Datainfo
+# [1] "No. of subjects: 120, No. of observations: 6947, Is infusion? N, Is single dose? N, First-dose data available? Y, is Oral case? Y"
+# 
+# $Recommended_initial_estimates
+# Parameters                             Methods    Values
+# 1          Ka             wanger_nelson_ (median)     0.890
+# 2          CL       Hybrid simplified calculation     4.180
+# 3          Vd       Hybrid simplified calculation    73.500
+# 4        Vmax Sensitivity analysis by simulation  11942.857
+# 5          Km Sensitivity analysis by simulation   1632.653
+# 6   Vc(2CMPT) Sensitivity analysis by simulation     66.800
+# 7   Vp(2CMPT) Sensitivity analysis by simulation      6.680
+# 8   Vc(3CMPT) Sensitivity analysis by simulation     45.900
+# 9   Vp(3CMPT) Sensitivity analysis by simulation      9.190
+# 10 Vp2(3CMPT) Sensitivity analysis by simulation     18.400
+# 
+# $Message
+# NULL
+# 
+# $Run.history
+# $Run.history$base.out
+# Method Calculated Ka Calculated CL Calculated Vd Absolute prediction error (APE) Mean absolute prediction error (MAPE)  Time spent
+# 1             Simplified calculation            NA          4.18            NA                             Inf                                   Inf 3.3159 secs
+# 2                Graphic calculation     0.4240000          4.05          71.2                       1086908.5                                    84 0.0047 secs
+# 3              NCA (only first dose)     0.8868166          3.99          70.0                        922741.4                                    78 0.0040 secs
+# 4 NCA (data exclude first-dose part)     0.9939569          2.95          53.4                       1425113.3                                   122 0.0046 secs
+# 5                   NCA (all pooled)     0.3573872          3.31          49.9                       1101035.0                                    80 0.0052 secs
+# 6      Hybrid simplified calculation     0.8900000          4.18          73.5                        925834.2                                    74 3.3159 secs
+# 
+# $Run.history$sim.vmax.km
+# Simulated Vmax Simulated Km Absolute prediction error (APE) Mean absolute prediction error (MAPE)  Time spent
+# 1       27980.408   6530.61224                        951595.3                              5565.710 0.1618 secs
+# 2       14331.429   3265.30612                       1098983.8                              6522.694 0.3177 secs
+# 3        7506.939   1632.65306                       2132256.4                             13750.077 0.4996 secs
+# 4        4094.694    816.32653                       4033459.0                              7477.732 0.6581 secs
+# 5        2388.571    408.16327                       4424244.4                              7810.829 0.8167 secs
+# 6        1535.510    204.08163                       5030780.9                              8626.398 0.9851 secs
+# 7        1364.898    163.26531                       5158936.8                              8800.526 1.1403 secs
+# 8        1023.673     81.63265                       5711261.4                              9418.194 1.3018 secs
+# 9       29004.082   6530.61224                        935220.4                              4970.290 1.4701 secs
+# 10      15355.102   3265.30612                       1006146.2                              5204.291 1.7504 secs
+# 11       8530.612   1632.65306                       1416037.7                              6826.666 1.9259 secs
+# 12       5118.367    816.32653                       3394329.4                              6737.945 2.0810 secs
+# 13       3412.245    408.16327                       4485674.2                              7752.525 2.2447 secs
+# 14       2559.184    204.08163                       4302926.1                              7648.851 2.4034 secs
+# 15       2388.571    163.26531                       4407828.0                              7781.501 2.6718 secs
+# 16       2047.347     81.63265                       4657926.9                              8116.441 2.8417 secs
+# 17      30710.204   6530.61224                        931918.6                              4362.223 3.0065 secs
+# 18      17061.224   3265.30612                        952640.8                              3950.194 3.1823 secs
+# 19      10236.735   1632.65306                       1035960.2                              3616.722 3.3544 secs
+# 20       6824.490    816.32653                       1366089.6                              4284.614 3.5221 secs
+# 21       5118.367    408.16327                       3352264.3                              6705.271 3.6836 secs
+# 22       4265.306    204.08163                       3856210.3                              7195.465 3.9441 secs
+# 23       4094.694    163.26531                       3975330.2                              7310.829 4.1034 secs
+# 24       3753.469     81.63265                       4231412.5                              7559.313 4.2493 secs
+# 25      32416.327   6530.61224                        947329.1                              3805.215 4.4114 secs
+# 26      18767.347   3265.30612                        978652.8                              3261.544 4.5885 secs
+# 27      11942.857   1632.65306                       1056757.5                              2955.124 4.7451 secs
+# 28       8530.612    816.32653                       1191361.5                              3354.992 5.0094 secs
+# 29       6824.490    408.16327                       1342934.8                              3904.319 5.1666 secs
+# 30       5971.429    204.08163                       1457355.4                              4241.281 5.3179 secs
+# 31       5800.816    163.26531                       1507334.7                              4330.352 5.4789 secs
+# 32       5459.592     81.63265                       1627005.2                              4552.210 5.7563 secs
+# 
+# $Run.history$sim.2cmpt
+# Simulated Vc Simulated Vp Absolute prediction error (APE) Mean absolute prediction error (MAPE)  Time spent
+# 1        66.80         6.68                        919033.1                                  74.4 0.1721 secs
+# 2        61.20        12.20                        921137.6                                  75.8 0.3306 secs
+# 3        49.00        24.50                       1001457.9                                  84.8 0.4771 secs
+# 4        36.80        36.80                       1265321.1                                 100.8 0.6231 secs
+# 5        24.50        49.00                       1933480.1                                 125.8 0.7686 secs
+# 6        12.30        61.20                       3406427.5                                 173.6 0.9294 secs
+# 7         6.68        66.80                       4626678.7                                 215.8 1.0767 secs
+# 
+# $Run.history$sim.3cmpt
+# Simulated Vc Simulated Vp Simulated Vp2 Absolute prediction error (APE) Mean absolute prediction error (MAPE)  Time spent
+# 1         59.30        11.90          2.37                         1413220                                  89.4 0.2086 secs
+# 2         45.90        23.00          4.59                         1699182                                  98.8 0.4114 secs
+# 3         33.40        33.40          6.68                         2177591                                 115.3 0.6174 secs
+# 4         21.60        43.20          8.65                         2943860                                 144.2 0.8120 secs
+# 5         12.70        50.70         10.10                         3832827                                 181.8 1.0272 secs
+# 6         56.50        11.30          5.65                         1463454                                  85.7 1.2290 secs
+# 7         42.00        21.00         10.50                         1819565                                  93.8 1.4370 secs
+# 8         29.40        29.40         14.70                         2393269                                 110.9 1.6365 secs
+# 9         18.40        36.80         18.40                         3222846                                 140.5 1.8473 secs
+# 10        10.50        42.00         21.00                         4087036                                 177.0 2.0522 secs
+# 11        52.50        10.50         10.50                         1545589                                  82.1 2.2571 secs
+# 12        36.80        18.40         18.40                         2028070                                  91.3 2.4570 secs
+# 13        24.50        24.50         24.50                         2736667                                 112.1 2.6627 secs
+# 14        14.70        29.40         29.40                         3640429                                 144.9 2.8714 secs
+# 15         8.17        32.70         32.70                         4400369                                 180.5 3.0825 secs
+# 16        45.90         9.19         18.40                         1738391                                  79.6 3.3898 secs
+# 17        29.40        14.70         29.40                         2496958                                  97.8 3.5817 secs
+# 18        18.40        18.40         36.80                         3420177                                 129.3 3.7886 secs
+# 19        10.50        21.00         42.00                         4386271                                 170.0 4.1017 secs
+# 20         5.65        22.60         45.20                         4885716                                 201.3 4.3192 secs
+# 21        36.80         7.35         29.40                         2182821                                  85.7 4.5097 secs
+# 22        21.00        10.50         42.00                         3460693                                 127.7 4.7169 secs
+# 23        12.20        12.20         49.00                         4692050                                 175.7 4.9974 secs
+# 24         6.68        13.40         53.50                         5592591                                 219.2 5.2128 secs
+# 25         3.50        14.00         56.00                         5701954                                 235.7 5.4225 secs
+# 
+# $Run.history$npd.out.vmax.km
+# [1] "No model fitting by naive pool data approach was conducted"
+# 
+# $Run.history$npd.out.2cmpt
+# [1] "No model fitting by naive pool data approach was conducted"
+# 
+# $Run.history$npd.out.3cmpt
+# [1] "No model fitting by naive pool data approach was conducted"
+# 
+# 
+# $Parameter.descriptions
+# [1] "CL: clearance"                                                                       "Vd: volumn of distribution"                                                         
+# [3] "Vmax: maximum metobolic rate"                                                        "Km: Michaelis constant"                                                             
+# [5] "Vc: volume of distribution of the central compartment"                               "Vp: volume of distribution of the peripheral compartment"                           
+# [7] "Vp: volume of distribution of the second peripheral compartment"                     "Q: inter-compartmental clearance"                                                   
+# [9] "Q2: inter-compartmental clearance between central and second peripheral compartment"
+```
