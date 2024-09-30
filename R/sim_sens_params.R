@@ -137,7 +137,17 @@ sim_sens_2cmpt <- function(dat,
                            sim_vp_list,
                            estcl,
                            estvd,
-                           estq) {
+                           estq,
+                           estka,
+                           noniv_flag) {
+
+  if (missing(estka)){
+    estka<-NA
+  }
+  if(missing(noniv_flag)){
+    noniv_flag<-0
+  }
+
   if (missing(estcl)) {
     stop("Error: no estimated clearance for simulation was provided")
   }
@@ -170,6 +180,7 @@ sim_sens_2cmpt <- function(dat,
     input.vc <- sim_vc_list[loop2cmpt]
     input.vp <- sim_vp_list[loop2cmpt]
 
+    if (noniv_flag==0){
     sim.lst <- Fit_2cmpt_iv(
       data = dat[dat$EVID != 2,],
       est.method = "rxSolve",
@@ -179,6 +190,21 @@ sim_sens_2cmpt <- function(dat,
       input.q2cmpt = estq,
       input.add = 0
     )
+    }
+
+
+    if (noniv_flag==1){
+      sim.lst <- Fit_2cmpt_oral(
+        data = dat[dat$EVID != 2,],
+        est.method = "rxSolve",
+        input.ka = estka,
+        input.cl = estcl,
+        input.vc2cmpt = input.vc,
+        input.vp2cmpt = input.vp,
+        input.q2cmpt = estq,
+        input.add = 0
+      )
+    }
 
     sim.lst$DV <- dat[dat$EVID == 0,]$DV
     sim.APE <- sum(abs(sim.lst$cp - sim.lst$DV), na.rm = T)
@@ -233,7 +259,17 @@ sim_sens_3cmpt <- function(dat,
                            estcl,
                            estvd,
                            estq,
-                           estq2) {
+                           estq2,
+                           estka,
+                           noniv_flag) {
+
+  if (missing(estka)){
+    estka<-NA
+  }
+  if(missing(noniv_flag)){
+    noniv_flag<-0
+  }
+
   # default value
   if (missing(estq)) {
     estq = estcl
@@ -283,6 +319,7 @@ sim_sens_3cmpt <- function(dat,
     input.vp <- sim_vp_list[loop3cmpt]
     input.vp2 <- sim_vp2_list[loop3cmpt]
 
+    if (noniv_flag==0){
     sim.lst <- Fit_3cmpt_iv(
       data = dat[dat$EVID != 2,],
       est.method = "rxSolve",
@@ -294,6 +331,21 @@ sim_sens_3cmpt <- function(dat,
       input.q23cmpt = 10,
       input.add = 0
     )
+    }
+    if (noniv_flag==1){
+    sim.lst <- Fit_3cmpt_oral(
+      data = dat[dat$EVID != 2,],
+      est.method = "rxSolve",
+      input.ka = estka,
+      input.cl = estcl,
+      input.vc3cmpt = input.vc,
+      input.vp3cmpt = input.vp,
+      input.vp23cmpt = input.vp2,
+      input.q3cmpt = 10,
+      input.q23cmpt = 10,
+      input.add = 0
+    )
+    }
 
     sim.lst$DV <- dat[dat$EVID == 0,]$DV
     sim.APE <- sum(abs(sim.lst$cp - sim.lst$DV), na.rm = T)
@@ -304,6 +356,7 @@ sim_sens_3cmpt <- function(dat,
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
 
+
     sim.3cmpt.results <- data.frame(
       vc = input.vc,
       vp = input.vp,
@@ -312,6 +365,7 @@ sim_sens_3cmpt <- function(dat,
       sim.3cmpt.MAPE = sim.MAPE,
       time.spent = time.spent
     )
+
 
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results)
