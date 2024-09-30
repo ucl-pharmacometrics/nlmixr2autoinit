@@ -40,13 +40,15 @@
 #'
 #' @export
 #'
-ka_wanger_nelson<-function(dat,nlastpoints){
+ka_wanger_nelson<-function(dat,nlastpoints,nca.out){
 
   colnames(dat)[1]<-"TIME"
   colnames(dat)[2]<-"DV"
   x<-dat$TIME
   y<-dat$DV
+  if (missing(nca.out)){
   nca.out<-nca.iv.normalised(dat = data.frame(time=x,conc=y),nlastpoints=nlastpoints)
+  }
   auc_ <- nca.out[6]
   ke<- nca.out[8]
   auc_intervals<- diff(x) * (y[-1] + y[-length(y)])/2
@@ -116,11 +118,10 @@ calculate_ka_statistical_moments <- function(x, y, nlastpoints) {
   auc_ <- nca.out[6]
   aumc_ <- nca.out[9]
   mrt_oral <- aumc_ / auc_
-  # Calculate MRT, Vss = CL * MRT
+  # Calculate MRT for iv, Vss = CL * MRT
   mrt_iv <- nca.out[4]/log(2)
   # Calculate Mean Absorption Time (MAT)
   mat <- mrt_oral - mrt_iv
-
   # Estimate absorption rate constant (ka)
   ka <- 1 / mat
   return(ka)
