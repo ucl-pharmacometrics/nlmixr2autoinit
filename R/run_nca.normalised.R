@@ -18,9 +18,8 @@
 #' dat <- Bolus_1CPT
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
-#' dat$DVnor<-dat$DV/dat$dose
-#' run_nca_iv.normalised(dat, nlastpoints = 3, trap.rule.method=1,nbins = 8, fdobsflag = 1,sdflag=0)
-#' run_nca_iv.normalised(dat, nlastpoints = 3, trap.rule.method=2,nbins = 8, fdobsflag = 1,sdflag=0)
+#' run_nca.normalised(dat, nlastpoints = 3, trap.rule.method=1,nbins = 8, fdobsflag = 1,sdflag=0)
+#' run_nca.normalised(dat, nlastpoints = 3, trap.rule.method=2,nbins = 8, fdobsflag = 1,sdflag=0)
 #' @export
 
 run_nca.normalised <- function(dat,
@@ -35,6 +34,11 @@ run_nca.normalised <- function(dat,
     vd = NA,
     slope = NA,
     half_life = NA,
+    auct=NA,
+    auc0_inf=NA,
+    C_last=NA,
+    ke=NA,
+    aumc_0_inf=NA,
     start.time = NA,
     time.spent = 0
   )
@@ -44,6 +48,11 @@ run_nca.normalised <- function(dat,
     vd = NA,
     slope = NA,
     half_life = NA,
+    auct=NA,
+    auc0_inf=NA,
+    C_last=NA,
+    ke=NA,
+    aumc_0_inf=NA,
     start.time = NA,
     time.spent = 0
   )
@@ -53,10 +62,14 @@ run_nca.normalised <- function(dat,
     vd = NA,
     slope = NA,
     half_life = NA,
+    auct=NA,
+    auc0_inf=NA,
+    C_last=NA,
+    ke=NA,
+    aumc_0_inf=NA,
     start.time = NA,
     time.spent = 0
   )
-
 
   # Analyse data after the first dose
   if (fdobsflag == 1) {
@@ -80,6 +93,11 @@ run_nca.normalised <- function(dat,
       vd = signif(nca.output[2], 3),
       slope = signif(nca.output[3], 3),
       half_life = signif(nca.output[4], 3),
+      auct = signif(nca.output[5], 3),
+      auc0_inf = signif(nca.output[6], 3),
+      C_last = signif(nca.output[7], 3),
+      ke = signif(nca.output[8], 3),
+      aumc_0_inf = signif(nca.output[9], 3),
       start.time = start.time,
       time.spent = time.spent
     )
@@ -108,6 +126,11 @@ run_nca.normalised <- function(dat,
         vd = signif(nca.output[2], 3),
         slope = signif(nca.output[3], 3),
         half_life = signif(nca.output[4], 3),
+        auct = signif(nca.output[5], 3),
+        auc0_inf = signif(nca.output[6], 3),
+        C_last = signif(nca.output[7], 3),
+        ke = signif(nca.output[8], 3),
+        aumc_0_inf = signif(nca.output[9], 3),
         start.time = start.time,
         time.spent = time.spent
       )
@@ -134,6 +157,11 @@ run_nca.normalised <- function(dat,
     vd = signif(nca.output[2], 3),
     slope = signif(nca.output[3], 3),
     half_life = signif(nca.output[4], 3),
+    auct = signif(nca.output[5], 3),
+    auc0_inf = signif(nca.output[6], 3),
+    C_last = signif(nca.output[7], 3),
+    ke = signif(nca.output[8], 3),
+    aumc_0_inf = signif(nca.output[9], 3),
     start.time = start.time,
     time.spent = time.spent
   )
