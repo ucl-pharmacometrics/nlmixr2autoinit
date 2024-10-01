@@ -1,17 +1,40 @@
-#' Conduct and evaluate one-compartment modelling
+#' Run and evaluate one-compartment IV Model
 #'
-#' Perform parameter estimation with naive pooled data approach analysis for a one-compartment intravenous model, and use provided clearance and volume of distribution estimates to fit the model and calculate the absolute prediction error (APE) and mean absolute prediction error (MAPE).
+#' Perform parameter estimation with naive pooled data approach analysis for a one-compartment intravenous model, and evaluate the model fitting performance by the absolute prediction error (APE) and mean absolute prediction error (MAPE).
 #'
-#' @param dat A data frame containing the intravenous pharmacokinetic data.
+#' @param dat A data frame containing intravenous pharmacokinetic data. It should include
+#' columns such as `ID`, `EVID`, `DV`, `dose`, and `AMT` and other necessary variables.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.cl The initial estimate for clearance.
-#' @param input.vd The initial estimate for volume of distribution.
-#' @return A list containing the results of the model fitting, including the fitted parameters (`npd.1cmpt_results`), APE (`npd.1cmpt.APE`), MAPE (`npd.1cmpt.MAPE`), and the model fitting list (`npd.1cmpt.list`).
+#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is 1.
+#' @param input.vd A numeric value for the initial estimate of volume of distribution (Vd). Default is 1.
+#' @param input.add A numeric value for the additive error model. Default is 1.
+#'
+#' @details
+#' This function fits the 1-compartment IV model to the given dataset using
+#' the specified estimation methods. It excludes rows where `EVID == 2`, as these
+#' represent non-observation events. After fitting the model, the function returns
+#' the estimated CL and Vd along with the APE (absolute prediction error) and MAPE
+#' (mean absolute percentage error) to assess model fit.
+#'
+#' The function also applies penalties to the results if certain conditions are
+#' met, such as high relative standard error (`%RSE > 50`) or if the fitting method
+#' does not converge successfully for the `focei` method.
+#'
+#' @return A list containing the following elements:
+#' \item{npd.1cmpt_results}{A data frame with the estimated CL and Vd, as well
+#' as the time spent during estimation.}
+#' \item{npd.1cmpt.APE}{The absolute prediction error (APE).}
+#' \item{npd.1cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{nnpd.1cmpt.list}{The full output list from the `Fit_1cmpt_iv` function.}
+#'
 #' @importFrom dplyr %>% mutate if_else group_by ungroup
 #' @import nlmixr2
 #' @examples
-#' dat <- Bolus_1CPT
-#' run_npd_1cmpt_iv(dat=dat,est.method="nls",input.cl=4,input.vd=70)
+#' \dontrun{
+#' # Example usage:
+#' result <- run_npd_1cmpt_iv(dat = Bolus_1CPT,input.cl=4,input.vd=70)
+#' }
+#'
 #' @export
 
 run_npd_1cmpt_iv <- function(dat,
@@ -26,7 +49,7 @@ run_npd_1cmpt_iv <- function(dat,
     input.vd = input.vd,
     input.add = 1
   )
-  
+
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
   npd_results <-
@@ -35,10 +58,10 @@ run_npd_1cmpt_iv <- function(dat,
       vd = signif(npd.list$parFixedDf$`Back-transformed`[2], 3),
       timespent = time.spent
     )
-  
+
   npd.APE <- sum(abs(npd.list$IRES), na.rm = T)
   npd.MAPE <- sum(abs(npd.list$IRES) / npd.list$DV) / nrow(npd.list) * 100
-  
+
   if (max(npd.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
     npd.APE <- Inf
     npd.MAPE <- Inf
@@ -48,7 +71,7 @@ run_npd_1cmpt_iv <- function(dat,
     npd.APE <- Inf
     npd.MAPE <- Inf
   }
-  
+
   return(
     list(
       npd.1cmpt_results = npd_results,
@@ -91,7 +114,7 @@ run_npd_1cmpt_mm_iv <- function(dat,
     input.add = 1,
     input.vd =  npdmm_inputvd
   )
-  
+
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
   npdmm_results <-
@@ -101,11 +124,11 @@ run_npd_1cmpt_mm_iv <- function(dat,
       vd = signif(npdmm.list$parFixedDf$`Back-transformed`[3], 3),
       timespent = time.spent
     )
-  
+
   npdmm.APE <- sum(abs(npdmm.list$IRES), na.rm = T)
   npdmm.MAPE <-
     sum(abs(npdmm.list$IRES) / npdmm.list$DV) / nrow(npdmm.list) * 100
-  
+
   countna <- is.na(npdmm.list$IRES)
   if (sum(countna) > (nrow(npdmm.list) / 2)) {
     npdmm.APE <- Inf
@@ -121,7 +144,7 @@ run_npd_1cmpt_mm_iv <- function(dat,
     npdmm.APE <- Inf
     npdmm.MAPE <- Inf
   }
-  
+
   # Scenario 2 start with threshold value
   # determine the maximum concentration
   dat.obs <- dat[dat$EVID == 0, ]
@@ -135,11 +158,11 @@ run_npd_1cmpt_mm_iv <- function(dat,
   #calculated cmax (c0) based on volume of distribution
   calc.cmax <- max.dose / npdmm_inputvd
   fcmax <- max(c(mean.pop.cmax, calc.cmax))
-  
+
   linear_minkm <-
     fcmax * 4 # if km>>4cmax, it nearly fall into the linear range
   linear_maxvmax <-  linear_minkm * npdmm_inputcl
-  
+
   start.time <- Sys.time()
   npdmm.list2 <- Fit_1cmpt_mm_iv(
     data = dat[dat$EVID != 2, ],
@@ -150,8 +173,8 @@ run_npd_1cmpt_mm_iv <- function(dat,
     input.add = 1,
     input.vd =   npdmm_inputvd
   )
-  
-  
+
+
   end.time <- Sys.time()
   time.spent2 <- round(difftime(end.time, start.time), 2)
   npdmm_results2 <-
@@ -161,17 +184,17 @@ run_npd_1cmpt_mm_iv <- function(dat,
       vd = signif(npdmm.list2$parFixedDf$`Back-transformed`[3], 3),
       timespent = time.spent2
     )
-  
+
   npdmm2.APE <- sum(abs(npdmm.list2$IRES), na.rm = T)
   npdmm2.MAPE <-
     sum(abs(npdmm.list2$IRES) / npdmm.list2$DV) / nrow(npdmm.list2) * 100
-  
+
   countna <- is.na(npdmm.list2$IRES)
   if (sum(countna) > (nrow(npdmm.list2) / 2)) {
     npdmm2.APE <- Inf
     npdmm2.MAPE <- Inf
   }
-  
+
   if (max(npdmm.list2$parFixedDf$`%RSE`, na.rm = T) > 50) {
     npdmm2.APE <- Inf
     npdmm2.MAPE <- Inf
@@ -181,8 +204,8 @@ run_npd_1cmpt_mm_iv <- function(dat,
     npdmm2.APE <- Inf
     npdmm2.MAPE <- Inf
   }
-  
-  
+
+
   return(
     list(
       npd.1cmpt.mm_results = npdmm_results,
@@ -229,10 +252,10 @@ run_npd_2cmpt_iv <- function(dat,
     input.q2cmpt = input.cl,
     input.add = 1
   )
-  
+
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
-  
+
   npd_results_2cmpt <-
     data.frame(
       cl = signif(npd.list.2cmpt$parFixedDf$`Back-transformed`[1], 3),
@@ -241,12 +264,12 @@ run_npd_2cmpt_iv <- function(dat,
       q = signif(npd.list.2cmpt$parFixedDf$`Back-transformed`[4], 3),
       timespent = time.spent
     )
-  
+
   npd.2cmpt.APE <- sum(abs(npd.list.2cmpt$IRES), na.rm = T)
   npd.2cmpt.MAPE  <-
     sum(abs(npd.list.2cmpt$IRES) / npd.list.2cmpt$DV) / nrow(npd.list.2cmpt) *
     100
-  
+
   if (max(npd.list.2cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
     npd.2cmpt.APE <- Inf
     npd.2cmpt.MAPE <- Inf
@@ -256,7 +279,7 @@ run_npd_2cmpt_iv <- function(dat,
     npd.2cmpt.APE <- Inf
     npd.2cmpt.MAPE <- Inf
   }
-  
+
   return(
     list(
       npd.2cmpt_results = npd_results_2cmpt,
@@ -300,10 +323,10 @@ run_npd_3cmpt_iv <- function(dat,
     input.q23cmpt = input.cl,
     input.add = 1
   )
-  
+
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
-  
+
   npd_results_3cmpt <-
     data.frame(
       cl = signif(npd.list.3cmpt$parFixedDf$`Back-transformed`[1], 3),
@@ -314,12 +337,12 @@ run_npd_3cmpt_iv <- function(dat,
       q2 = signif(npd.list.3cmpt$parFixedDf$`Back-transformed`[6], 3),
       timespent = time.spent
     )
-  
+
   npd.3cmpt.APE <- sum(abs(npd.list.3cmpt$IRES), na.rm = T)
   npd.3cmpt.MAPE  <-
     sum(abs(npd.list.3cmpt$IRES) / npd.list.3cmpt$DV) / nrow(npd.list.3cmpt) *
     100
-  
+
   if (max(npd.list.3cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
     npd.3cmpt.APE <- Inf
     npd.3cmpt.MAPE  <- Inf
@@ -329,7 +352,7 @@ run_npd_3cmpt_iv <- function(dat,
     npd.3cmpt.APE <- Inf
     npd.3cmpt.MAPE <- Inf
   }
-  
+
   return(
     list(
       npd.3cmpt_results = npd_results_3cmpt,
