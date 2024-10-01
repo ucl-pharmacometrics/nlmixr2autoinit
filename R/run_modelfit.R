@@ -38,16 +38,17 @@
 #' @export
 
 run_npd_1cmpt_iv <- function(dat,
-                             est.method,
-                             input.cl,
-                             input.vd) {
+                             est.method="nls",
+                             input.cl=1,
+                             input.vd=1,
+                             input.add=1) {
   start.time <- Sys.time()
   npd.list <-  Fit_1cmpt_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
     input.cl = input.cl,
     input.vd = input.vd,
-    input.add = 1
+    input.add = input.add
   )
 
   end.time <- Sys.time()
@@ -62,10 +63,13 @@ run_npd_1cmpt_iv <- function(dat,
   npd.APE <- sum(abs(npd.list$IRES), na.rm = T)
   npd.MAPE <- sum(abs(npd.list$IRES) / npd.list$DV) / nrow(npd.list) * 100
 
+  # add penalty of rse
   if (max(npd.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
     npd.APE <- Inf
     npd.MAPE <- Inf
   }
+
+  # Filter out failed runs
   if (npd.list$message != "relative convergence (4)" &
       est.method == "focei") {
     npd.APE <- Inf
@@ -83,40 +87,96 @@ run_npd_1cmpt_iv <- function(dat,
 }
 
 
-#' Conduct and evaluate one-compartment with Michaelis-Menten Kinetics modelling
+#' Run and evaluate one-compartment IV model with Michaelis-Menten Kinetics
+
+#' Perform parameter estimation on naive pooled data for a one-compartment Michaelis-Menten IV model.
 #'
-#' Perform parameter estimation with naive pooled data approach analysis for a one-compartment intravenous model, and use provided or calculated Vmax, Km and volume of distribution estimates to fit the model and calculate the absolute prediction error (APE) and mean absolute prediction error (MAPE).
+#' Estimates the pharmacokinetic parameters (Vmax, Km, Vd) for a
+#' 1-compartment Michaelis-Menten IV (Intravenous) model by fitting.
+#' Optionally, an initial estimate of Km is based on the
+#' maximum concentration in the dataset (if `km_threshold = TRUE`).
 #'
-#' @param dat A data frame containing the intravenous pharmacokinetic data.
+#' @param dat A data frame containing pharmacokinetic data. Must include columns
+#' such as `ID`, `EVID`, `DV`, `dose`, and `AMT`.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param npdmm_inputcl Pre-estimated clearance for the intravenous data, used to determine the boundary values for Vmax and Km.
-#' @param npdmm_inputvd The initial estimate of volume of distribution.
-#' @return A list containing the results of the model fitting, including the fitted parameters (`npd.1cmpt.mm_results` and `npd.1cmpt.mm_results.2`), APE (`npd.1cmpt.mm.APE` and `npd.1cmpt.mm.APE.2`), MAPE (`npd.1cmpt.mm.MAPE` and `npd.1cmpt.mm.MAPE.2`), and the model fitting lists (`npd.1cmpt.mm.list` and `npd.1cmpt.mm.list2`).
+#' @param npdmm_inputvmax A numeric value for the initial estimate of Vmax.
+#' @param npdmm_inputkm A numeric value for the initial estimate of Km.
+#' @param npdmm_inputcl A numeric value for the clearance.
+#' @param npdmm_inputvd A numeric value for the initial estimate of volume of distribution (Vd).
+#' @param km_threshold A logical value (`TRUE` or `FALSE`). If `TRUE`,
+#' initial estimates of Vmax and Km are adjusted based on a threshold related
+#' to the maximum observed concentration in the data.
+#'
+#' @details
+#' The function starts by calculating initial estimates of Vmax and Km based on
+#' the observed maximum concentration in the dataset if `km_threshold = TRUE`.
+#' These estimates are used in the fitting procedure for the one-compartment
+#' Michaelis-Menten IV model. The fitting is done using the `Fit_1cmpt_mm_iv`
+#' function, which is expected to be available in the user's environment.
+#' After fitting, the function calculates the APE (absolute prediction error)
+#' and MAPE (mean absolute percentage error) as measures of goodness-of-fit.
+#'
+#' @return A list with the following elements:
+#' \item{npd.1cmpt.mm_results}{A data frame with the estimated values of Vmax,
+#' Km, and Vd, as well as the time taken for the estimation.}
+#' \item{npd.1cmpt.mm.APE}{The absolute prediction error (APE).}
+#' \item{npd.1cmpt.mm.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{npd.1cmpt.mm.list}{The full list output from the `Fit_1cmpt_mm_iv` function.}
+#'
 #' @importFrom dplyr %>% mutate if_else group_by ungroup
 #' @import nlmixr2
 #' @examples
-#' dat <- Bolus_1CPTMM
-#' run_npd_1cmpt_mm_iv(dat=dat,est.method="nls",input.cl=4,input.vd=70)
+#' \dontrun{
+#' # Example usage:
+#' result <- run_npd_1cmpt_mm_iv(dat = Bolus_1CPT,
+#'                               est.method="foce",
+#'                               npdmm_inputcl = 4,
+#'                               npdmm_inputvd = 70,
+#'                               km_threshold = TRUE)
+#' }
+#'
 #' @export
-#'
-#'
 run_npd_1cmpt_mm_iv <- function(dat,
-                                est.method,
-                                npdmm_inputcl,
-                                npdmm_inputvd) {
-  # Scenario 1 start with default 1
+                                est.method="nls",
+                                npdmm_inputvmax=1,
+                                npdmm_inputkm=1,
+                                npdmm_inputcl=1,
+                                npdmm_inputvd=1,
+                                km_threshold=T) {
   start.time <- Sys.time()
+  estvmax<-npdmm_inputvmax
+  estkm<-npdmm_inputkm
+
+  # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=T
+  # Determine the maximum concentration
+  if (km_threshold){
+    dat.obs <- dat[dat$EVID == 0, ]
+    pop.cmax <- aggregate(dat.obs$DV,
+                          list(dat.obs$ID),
+                          FUN = max,
+                          na.rm = T)
+    mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
+    max.dose <-
+      max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0,]$dose)[1]
+    #calculated cmax (c0) based on volume of distribution
+    calc.cmax <- max.dose / npdmm_inputvd
+    fcmax <- max(c(mean.pop.cmax, calc.cmax))
+    estmaxkm <- fcmax * 4 # if km>>4cmax, it nearly fall into the linear range
+    estkm<-fcmax # initial km starts from cmax
+    estvmax <-  estmaxkm * npdmm_inputcl
+  }
+
   npdmm.list <- Fit_1cmpt_mm_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
-    input.vmax = 1,
-    input.km = 1,
+    input.vmax =  estvmax,
+    input.km = estkm,
     input.add = 1,
-    input.vd =  npdmm_inputvd
+    input.vd =   npdmm_inputvd
   )
 
   end.time <- Sys.time()
-  time.spent <- round(difftime(end.time, start.time), 4)
+  time.spent <- round(difftime(end.time, start.time), 2)
   npdmm_results <-
     data.frame(
       vmax = signif(npdmm.list$parFixedDf$`Back-transformed`[1], 3),
@@ -134,7 +194,7 @@ run_npd_1cmpt_mm_iv <- function(dat,
     npdmm.APE <- Inf
     npdmm.MAPE <- Inf
   }
-  # add penalty of rse
+
   if (max(npdmm.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
     npdmm.APE <- Inf
     npdmm.MAPE <- Inf
@@ -145,112 +205,76 @@ run_npd_1cmpt_mm_iv <- function(dat,
     npdmm.MAPE <- Inf
   }
 
-  # Scenario 2 start with threshold value
-  # determine the maximum concentration
-  dat.obs <- dat[dat$EVID == 0, ]
-  pop.cmax <- aggregate(dat.obs$DV,
-                        list(dat.obs$ID),
-                        FUN = max,
-                        na.rm = T)
-  mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
-  max.dose <-
-    max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0,]$dose)[1]
-  #calculated cmax (c0) based on volume of distribution
-  calc.cmax <- max.dose / npdmm_inputvd
-  fcmax <- max(c(mean.pop.cmax, calc.cmax))
-
-  linear_minkm <-
-    fcmax * 4 # if km>>4cmax, it nearly fall into the linear range
-  linear_maxvmax <-  linear_minkm * npdmm_inputcl
-
-  start.time <- Sys.time()
-  npdmm.list2 <- Fit_1cmpt_mm_iv(
-    data = dat[dat$EVID != 2, ],
-    est.method = est.method,
-    input.vmax =  linear_maxvmax,
-    input.km = linear_minkm / 4,
-    # start from 1 fold of cmax
-    input.add = 1,
-    input.vd =   npdmm_inputvd
-  )
-
-
-  end.time <- Sys.time()
-  time.spent2 <- round(difftime(end.time, start.time), 2)
-  npdmm_results2 <-
-    data.frame(
-      vmax = signif(npdmm.list2$parFixedDf$`Back-transformed`[1], 3),
-      km = signif(npdmm.list2$parFixedDf$`Back-transformed`[2], 3),
-      vd = signif(npdmm.list2$parFixedDf$`Back-transformed`[3], 3),
-      timespent = time.spent2
-    )
-
-  npdmm2.APE <- sum(abs(npdmm.list2$IRES), na.rm = T)
-  npdmm2.MAPE <-
-    sum(abs(npdmm.list2$IRES) / npdmm.list2$DV) / nrow(npdmm.list2) * 100
-
-  countna <- is.na(npdmm.list2$IRES)
-  if (sum(countna) > (nrow(npdmm.list2) / 2)) {
-    npdmm2.APE <- Inf
-    npdmm2.MAPE <- Inf
-  }
-
-  if (max(npdmm.list2$parFixedDf$`%RSE`, na.rm = T) > 50) {
-    npdmm2.APE <- Inf
-    npdmm2.MAPE <- Inf
-  }
-  if (npdmm.list2$message != "relative convergence (4)" &
-      est.method == "focei") {
-    npdmm2.APE <- Inf
-    npdmm2.MAPE <- Inf
-  }
-
-
   return(
     list(
       npd.1cmpt.mm_results = npdmm_results,
       npd.1cmpt.mm.APE = npdmm.APE,
       npd.1cmpt.mm.MAPE = npdmm.MAPE,
-      npd.1cmpt.mm_results.2 = npdmm_results2,
-      npd.1cmpt.mm.APE.2 = npdmm2.APE,
-      npd.1cmpt.mm.MAPE.2 = npdmm2.MAPE,
-      npd.1cmpt.mm.list = npdmm.list,
-      npd.1cmpt.mm.list2 = npdmm.list2
+      npd.1cmpt.mm.list = npdmm.list
     )
   )
 }
 
-
-
-#' Conduct and evaluate two-compartment modelling
+#' Run and evaluate two-compartment IV Model
 #'
-#' Perform parameter estimation with naive pooled data approach analysis for a two-compartment intravenous model, and use provided clearance and volume of distribution estimates to fit the model and calculate the absolute prediction error (APE) and mean absolute prediction error (MAPE).
+#' Perform parameter estimation with naive pooled data approach analysis for a two-compartment intravenous model, and evaluate the model fitting performance by the absolute prediction error (APE) and mean absolute prediction error (MAPE).
 #'
-#' @param dat A data frame containing the intravenous pharmacokinetic data.
+#' @param dat A data frame containing intravenous pharmacokinetic data. It should include
+#' columns such as `ID`, `EVID`, `DV`, `dose`, and `AMT` and other necessary variables.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.cl The initial estimate for clearance.
-#' @param input.vd The initial estimate for volume of distribution.
-#' @return A list containing the results of the model fitting, including the fitted parameters (`npd.2cmpt_results`), APE (`npd.2cmpt.APE`), MAPE (`npd.2cmpt.MAPE`), and the model fitting list (`npd.list.2cmpt`).
-#' @importFrom dplyr %>% mutate if_else group_by ungroup
-#' @import nlmixr2
+#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is 1.
+#' @param input.vc2cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is 1.
+#' @param input.vp2cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.
+#' @param input.q2cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.
+#' @param input.add A numeric value for the additive error model. Default is 1.
+#'
+#' @details
+#' This function fits the two-compartment IV model to the given dataset using
+#' the specified estimation method. It excludes rows where `EVID == 2`, as these
+#' represent non-observation events. After fitting the model, the function returns
+#' the estimated CL, Vc, Vp, and Q along with the APE (absolute prediction error)
+#' and MAPE (mean absolute percentage error) to assess model fit.
+#'
+#' The function also applies penalties to the results if certain conditions are
+#' met, such as high relative standard error (`%RSE > 50`) or if the fitting method
+#' does not converge successfully for the `focei` method.
+#'
+#' @return A list containing the following elements:
+#' \item{npd.2cmpt_results}{A data frame with the estimated CL, Vc, Vp, Q, and
+#' the time spent during estimation.}
+#' \item{npd.2cmpt.APE}{The absolute prediction error (APE).}
+#' \item{npd.2cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{npd.list.2cmpt}{The full output list from the `Fit_2cmpt_iv` function.}
+#'
 #' @examples
-#' dat <- Bolus_2CPT
-#' run_npd_2cmpt_iv(dat=dat,est.method="nls",input.cl=4,input.vd=70)
+#' \dontrun{
+#' # Example usage:
+#' result <- run_npd_2cmpt_iv(dat = Bolus_2CPT,
+#'                            input.cl = 4,
+#'                            input.vc2cmpt = 35,
+#'                            input.vp2cmpt = 35,
+#'                            input.q2cmpt = 4)
+#' }
+#'
 #' @export
+#
 
 run_npd_2cmpt_iv <- function(dat,
-                             est.method,
-                             input.cl,
-                             input.vd) {
+                             est.method="nls",
+                             input.cl=1,
+                             input.vc2cmpt=1,
+                             input.vp2cmpt=1,
+                             input.q2cmpt=1,
+                             input.add=1) {
   start.time <- Sys.time()
   npd.list.2cmpt <-  Fit_2cmpt_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
     input.cl = input.cl,
-    input.vc2cmpt = input.vd / 2,
-    input.vp2cmpt = input.vd / 2,
-    input.q2cmpt = input.cl,
-    input.add = 1
+    input.vc2cmpt = input.vc2cmpt,
+    input.vp2cmpt = input.vp2cmpt,
+    input.q2cmpt = input.q2cmpt,
+    input.add = input.add
   )
 
   end.time <- Sys.time()
@@ -291,37 +315,75 @@ run_npd_2cmpt_iv <- function(dat,
 }
 
 
-#' Conduct and evaluate three-compartment modelling
+#' Run and evaluate three-compartment IV Model
 #'
-#' Perform parameter estimation with naive pooled data approach analysis for a three-compartment intravenous model, and use provided clearance and volume of distribution estimates to fit the model and calculate the absolute prediction error (APE) and mean absolute prediction error (MAPE).
+#' Perform parameter estimation with naive pooled data approach analysis for a three-compartment intravenous model, and evaluate the model fitting performance by the absolute prediction error (APE) and mean absolute prediction error (MAPE).
 #'
-#' @param dat A data frame containing the intravenous pharmacokinetic data.
+#' @param dat A data frame containing intravenous pharmacokinetic data. It should include
+#' columns such as `ID`, `EVID`, `DV`, `dose`, and `AMT` and other necessary variables.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.cl The initial estimate for clearance.
-#' @param input.vd The initial estimate for volume of distribution.
-#' @return A list containing the results of the model fitting, including the fitted parameters (`npd.3cmpt_results`), APE (`npd.3cmpt.APE`), MAPE (`npd.3cmpt.MAPE`), and the model fitting list (`npd.list.3cmpt`).
-#' @importFrom dplyr %>% mutate if_else group_by ungroup
-#' @import nlmixr2
+#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is 1.
+#' @param input.vc3cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is 1.
+#' @param input.vp3cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.
+#' @param input.q3cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.
+#' @param input.vp23cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.
+#' @param input.q23cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.
+#' @param input.add A numeric value for the additive error model. Default is 1.
+#'
+#' @details
+#' This function fits the three-compartment IV model to the given dataset using
+#' the specified estimation method. It excludes rows where `EVID == 2`, as these
+#' represent non-observation events. After fitting the model, the function returns
+#' the estimated CL, Vc, Vp, Vp2, Q and Q2 along with the APE (absolute prediction error)
+#' and MAPE (mean absolute percentage error) to assess model fit.
+#'
+#' The function also applies penalties to the results if certain conditions are
+#' met, such as high relative standard error (`%RSE > 50`) or if the fitting method
+#' does not converge successfully for the `focei` method.
+#'
+#' @return A list containing the following elements:
+#' \item{npd.3cmpt_results}{A data frame with the estimated CL, Vc, Vp, Q, and
+#' the time spent during estimation.}
+#' \item{npd.3cmpt.APE}{The absolute prediction error (APE).}
+#' \item{npd.3cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{npd.list.3cmpt}{The full output list from the `Fit_3cmpt_iv` function.}
+#'
 #' @examples
-#' dat <- Bolus_2CPT
-#' run_npd_3cmpt_iv(dat=dat,est.method="nls",input.cl=4,input.vd=70)
+#' \dontrun{
+#' # Example usage:
+#' result <- run_npd_3cmpt_iv(dat = Bolus_2CPT,
+#'                            input.cl = 4,
+#'                            input.vc3cmpt = 10,
+#'                            input.vp3cmpt = 10,
+#'                            input.vp23cmpt = 10,
+#'                            input.q3cmpt = 4,
+#'                            input.q23cmpt = 4
+#'                            )
+#' }
+#'
 #' @export
+#
 
 run_npd_3cmpt_iv <- function(dat,
-                             est.method,
-                             input.cl,
-                             input.vd) {
+                             est.method="nls",
+                             input.cl=1,
+                             input.vc3cmpt = 1,
+                             input.vp3cmpt = 1,
+                             input.vp23cmpt =1,
+                             input.q3cmpt =  1,
+                             input.q23cmpt = 1,
+                             input.add=1) {
   start.time <- Sys.time()
   npd.list.3cmpt <-  Fit_3cmpt_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
     input.cl = input.cl,
-    input.vc3cmpt = input.vd / 3,
-    input.vp3cmpt = input.vd / 3,
-    input.vp23cmpt =  input.vd / 3,
-    input.q3cmpt = input.cl,
-    input.q23cmpt = input.cl,
-    input.add = 1
+    input.vc3cmpt = input.vc3cmpt,
+    input.vp3cmpt = input.vp3cmpt,
+    input.vp23cmpt =   input.vp23cmpt,
+    input.q3cmpt =  input.q3cmpt,
+    input.q23cmpt =  input.q23cmpt,
+    input.add = input.add
   )
 
   end.time <- Sys.time()
