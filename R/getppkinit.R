@@ -972,13 +972,17 @@ message(black(
   # Model fitting by naive pooled data approach
   if (runnpd == 1) {
     input.cl <- mean(base.cl.best, na.rm = T)
-    input.vd <- mean(base.vd.best, na.rm = T)
+    input.vc2cmpt<- recommended_vc2cmpt_init
+    input.vp2cmpt <- recommended_vp2cmpt_init
+    input.q2cmpt <- input.cl
 
     npd_2cmpt_out <- run_npd_2cmpt_iv(
       dat = dat,
       est.method = est.method,
-      input.cl = input.cl,
-      input.vd = input.vd
+      input.cl=input.cl,
+      input.vc2cmpt=  input.vc2cmpt,
+      input.vp2cmpt= input.vp2cmpt,
+      input.q2cmpt= input.q2cmpt,
     )
     npd.2cmpt_results <- npd_2cmpt_out$npd.2cmpt_results
     npd.2cmpt.APE <- npd_2cmpt_out$npd.2cmpt.APE
@@ -1000,17 +1004,19 @@ message(black(
     all.out.2cmpt$modelMAPE <-
       round(as.numeric(all.out.2cmpt$modelMAPE, 1))
 
-    # Three compartment
-    input.cl = as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                    min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated CL`)[1]
-
-    input.vd = as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                    min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated Vd`)[1]
+    input.vc3cmpt =   recommended_vc3cmpt_init
+    input.vp3cmpt =   recommended_vp3cmpt_init
+    input.vp23cmpt =  recommended_vp23cmpt_init
+    input.q3cmpt =   input.cl
 
     npd_3cmpt_out <- run_npd_3cmpt_iv(dat = dat,
                                       est.method = est.method,
-                                      input.cl,
-                                      input.vd)
+                                      input.cl=input.cl,
+                                      input.vc3cmpt =  input.vc3cmpt,
+                                      input.vp3cmpt =  input.vp3cmpt ,
+                                      input.vp23cmpt = input.vp23cmpt,
+                                      input.q3cmpt =   input.q3cmpt ,
+                                      input.q23cmpt =  input.q23cmpt )
 
     npd.3cmpt_results <- npd_3cmpt_out$npd.3cmpt_results
     npd.3cmpt.APE <- npd_3cmpt_out$npd.3cmpt.APE
