@@ -20,7 +20,10 @@ A list containing data information, initial parameter estimates, messages, and r
 Calculates initial pharmacokinetic parameters using multiple methods including simplified calculation, non-compartmental analysis, graphical methods, and parameter estimation with naive pooled data approach if specified.
 }
 \examples{
+getppkinit(dat = Oral_1CPT,runnpd = 0)
 getppkinit(dat = Bolus_1CPT,runnpd = 0)
 getppkinit(dat = Bolus_1CPT,runnpd = 1)
 getppkinit(dat = Bolus_1CPT,runnpd = 0, getinit.settings=c(trap.rule.method =2))
+getppkinit(dat = Oral_1CPT,runnpd = 0)
+
 }

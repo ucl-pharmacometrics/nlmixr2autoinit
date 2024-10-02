@@ -4,7 +4,16 @@
 \alias{sim_sens_2cmpt}
 \title{Sensitivity analysis for a two-compartment model}
 \usage{
-sim_sens_2cmpt(dat, sim_vc_list, sim_vp_list, estcl, estvd, estq)
+sim_sens_2cmpt(
+  dat,
+  sim_vc_list,
+  sim_vp_list,
+  estcl,
+  estvd,
+  estq,
+  estka,
+  noniv_flag
+)
 }
 \arguments{
 \item{dat}{A data frame containing the pharmacokinetic data}

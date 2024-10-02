@@ -4,7 +4,7 @@
 \alias{ka_wanger_nelson}
 \title{Calculate the Absorption Rate Constant (ka) using the Wanger-Nelson Method}
 \usage{
-ka_wanger_nelson(dat, nlastpoints)
+ka_wanger_nelson(dat, nlastpoints, nca.out)
 }
 \arguments{
 \item{dat}{A data frame with at least two columns: \code{DV} (drug concentration)

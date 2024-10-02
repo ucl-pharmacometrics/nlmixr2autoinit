@@ -4,7 +4,16 @@
 \alias{sim_sens_vmax_km}
 \title{Sensitivity analysis for Vmax and Km}
 \usage{
-sim_sens_vmax_km(dat, sim_vmax_list, sim_km_list, estvd, estcl, estcmax)
+sim_sens_vmax_km(
+  dat,
+  sim_vmax_list,
+  sim_km_list,
+  estvd,
+  estcl,
+  estcmax,
+  estka,
+  noniv_flag
+)
 }
 \arguments{
 \item{dat}{A data frame containing the pharmacokinetic data with columns for EVID and DV.}

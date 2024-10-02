@@ -12,7 +12,9 @@ sim_sens_3cmpt(
   estcl,
   estvd,
   estq,
-  estq2
+  estq2,
+  estka,
+  noniv_flag
 )
 }
 \arguments{
