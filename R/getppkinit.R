@@ -735,24 +735,32 @@ message(black(
 ##############Naive pooled data approach for one-compartment model###############
 # Start from one compartment to estimate cl and Vd.
   if (runnpd == 1) {
-    # input.cl = mean(base.cl.best, na.rm = T)
-    # input.vd = mean(base.vd.best, na.rm = T)
     if (noniv_flag==0){
     npd_1cmpt_out <- run_npd_1cmpt_iv(
       dat = dat,
       est.method = est.method,
-      input.cl = 1,
-      input.vd = 1
+      input.cl = mean(base.cl.best),
+      input.vd = mean(base.vd.best)
     )
     }
-    npd.1cmpt_results <- npd_1cmpt_out$npd.1cmpt_results
+    if (noniv_flag==1){
+      npd_1cmpt_out <- run_npd_1cmpt_oral(
+        dat = dat,
+        est.method = est.method,
+        input.ka = mean(base.ka.best),
+        input.cl = mean(base.cl.best),
+        input.vd = mean(base.vd.best)
+      )
+    }
 
+    npd.1cmpt_results <- npd_1cmpt_out$npd.1cmpt_results
     npd.1cmpt.APE <- npd_1cmpt_out$npd.1cmpt.APE
     npd.1cmpt.MAPE <- npd_1cmpt_out$npd.1cmpt.MAPE
 
     all.out[(nrow(all.out) + 1),] <-
       c(
         "Naive pooled approach",
+        npd.1cmpt_results$ka,
         npd.1cmpt_results$cl,
         npd.1cmpt_results$vd,
         npd.1cmpt.APE,
