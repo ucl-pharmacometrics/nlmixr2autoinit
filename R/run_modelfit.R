@@ -104,24 +104,25 @@ run_npd_1cmpt_iv <- function(dat,
 #' @param npdmm_inputcl A numeric value for the clearance.
 #' @param npdmm_inputvd A numeric value for the initial estimate of volume of distribution (Vd).
 #' @param km_threshold A logical value (`TRUE` or `FALSE`). If `TRUE`,
-#' initial estimates of Vmax and Km are adjusted based on a threshold related
-#' to the maximum observed concentration in the data.
+#' initial estimates for \eqn{V_{max}} and \eqn{K_m} will be set based on the
+#' observed maximum concentration in the dataset and referenced clearance.
 #'
 #' @details
-#' The function starts by calculating initial estimates of Vmax and Km based on
-#' the observed maximum concentration in the dataset if `km_threshold = TRUE`.
-#' These estimates are used in the fitting procedure for the one-compartment
-#' Michaelis-Menten IV model. The fitting is done using the `Fit_1cmpt_mm_iv`
-#' function, which is expected to be available in the user's environment.
-#' After fitting, the function calculates the APE (absolute prediction error)
-#' and MAPE (mean absolute percentage error) as measures of goodness-of-fit.
+#' If `km_threshold = TRUE`, this function first calculates initial estimates for \eqn{V_{max}} and \eqn{K_m}
+#' based on the observed maximum concentration in the dataset and referenced clearance. This approach ensures
+#' that the value of \eqn{K_m} is adjusted to lie between the linear and nonlinear regimes, providing a more robust
+#' starting estimate when there is uncertainty about whether the model follows linear or nonlinear kinetics.
+#' This adjustment ensures that the fitting process does not result in \eqn{K_m} values too far from reality,
+#' regardless of whether the dynamics are linear or nonlinear.
 #'
 #' @return A list with the following elements:
-#' \item{npd.1cmpt.mm_results}{A data frame with the estimated values of Vmax,
-#' Km, and Vd, as well as the time taken for the estimation.}
-#' \item{npd.1cmpt.mm.APE}{The absolute prediction error (APE).}
-#' \item{npd.1cmpt.mm.MAPE}{The mean absolute percentage error (MAPE).}
-#' \item{npd.1cmpt.mm.list}{The full list output from the `Fit_1cmpt_mm_iv` function.}
+#' \describe{
+#'   \item{npd.1cmpt.mm_results}{A data frame with the estimated values of \eqn{V_{max}},
+#'   \eqn{K_m}, and \eqn{V_d}, as well as the time taken for the estimation.}
+#'   \item{npd.1cmpt.mm.APE}{The absolute prediction error (APE).}
+#'   \item{npd.1cmpt.mm.MAPE}{The mean absolute percentage error (MAPE).}
+#'   \item{npd.1cmpt.mm.list}{The full output list from the `Fit_1cmpt_mm_iv` function.}
+#' }
 #'
 #' @importFrom dplyr %>% mutate if_else group_by ungroup
 #' @import nlmixr2
@@ -156,13 +157,12 @@ run_npd_1cmpt_mm_iv <- function(dat,
                           FUN = max,
                           na.rm = T)
     mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
-    max.dose <-
-      max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0,]$dose)[1]
-    #calculated cmax (c0) based on volume of distribution
-    calc.cmax <- max.dose / npdmm_inputvd
-    fcmax <- max(c(mean.pop.cmax, calc.cmax))
-    estmaxkm <- fcmax * 4 # if km>>4cmax, it nearly fall into the linear range
-    estkm<-fcmax # initial km starts from cmax
+    # max.dose <-
+    #   max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0,]$dose)[1]
+    # calc.cmax <- max.dose / npdmm_inputvd
+    # fcmax <- max(c(mean.pop.cmax, calc.cmax))
+    estmaxkm <- mean.pop.cmax * 4 # if km>>4cmax, it nearly fall into the linear range
+    estkm<-mean.pop.cmax # initial km starts from cmax
     estvmax <-  estmaxkm * npdmm_inputcl
   }
 
@@ -541,27 +541,28 @@ run_npd_1cmpt_oral <- function(dat,
 #' to the maximum observed concentration in the data.
 #'
 #' @details
-#' The function starts by calculating initial estimates of Vmax and Km based on
-#' the observed maximum concentration in the dataset if `km_threshold = TRUE`.
-#' These estimates are used in the fitting procedure for the one-compartment
-#' Michaelis-Menten IV model. The fitting is done using the `Fit_1cmpt_mm_oral`
-#' function, which is expected to be available in the user's environment.
-#' After fitting, the function calculates the APE (absolute prediction error)
-#' and MAPE (mean absolute percentage error) as measures of goodness-of-fit.
+#' If `km_threshold = TRUE`, this function first calculates initial estimates for \eqn{V_{max}} and \eqn{K_m}
+#' based on the observed maximum concentration in the dataset and referenced clearance. This approach ensures
+#' that the value of \eqn{K_m} is adjusted to lie between the linear and nonlinear regimes, providing a more robust
+#' starting estimate when there is uncertainty about whether the model follows linear or nonlinear kinetics.
+#' This adjustment ensures that the fitting process does not result in \eqn{K_m} values too far from reality,
+#' regardless of whether the dynamics are linear or nonlinear.
 #'
 #' @return A list with the following elements:
-#' \item{npd.1cmpt.mm_results}{A data frame with the estimated values of Vmax,
-#' Km, and Vd, as well as the time taken for the estimation.}
-#' \item{npd.1cmpt.mm.APE}{The absolute prediction error (APE).}
-#' \item{npd.1cmpt.mm.MAPE}{The mean absolute percentage error (MAPE).}
-#' \item{npd.1cmpt.mm.list}{The full list output from the `Fit_1cmpt_mm_oral` function.}
+#' \describe{
+#'   \item{npd.1cmpt.mm_results}{A data frame with the estimated values of  \eqn{K_a},\eqn{V_{max}},
+#'   \eqn{K_m}, and \eqn{V_d}, as well as the time taken for the estimation.}
+#'   \item{npd.1cmpt.mm.APE}{The absolute prediction error (APE).}
+#'   \item{npd.1cmpt.mm.MAPE}{The mean absolute percentage error (MAPE).}
+#'   \item{npd.1cmpt.mm.list}{The full output list from the `Fit_1cmpt_mm_oral` function.}
+#' }
 #'
 #' @importFrom dplyr %>% mutate if_else group_by ungroup
 #' @import nlmixr2
 #' @examples
 #' \dontrun{
 #' # Example 1 (Linear kinetics):
-#' result <- run_npd_1cmpt_mm_iv(dat = Oral_1CPT,
+#' result <- run_npd_1cmpt_mm_oral(dat = Oral_1CPT,
 #'                               est.method="foce",
 #'                               npdmm_inputcl = 4,
 #'                               npdmm_inputvd = 70,
@@ -569,7 +570,7 @@ run_npd_1cmpt_oral <- function(dat,
 #' result
 #'
 #' # Example 2 ( nonlinear kinetics):
-#' result2 <- run_npd_1cmpt_mm_iv(dat = Oral_1CPTMM,
+#' result2 <- run_npd_1cmpt_mm_oral(dat = Oral_1CPTMM,
 #'                               est.method="foce",
 #'                               npdmm_inputcl = 4,
 #'                               npdmm_inputvd = 70,
@@ -599,12 +600,11 @@ run_npd_1cmpt_mm_oral <- function(dat,
                           FUN = max,
                           na.rm = T)
     mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
-    max.dose <-
-      max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0,]$dose)[1]
-    #calculated cmax (c0) based on volume of distribution
-    calc.cmax <- max.dose / npdmm_inputvd
-    fcmax <- max(c(mean.pop.cmax, calc.cmax))
-    estmaxkm <- fcmax * 4 # if km>>4cmax, it nearly fall into the linear range
+    # max.dose <-
+    #   max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0,]$dose)[1]
+    # calc.cmax <- max.dose / npdmm_inputvd
+    # fcmax <- max(c(mean.pop.cmax, calc.cmax))
+    estmaxkm <- mean.pop.cmax * 4 # if km>>4cmax, it nearly fall into the linear range
     estkm<-fcmax # initial km starts from cmax
     estvmax <-  estmaxkm * npdmm_inputcl
   }
