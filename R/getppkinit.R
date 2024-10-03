@@ -793,20 +793,18 @@ message(black(
                         FUN = max,
                         na.rm = T)
   mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
-
-  #calculated cmax (c0) based on volume of distribution
-  calc.cmax <- max.dose / min(base.vd.best)[1]
-  fcmax <- max(c(mean.pop.cmax, calc.cmax))[1]
-  if (fcmax == mean.pop.cmax) {
-    cmax.message = "Cmax (mean maximum concontration) was obtained from mean observed cmax of analysis dataset"
-  }
-
-  if (fcmax == calc.cmax) {
-    cmax.message = "Cmax was calculated from maximum dose divided by volume of distribution"
-  }
-
-  linear_minkm <-
-    fcmax * 4 # if km>>4cmax, it nearly fall into the linear range
+  fcmax<-  mean.pop.cmax
+  # calc.cmax <- max.dose / min(base.vd.best)[1]
+  # fcmax <- max(c(mean.pop.cmax, calc.cmax))[1]
+  # fcmax <- max(c(mean.pop.cmax, calc.cmax))[1]
+  # if (fcmax == mean.pop.cmax) {
+  #   cmax.message = "Cmax (mean maximum concontration) was obtained from mean observed cmax of analysis dataset"
+  # }
+  #
+  # if (fcmax == calc.cmax) {
+  #   cmax.message = "Cmax was calculated from maximum dose divided by volume of distribution"
+  # }
+  linear_minkm <- fcmax * 4 # if km>>4cmax, it nearly fall into the linear range
 
   sim.vmax.km.results.all <- NULL
 
@@ -850,8 +848,7 @@ message(black(
 
 ###############################wait############################################
   if (runnpd == 1) {
-    # initial settings for cl and vd
-    # use mean value if there are two options
+
     npdmm_inputcl <-
       mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
                                 min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated CL`), na.rm = T)
@@ -866,27 +863,37 @@ message(black(
       npdmm_inputvd = npdmm_inputvd
     )
 
+    if (noniv_flag==T){
+      npdmm_inputka <-
+      mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+                                min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated Ka`), na.rm = T)
+
+      npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
+        dat = dat,
+        est.method = est.method,
+        npdmm_inputka = npdmm_inputka,
+        npdmm_inputcl = npdmm_inputcl,
+        npdmm_inputvd = npdmm_inputvd
+      )
+    }
+
+
     npd.1cmpt.mm_results <- npd_1cmpt_mm_out$npd.1cmpt.mm_results
-    npd.1cmpt.mm_results.2 <-
-      npd_1cmpt_mm_out$npd.1cmpt.mm_results.2
     npd.1cmpt.mm.APE <- npd_1cmpt_mm_out$npd.1cmpt.mm.APE
     npd.1cmpt.mm.MAPE <- npd_1cmpt_mm_out$npd.1cmpt.mm.MAPE
-    npd.1cmpt.mm.APE.2 <- npd_1cmpt_mm_out$npd.1cmpt.mm.APE.2
-    npd.1cmpt.mm.MAPE.2 <- npd_1cmpt_mm_out$npd.1cmpt.mm.MAPE.2
 
     all.out.vmax.km <- data.frame(
       method = c(
-        "Naive pooled approach (input_inits=1)",
+        # "Naive pooled approach (input_inits=1)",
         "Naive pooled approach (input_inits=threshold)"
       ),
-      init.vmax = c(npd.1cmpt.mm_results$vmax, npd.1cmpt.mm_results.2$vmax),
-      init.km = c(npd.1cmpt.mm_results$km, npd.1cmpt.mm_results.2$km),
-      init.vd = c(npd.1cmpt.mm_results$vd, npd.1cmpt.mm_results.2$vd),
-      modelAPE = c(npd.1cmpt.mm.APE, npd.1cmpt.mm.APE.2),
-      modelMAPE = c(npd.1cmpt.mm.MAPE, npd.1cmpt.mm.MAPE.2),
+      init.vmax = c(npd.1cmpt.mm_results$vmax),
+      init.km = c(npd.1cmpt.mm_results$km),
+      init.vd = c(npd.1cmpt.mm_results$vd),
+      modelAPE = c(npd.1cmpt.mm.APE),
+      modelMAPE = c(npd.1cmpt.mm.MAPE),
       time.spent = c(
-        npd.1cmpt.mm_results$timespent,
-        npd.1cmpt.mm_results.2$timespent
+        npd.1cmpt.mm_results$timespent
       )
     )
 
@@ -1179,22 +1186,34 @@ message(black(
     )
   }
 
+
+
   # If naive pooled data approach is used
   if (runnpd == 1) {
     # cl selection
-
     f_init_cl <-
       as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
                            min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated CL`)
+
+    f_init_ka <-
+      as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+                           min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated Ka`)
 
     if (length(f_init_cl) == 1) {
       init.params.out.cl <-
         data.frame(method = all.out[all.out$`Mean absolute prediction error (MAPE)` ==
                                       min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[1],
                    cl = f_init_cl)
+
+      init.params.out.ka <-
+        data.frame(method = all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+                                      min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[1],
+                   ka = f_init_ka)
+
     }
 
     if (length(f_init_cl) > 1) {
+      # Mean value was used
       f_init_cl <-
         mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
                                   min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated CL`), na.rm = T)
@@ -1210,6 +1229,23 @@ message(black(
             ")"
           ),
           cl = f_init_cl
+        )
+
+      f_init_ka <-
+        mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+                                  min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated CL`), na.rm = T)
+
+      init.params.out.ka <-
+        data.frame(
+          method = paste0(
+            "Mean values of method 1 (",
+            all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+                      min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[1],
+            ") and method 2",
+            all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[2],
+            ")"
+          ),
+          ka = f_init_ka
         )
 
     }
@@ -1309,8 +1345,7 @@ message(black(
 
         init.messages.vmax.km <-
           c(
-            "Estimated Km exceeds 4 times of the Cmax, it closely fall within the linear range. The threshold value (Km = 4*Cmax) is used.",
-            cmax.message
+            "Estimated Km exceeds 4 times of the Cmax, it closely fall within the linear range. The threshold value (Km = 4*Cmax) is used."
           )
       }
 
@@ -1584,15 +1619,38 @@ message(black(
     "Q: inter-compartmental clearance",
     "Q2: inter-compartmental clearance between central and second peripheral compartment"
   )
-  return(
-    list(
-      Datainfo = Datainfo,
-      Recommended_initial_estimates = Recommended_inits_df,
-      Message =  init.messages.vmax.km,
-      Run.history = init.history,
-      Parameter.descriptions = params.descriptions
-    )
+
+  output_env <- new.env()
+  output_env$Datainfo <- Datainfo
+  output_env$Recommended_initial_estimates <- Recommended_inits_df
+  # output_env$Message <- init.messages.vmax.km
+  output_env$Run.history <- init.history
+  output_env$Parameter.descriptions <- params.descriptions
+
+  print_env_output(output_env)
+
+  return(  output_env
+    # list(
+    #   Datainfo = Datainfo,
+    #   Recommended_initial_estimates = Recommended_inits_df,
+    #   Message =  init.messages.vmax.km,
+    #   Run.history = init.history,
+    #   Parameter.descriptions = params.descriptions
+    # )
   )
 
 
 } # end of function
+
+output<-getppkinit(dat = Oral_1CPT,runnpd = 0)
+print_env_output <- function(env) {
+  cat("=== Initial Parameter Estimation Summary ===\n")
+  cat("Data Information:\n")
+  print(env$Datainfo)
+  cat("\nRecommended Initial Estimates:\n")
+  print(head(env$Recommended_initial_estimates, 10))
+  cat("\nParameter Descriptions:\n")
+  print(env$Parameter.descriptions)
+  cat("\n=== End of Summary ===\n")
+}
+print_env_output(output)
