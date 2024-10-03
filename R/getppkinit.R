@@ -12,7 +12,6 @@
 #' @examples
 #' getppkinit(dat = Oral_1CPT,runnpd = 0)
 #' getppkinit(dat = Bolus_1CPT,runnpd = 0)
-#' getppkinit(dat = Bolus_1CPT,runnpd = 1)
 #' getppkinit(dat = Bolus_1CPT,runnpd = 0, getinit.settings=c(trap.rule.method =2))
 #' getppkinit(dat = Oral_1CPT,runnpd = 0)
 #'
@@ -732,50 +731,8 @@ if ( noniv_flag==1 ){
 message(black(
     paste0("Base parameter estimation finished. Estimated ka :",base.ka.best, ", estimated CL : ", base.cl.best, ", estimated Vd : ", base.vd.best )))
 
-##############Naive pooled data approach for one-compartment model###############
-# Start from one compartment to estimate cl and Vd.
-  if (runnpd == 1) {
-    if (noniv_flag==0){
-    npd_1cmpt_out <- run_npd_1cmpt_iv(
-      dat = dat,
-      est.method = est.method,
-      input.cl = mean(base.cl.best),
-      input.vd = mean(base.vd.best)
-    )
-    }
-    if (noniv_flag==1){
-      npd_1cmpt_out <- run_npd_1cmpt_oral(
-        dat = dat,
-        est.method = est.method,
-        input.ka = mean(base.ka.best),
-        input.cl = mean(base.cl.best),
-        input.vd = mean(base.vd.best)
-      )
-    }
 
-    npd.1cmpt_results <- npd_1cmpt_out$npd.1cmpt_results
-    npd.1cmpt.APE <- npd_1cmpt_out$npd.1cmpt.APE
-    npd.1cmpt.MAPE <- npd_1cmpt_out$npd.1cmpt.MAPE
-
-    all.out[(nrow(all.out) + 1),] <-
-      c(
-        "Naive pooled approach",
-        npd.1cmpt_results$ka,
-        npd.1cmpt_results$cl,
-        npd.1cmpt_results$vd,
-        npd.1cmpt.APE,
-        npd.1cmpt.MAPE,
-        npd.1cmpt_results$timespent
-      )
-    all.out$`Absolute Prediction Error (APE)` <-
-      round(as.numeric(all.out$`Absolute Prediction Error (APE)`, 0))
-
-    all.out$`Mean absolute prediction error (MAPE)` <-
-      round(as.numeric(all.out$`Mean absolute prediction error (MAPE)`, 0))
-  }
-
-
-  ##############################Vmax and Km estimation##########################
+##############################Vmax and Km estimation##########################
   all.out.part <-
     all.out[all.out$Method != "Naive pooled approach",]
   all.out.part2 <- all.out
@@ -845,64 +802,6 @@ message(black(
   recommended_km_init <-
     sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == min(sim.vmax.km.results.all$sim.mm.MAPE),]$km[1]
 
-
-###############################wait############################################
-  if (runnpd == 1) {
-
-    npdmm_inputcl <-
-      mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated CL`), na.rm = T)
-    npdmm_inputvd <-
-      mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated Vd`), na.rm = T)
-
-    npd_1cmpt_mm_out <- run_npd_1cmpt_mm_iv(
-      dat = dat,
-      est.method = est.method,
-      npdmm_inputcl = npdmm_inputcl,
-      npdmm_inputvd = npdmm_inputvd
-    )
-
-    if (noniv_flag==T){
-      npdmm_inputka <-
-      mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated Ka`), na.rm = T)
-
-      npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
-        dat = dat,
-        est.method = est.method,
-        npdmm_inputka = npdmm_inputka,
-        npdmm_inputcl = npdmm_inputcl,
-        npdmm_inputvd = npdmm_inputvd
-      )
-    }
-
-
-    npd.1cmpt.mm_results <- npd_1cmpt_mm_out$npd.1cmpt.mm_results
-    npd.1cmpt.mm.APE <- npd_1cmpt_mm_out$npd.1cmpt.mm.APE
-    npd.1cmpt.mm.MAPE <- npd_1cmpt_mm_out$npd.1cmpt.mm.MAPE
-
-    all.out.vmax.km <- data.frame(
-      method = c(
-        # "Naive pooled approach (input_inits=1)",
-        "Naive pooled approach (input_inits=threshold)"
-      ),
-      init.vmax = c(npd.1cmpt.mm_results$vmax),
-      init.km = c(npd.1cmpt.mm_results$km),
-      init.vd = c(npd.1cmpt.mm_results$vd),
-      modelAPE = c(npd.1cmpt.mm.APE),
-      modelMAPE = c(npd.1cmpt.mm.MAPE),
-      time.spent = c(
-        npd.1cmpt.mm_results$timespent
-      )
-    )
-
-    all.out.vmax.km$modelAPE <-
-      round(as.numeric(all.out.vmax.km$modelAPE, 1))
-    all.out.vmax.km$modelMAPE <-
-      round(as.numeric(all.out.vmax.km$modelMAPE, 1))
-
-  }
 
   ###########Multi-Compartmental Model Parameter Analysis#######################
   # Default. simulation test
@@ -976,84 +875,12 @@ message(black(
     sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$vp2[1]
 
 
-  # Model fitting by naive pooled data approach
-  if (runnpd == 1) {
-    input.cl <- mean(base.cl.best, na.rm = T)
-    input.vc2cmpt<- recommended_vc2cmpt_init
-    input.vp2cmpt <- recommended_vp2cmpt_init
-    input.q2cmpt <- input.cl
-
-    npd_2cmpt_out <- run_npd_2cmpt_iv(
-      dat = dat,
-      est.method = est.method,
-      input.cl=input.cl,
-      input.vc2cmpt=  input.vc2cmpt,
-      input.vp2cmpt= input.vp2cmpt,
-      input.q2cmpt= input.q2cmpt,
-    )
-    npd.2cmpt_results <- npd_2cmpt_out$npd.2cmpt_results
-    npd.2cmpt.APE <- npd_2cmpt_out$npd.2cmpt.APE
-    npd.2cmpt.MAPE <- npd_2cmpt_out$npd.2cmpt.MAPE
-
-    all.out.2cmpt <- data.frame(
-      method = c("Naive pooled approach"),
-      init.vc = c(npd.2cmpt_results$vc),
-      init.vp = c(npd.2cmpt_results$vp),
-      init.q = c(npd.2cmpt_results$q),
-      modelAPE = c(npd.2cmpt.APE),
-      modelMAPE = c(npd.2cmpt.MAPE),
-      time.spent = c(npd.2cmpt_results$timespent)
-    )
-
-    all.out.2cmpt$modelAPE <-
-      round(as.numeric(all.out.2cmpt$modelAPE, 1))
-
-    all.out.2cmpt$modelMAPE <-
-      round(as.numeric(all.out.2cmpt$modelMAPE, 1))
-
-    input.vc3cmpt =   recommended_vc3cmpt_init
-    input.vp3cmpt =   recommended_vp3cmpt_init
-    input.vp23cmpt =  recommended_vp23cmpt_init
-    input.q3cmpt =   input.cl
-
-    npd_3cmpt_out <- run_npd_3cmpt_iv(dat = dat,
-                                      est.method = est.method,
-                                      input.cl=input.cl,
-                                      input.vc3cmpt =  input.vc3cmpt,
-                                      input.vp3cmpt =  input.vp3cmpt ,
-                                      input.vp23cmpt = input.vp23cmpt,
-                                      input.q3cmpt =   input.q3cmpt ,
-                                      input.q23cmpt =  input.q23cmpt )
-
-    npd.3cmpt_results <- npd_3cmpt_out$npd.3cmpt_results
-    npd.3cmpt.APE <- npd_3cmpt_out$npd.3cmpt.APE
-    npd.3cmpt.MAPE <- npd_3cmpt_out$npd.3cmpt.MAPE
-
-    all.out.3cmpt <- data.frame(
-      method = c("Naive pooled approach"),
-      init.vc = c(npd.3cmpt_results$vc),
-      init.vp = c(npd.3cmpt_results$vp),
-      init.vp2 = c(npd.3cmpt_results$vp2),
-      init.q = c(npd.3cmpt_results$q),
-      init.q2 = c(npd.3cmpt_results$q2),
-      modelAPE = c(npd.3cmpt.APE),
-      modelMAPE = c(npd.3cmpt.MAPE),
-      time.spent = c(npd.3cmpt_results$timespent)
-    )
-
-    all.out.3cmpt$modelAPE <-
-      round(as.numeric(all.out.3cmpt$modelAPE, 1))
-
-    all.out.3cmpt$modelMAPE <-
-      round(as.numeric(all.out.3cmpt$modelMAPE, 1))
-  }
-
-
   # Remove these temporary global variables run before.
   # List of variables to remove
   vars_to_remove <-
     c(
       "input.add",
+      "input.ka",
       "input.cl",
       "input.vc2cmpt",
       "input.vc3cmpt",
@@ -1187,249 +1014,6 @@ message(black(
   }
 
 
-
-  # If naive pooled data approach is used
-  if (runnpd == 1) {
-    # cl selection
-    f_init_cl <-
-      as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                           min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated CL`)
-
-    f_init_ka <-
-      as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                           min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated Ka`)
-
-    if (length(f_init_cl) == 1) {
-      init.params.out.cl <-
-        data.frame(method = all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                      min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[1],
-                   cl = f_init_cl)
-
-      init.params.out.ka <-
-        data.frame(method = all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                      min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[1],
-                   ka = f_init_ka)
-
-    }
-
-    if (length(f_init_cl) > 1) {
-      # Mean value was used
-      f_init_cl <-
-        mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                  min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated CL`), na.rm = T)
-
-      init.params.out.cl <-
-        data.frame(
-          method = paste0(
-            "Mean values of method 1 (",
-            all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                      min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[1],
-            ") and method 2",
-            all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[2],
-            ")"
-          ),
-          cl = f_init_cl
-        )
-
-      f_init_ka <-
-        mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                  min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated CL`), na.rm = T)
-
-      init.params.out.ka <-
-        data.frame(
-          method = paste0(
-            "Mean values of method 1 (",
-            all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                      min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[1],
-            ") and method 2",
-            all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$Method[2],
-            ")"
-          ),
-          ka = f_init_ka
-        )
-
-    }
-
-
-
-    # Vd selection, identify whether vd should be selected from nonlinear model
-    min.npdmmMAPE <- min(all.out.vmax.km$modelMAPE)[1]
-    min.1cmptMAPE <-
-      min(all.out.part$`Mean absolute prediction error (MAPE)`)[1]
-
-    # Nnlinear model performs better, check values of vmax, km
-    if (min.npdmmMAPE < min.1cmptMAPE) {
-      # if fall into the linear range
-      if (all.out.vmax.km[all.out.vmax.km$modelMAPE == min.npdmmMAPE,]$init.km[1] > linear_minkm) {
-        f_init_vd <-
-          as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                               min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated Vd`)
-
-        if (length(f_init_vd) == 1) {
-          sel.method <-
-            all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                      min(all.out$`Mean absolute prediction error (MAPE)`,
-                          na.rm = T),]$Method[1]
-
-          init.params.out.vd <-
-            data.frame(method = all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                          min(all.out$`Mean absolute prediction error (MAPE)`,
-                                              na.rm = T),]$Method[1],
-                       vd = f_init_vd)
-        }
-
-        if (length(f_init_vd) > 1) {
-          f_init_vd <-
-            mean(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                      min(all.out$`Mean absolute prediction error (MAPE)`,
-                                          na.rm = T),]$`Calculated Vd`), na.rm = T)
-
-          init.params.out.vd <-
-            data.frame(
-              method = paste0(
-                "Mean values of method 1 (",
-                all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                          min(all.out$`Mean absolute prediction error (MAPE)`,
-                              na.rm = T),]$Method[1],
-                ") and method 2",
-                all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`,
-                                                                               na.rm = T),]$Method[2],
-                ")"
-              ),
-              vd = f_init_vd
-            )
-        }
-
-      }
-
-      else{
-        f_init_vd <-
-          all.out.vmax.km[all.out.vmax.km$modelMAPE == min.npdmmMAPE,]$init.vd[1]
-        init.params.out.vd <-
-          data.frame(method = "naive pooled data approach",
-                     vd = f_init_vd)
-      }
-    }
-
-    if (min.npdmmMAPE >= min.1cmptMAPE) {
-      f_init_vd <-
-        as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                             min(all.out$`Mean absolute prediction error (MAPE)`, na.rm = T),]$`Calculated Vd`)[1]
-
-      init.params.out.vd <-
-        data.frame(method = "naive pooled data approach",
-                   vd = f_init_vd)
-    }
-
-
-    # Check with simulation test
-    npd_mm.MAPEmin <-
-      min(npd_1cmpt_mm_out$npd.1cmpt.mm.MAPE,
-          npd_1cmpt_mm_out$npd.1cmpt.mm.MAPE.2)
-    sim.vmax.km.min <- min(sim.vmax.km.results.all$sim.mm.MAPE)
-
-    # Vmax,km
-    linear_minkm <- fcmax * 4
-    linear_maxvmax <- linear_minkm * f_init_cl
-
-    if (npd_mm.MAPEmin < sim.vmax.km.min) {
-      if (all.out.vmax.km[all.out.vmax.km$modelMAPE == min.npdmmMAPE,]$init.km[1] > linear_minkm) {
-        sel.method <- "Theshold value (km=4cmax,vmax=km*cl)"
-        # vmax and km was recommended by simulation test
-        f_init_vmax <- linear_maxvmax
-        f_init_km <- linear_minkm
-
-        init.params.out.vmax.km <- data.frame(method = sel.method,
-                                              vmax = f_init_vmax,
-                                              km =  f_init_km)
-
-        init.messages.vmax.km <-
-          c(
-            "Estimated Km exceeds 4 times of the Cmax, it closely fall within the linear range. The threshold value (Km = 4*Cmax) is used."
-          )
-      }
-
-      else{
-        sel.method <- "naive pooled data approach"
-        f_init_vmax <-
-          all.out.vmax.km[all.out.vmax.km$modelMAPE == min(all.out.vmax.km$modelMAPE),]$init.vmax[1]
-        f_init_km <-
-          all.out.vmax.km[all.out.vmax.km$modelMAPE == min(all.out.vmax.km$modelMAPE),]$init.km[1]
-        init.params.out.vmax.km <- data.frame(method = sel.method,
-                                              vmax = f_init_vmax,
-                                              km =  f_init_km)
-      }
-    }
-    if (npd_mm.MAPEmin >= sim.vmax.km.min) {
-      sel.method <- "Sensitivity analysis by simulation "
-      # vmax and km was recommended by simulation test
-      f_init_vmax <-
-        sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == sim.vmax.km.min,]$vmax[1]
-      f_init_km <-
-        sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == sim.vmax.km.min,]$km[1]
-
-      init.params.out.vmax.km <- data.frame(method = sel.method,
-                                            vmax = f_init_vmax,
-                                            km =  f_init_km)
-
-      init.messages.vmax.km <-
-        "Model with estimated Vmax and Km by naive pooled data approach has higher mean absolute prediction error (MAPE) than simulation test, the latter one was used for initial estimate recommendation "
-    }
-
-
-    # vc,vp,vp2
-    # if two compartment does not fit well.
-
-    if (npd_2cmpt_out$npd.2cmpt.MAPE >= min(sim.2cmpt.results.all$sim.2cmpt.MAPE)) {
-      # still use the simulation test results
-      f_init_vc2cmpt <-
-        sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$vc[1]
-      f_init_vp2cmpt <-
-        sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$vp[1]
-
-      f_init_vc3cmpt <-
-        sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$vc[1]
-      f_init_vp3cmpt <-
-        sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$vp[1]
-      f_init_vp23cmpt <-
-        sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$vp2[1]
-
-      sel.method <- "Sensitivity analysis by simulation "
-
-      init.params.out.vc.vp <- data.frame(
-        method  =  sel.method,
-        vc2cmpt =  f_init_vc2cmpt,
-        vp2cmpt =   f_init_vp2cmpt,
-        vc3cmpt =  f_init_vc3cmpt,
-        vp3cmpt =  f_init_vp3cmpt,
-        vp23cmpt =   f_init_vp23cmpt
-      )
-
-      init.messages.multi <-
-        "Model with estimated mult-compartmental volume of distribution (vc,vpi) by naive pooled data approach shows higher mean absolute prediction error (MAPE) than simulation test, the latter one was used for initial estimate recommendation"
-
-    }
-
-    # if estimated parameters by npd is better than simulation test
-    if (npd_2cmpt_out$npd.2cmpt.MAPE < min(sim.2cmpt.results.all$sim.2cmpt.MAPE)[1]) {
-      f_init_vc2cmpt <- npd_2cmpt_out$npd.2cmpt_results$vc
-      f_init_vp2cmpt <- npd_2cmpt_out$npd.2cmpt_results$vp
-      f_init_vc3cmpt <- npd_3cmpt_out$npd.3cmpt_results$vc
-      f_init_vp3cmpt <- npd_3cmpt_out$npd.3cmpt_results$vp
-      f_init_vp23cmpt <- npd_3cmpt_out$npd.3cmpt_results$vp2
-
-
-      init.params.out.vc.vp <- data.frame(
-        method  =  "naive pooled data approach",
-        vc2cmpt =  f_init_vc2cmpt,
-        vp2cmpt =   f_init_vp2cmpt,
-        vc3cmpt =  f_init_vc3cmpt,
-        vp3cmpt =  f_init_vp3cmpt,
-        vp23cmpt =   f_init_vp23cmpt
-      )
-
-    }
-  }
 
   colnames(init.params.out.ka) <- c("Method", "Ka")
   colnames(init.params.out.cl) <- c("Method", "CL")
@@ -1642,7 +1226,7 @@ message(black(
 
 } # end of function
 
-output<-getppkinit(dat = Oral_1CPT,runnpd = 0)
+
 print_env_output <- function(env) {
   cat("=== Initial Parameter Estimation Summary ===\n")
   cat("Data Information:\n")
@@ -1653,4 +1237,4 @@ print_env_output <- function(env) {
   print(env$Parameter.descriptions)
   cat("\n=== End of Summary ===\n")
 }
-print_env_output(output)
+
