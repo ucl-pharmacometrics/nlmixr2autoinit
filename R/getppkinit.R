@@ -1227,6 +1227,28 @@ message(black(
 } # end of function
 
 
+#' Print environment summary for initial parameter estimation
+#'
+#' Prints a summary of initial parameter estimation stored in an environment.
+#' It displays data information, recommended initial estimates, and parameter descriptions.
+#' The function is designed to be used with results stored in a custom environment.
+#'
+#' @param env An environment containing the initial parameter estimation results.
+#' The environment should include:
+#'   \itemize{
+#'     \item \code{Datainfo}: A string summarizing the data information (e.g., number of subjects, observations, etc.).
+#'     \item \code{Recommended_initial_estimates}: A data frame containing recommended initial estimates for parameters.
+#'     \item \code{Parameter_descriptions}: A character vector of descriptions for each parameter.
+#'   }
+#'
+#' @return Prints a formatted summary to the console.
+#' @examples
+#' \dontrun{
+#' # Assuming the environment 'env' contains the required fields:
+#' print_env_output(env)
+#' }
+#' @export
+#'
 print_env_output <- function(env) {
   cat("=== Initial Parameter Estimation Summary ===\n")
   cat("Data Information:\n")
