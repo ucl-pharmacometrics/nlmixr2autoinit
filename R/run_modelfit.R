@@ -561,19 +561,18 @@ run_npd_1cmpt_oral <- function(dat,
 #' @import nlmixr2
 #' @examples
 #' \dontrun{
-#' # Example 1 (Linear kinetics):
+#' # Example 1 (Linear kinetics case):
 #' result <- run_npd_1cmpt_mm_oral(dat = Oral_1CPT,
 #'                               est.method="foce",
-#'                               npdmm_inputcl = 4,
-#'                               npdmm_inputvd = 70,
+#'                               input.cl = 4,
+#'                               input.vd = 70,
 #'                               km_threshold = TRUE)
 #' result
 #'
-#' # Example 2 ( nonlinear kinetics):
+#' # Example 2 ( nonlinear-kinetics case):
 #' result2 <- run_npd_1cmpt_mm_oral(dat = Oral_1CPTMM,
-#'                               est.method="foce",
-#'                               npdmm_inputcl = 4,
-#'                               npdmm_inputvd = 70,
+#'                               input.cl = 4,
+#'                               input.vd = 70,
 #'                               km_threshold = TRUE)
 #' result2
 #' }
@@ -581,15 +580,15 @@ run_npd_1cmpt_oral <- function(dat,
 #' @export
 run_npd_1cmpt_mm_oral <- function(dat,
                                 est.method="nls",
-                                npdmm_inputka=1,
-                                npdmm_inputvmax=1,
-                                npdmm_inputkm=1,
-                                npdmm_inputcl=1,
-                                npdmm_inputvd=1,
+                                input.ka=1,
+                                input.vmax=1,
+                                input.km=1,
+                                input.cl=1,
+                                input.vd=1,
                                 km_threshold=T) {
   start.time <- Sys.time()
-  estvmax<-npdmm_inputvmax
-  estkm<-npdmm_inputkm
+  estvmax<-input.vmax
+  estkm<-input.km
 
   # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=T
   # Determine the maximum concentration
@@ -606,7 +605,7 @@ run_npd_1cmpt_mm_oral <- function(dat,
     # fcmax <- max(c(mean.pop.cmax, calc.cmax))
     estmaxkm <- mean.pop.cmax * 4 # if km>>4cmax, it nearly fall into the linear range
     estkm<-fcmax # initial km starts from cmax
-    estvmax <-  estmaxkm * npdmm_inputcl
+    estvmax <-  estmaxkm * input.cl
   }
 
   npdmm.list <- Fit_1cmpt_mm_oral(
@@ -616,7 +615,7 @@ run_npd_1cmpt_mm_oral <- function(dat,
     input.vmax =  estvmax,
     input.km = estkm,
     input.add = 1,
-    input.vd =   npdmm_inputvd
+    input.vd =   input.vd
   )
 
   end.time <- Sys.time()
