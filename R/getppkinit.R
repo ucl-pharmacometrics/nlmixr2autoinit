@@ -18,12 +18,9 @@
 #' @export
 
 getppkinit <- function(dat,
-                       runnpd,
+                       runnpd=0,
                        getinit.settings) {
-  # do not run parameter estimation of model fitting
-  if (missing(runnpd)) {
-    runnpd = 0
-  }
+
  # tool setting
   getinit.settings0 <- data.frame(
     half_life = NA,
@@ -895,10 +892,160 @@ message(black(
       "input.vd"
 
     )
+
   # Check if variables exist and remove them
   vars_to_remove <-
     vars_to_remove[vars_to_remove %in% ls(envir = .GlobalEnv)]
   rm(list = vars_to_remove, envir = .GlobalEnv)
+
+#####################Naive pooled data approach compartmental analysis #######
+  if (runnpd==1){
+
+    input.cl = mean(base.cl.best)
+    input.vd = mean(base.vd.best)
+    input.vc2cmpt=  recommended_vc2cmpt_init
+    input.vp2cmpt= recommended_vp2cmpt_init
+    input.vc3cmpt =  recommended_vc3cmpt_init
+    input.vp3cmpt =  recommended_vp3cmpt_init
+    input.vp23cmpt = recommended_vp23cmpt_init
+    input.q2cmpt=    input.cl
+    input.q3cmpt =   input.cl
+    input.q23cmpt =  input.cl
+
+  if (noniv_flag==0){
+
+    npd_1cmpt_out <- run_npd_1cmpt_iv(
+      dat = dat,
+      est.method = est.method,
+      input.cl =  input.cl ,
+      input.vd =  input.vd
+    )
+
+    npd_1cmpt_mm_out <- run_npd_1cmpt_mm_iv(
+      dat = dat,
+      est.method = est.method,
+      npdmm_inputcl =  input.cl,
+      npdmm_inputvd =  input.vd
+    )
+
+    npd_2cmpt_out <- run_npd_2cmpt_iv(
+      dat = dat,
+      est.method = est.method,
+      input.cl=input.cl,
+      input.vc2cmpt=  input.vc2cmpt,
+      input.vp2cmpt=  input.vp2cmpt,
+      input.q2cmpt=  input.q2cmpt
+    )
+
+    npd_3cmpt_out <- run_npd_3cmpt_iv(
+      dat = dat,
+      est.method = est.method,
+      input.cl=  input.cl,
+      input.vc3cmpt =  input.vc3cmpt,
+      input.vp3cmpt =  input.vp3cmpt  ,
+      input.vp23cmpt =  input.vp23cmpt,
+      input.q3cmpt =     input.q3cmpt ,
+      input.q23cmpt =   input.q23cmpt)
+  }
+
+
+  if (noniv_flag==1){
+
+    input.ka = mean(base.ka.best)
+
+    npd_1cmpt_out <- run_npd_1cmpt_oral(
+      dat = dat,
+      est.method = est.method,
+      input.ka =  input.ka,
+      input.cl = input.cl,
+      input.vd =  input.vd
+    )
+
+    npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
+      dat = dat,
+      est.method = est.method,
+      input.ka =  input.ka ,
+      input.cl = input.cl,
+      input.vd = input.vd
+    )
+
+    npd_2cmpt_out <- run_npd_2cmpt_oral(
+      dat = dat,
+      est.method = est.method,
+      input.cl=input.cl,
+      input.vc2cmpt=    input.vc2cmpt,
+      input.vp2cmpt=   input.vp2cmpt,
+      input.q2cmpt= input.q2cmpt,
+    )
+
+    npd_3cmpt_out <- run_npd_3cmpt_oral(
+      dat = dat,
+      est.method = est.method,
+      input.cl=input.cl,
+      input.vc3cmpt =  input.vc3cmpt,
+      input.vp3cmpt =   input.vp3cmpt ,
+      input.vp23cmpt =  input.vp23cmpt,
+      input.q3cmpt =    input.q3cmpt  ,
+      input.q23cmpt =  input.q23cmpt)
+  }
+
+    npd.1cmpt_results <- npd_1cmpt_out$npd.1cmpt_results
+    npd.1cmpt.APE <- npd_1cmpt_out$npd.1cmpt.APE
+    npd.1cmpt.MAPE <- npd_1cmpt_out$npd.1cmpt.MAPE
+
+    npd.1cmpt.mm_results <- npd_1cmpt_mm_out$npd.1cmpt.mm_results
+    npd.1cmpt.mm.APE <- npd_1cmpt_mm_out$npd.1cmpt.mm.APE
+    npd.1cmpt.mm.MAPE <- npd_1cmpt_mm_out$npd.1cmpt.mm.MAPE
+
+    npd.2cmpt_results <- npd_2cmpt_out$npd.2cmpt_results
+    npd.2cmpt.APE <- npd_2cmpt_out$npd.2cmpt.APE
+    npd.2cmpt.MAPE <- npd_2cmpt_out$npd.2cmpt.MAPE
+
+    npd.3cmpt_results <- npd_3cmpt_out$npd.3cmpt_results
+    npd.3cmpt.APE <- npd_3cmpt_out$npd.3cmpt.APE
+    npd.3cmpt.MAPE <- npd_3cmpt_out$npd.3cmpt.MAPE
+
+
+   # Output
+
+     # npdcmpt.all.out <- data.frame(
+     #    method = "Naive pooled data approach (compartmental analysis)",
+     #    ka=ka,
+     #    cl = c(
+     #      simpcal.out$cl,
+     #      graph.results_fd$cl,
+     #      nca.results_fd$cl,
+     #      hybrid_cl
+     #    ),
+     #    vd = c(
+     #      simpcal.out$vd,
+     #      graph.results_fd$vd,
+     #      nca.results_fd$vd,
+     #      hybrid_vd
+     #    ),
+     #    simAPE = c(simpcal.APE, graph_fd.APE, nca.APE, hybrid.APE),
+     #    simMAPE = c(simpcal.MAPE, graph_fd.MAPE, nca.MAPE, hybrid.MAPE),
+     #    time.spent = c(
+     #      simpcal.out$time.spent,
+     #      graph.results_fd$time.spent,
+     #      nca.results_all$time.spent,
+     #      simpcal.out$time.spent
+     #    )
+     #  )
+
+
+    colnames(all.out) <-
+      c(
+        "Method",
+        "Calculated Ka",
+        "Calculated CL",
+        "Calculated Vd",
+        "Absolute Prediction Error (APE)",
+        "Mean absolute prediction error (MAPE)",
+        "Time spent"
+      )
+
+  }
 
   ######################## Finally selection########################################
 
