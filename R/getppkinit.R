@@ -10,7 +10,7 @@
 #' @importFrom tidyr fill
 #' @import crayon
 #' @examples
-#' getppkinit(dat = Oral_1CPT,runnpd = 0)
+#' getppkinit(dat = Oral_1CPT[Oral_1CPT$SS==99,],runnpd = 0)
 #' getppkinit(dat = Bolus_1CPT,runnpd = 0)
 #' getppkinit(dat = Bolus_1CPT,runnpd = 0, getinit.settings=c(trap.rule.method =2))
 #' getppkinit(dat = Oral_1CPT,runnpd = 0)
@@ -835,6 +835,8 @@ message(black(
     sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE),]$vc[1]
   recommended_vp2cmpt_init <-
     sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE),]$vp[1]
+  recommended_q2cmpt_init <-
+    sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE),]$q[1]
 
   sim.3cmpt.results.all <- NULL
 
@@ -855,7 +857,7 @@ message(black(
     sim.3cmpt.results.all.i <- sim_sens_3cmpt(dat = dat,
                                               estcl = base.cl.best[besti],
                                               estvd = base.vd.best[besti],
-                                              estka = base.vd.best[besti],
+                                              estka = base.ka.best[besti],
                                               noniv_flag = 1)
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results.all.i)
@@ -870,7 +872,10 @@ message(black(
     sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$vp[1]
   recommended_vp23cmpt_init <-
     sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$vp2[1]
-
+  recommended_q3cmpt_init <-
+    sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$q[1]
+  recommended_q23cmpt_init <-
+    sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$q2[1]
 
   # Remove these temporary global variables run before.
   # List of variables to remove
@@ -962,11 +967,12 @@ message(black(
     )
 
     npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
-      dat = dat,
-      est.method = est.method,
-      input.ka =  input.ka ,
-      input.cl = input.cl,
-      input.vd = input.vd
+      dat = Oral_1CPT,
+      est.method = "nls",
+      input.ka =  input.ka,
+      input.cl =  input.cl,
+      input.vd = input.vd,
+      km_threshold = T
     )
 
     npd_2cmpt_out <- run_npd_2cmpt_oral(
@@ -1007,43 +1013,72 @@ message(black(
 
 
    # Output
+   # Naive pooled data approach (compartmental analysis)"
+    npdcmpt.all.out <- data.frame(
 
-     # npdcmpt.all.out <- data.frame(
-     #    method = "Naive pooled data approach (compartmental analysis)",
-     #    ka=ka,
-     #    cl = c(
-     #      simpcal.out$cl,
-     #      graph.results_fd$cl,
-     #      nca.results_fd$cl,
-     #      hybrid_cl
-     #    ),
-     #    vd = c(
-     #      simpcal.out$vd,
-     #      graph.results_fd$vd,
-     #      nca.results_fd$vd,
-     #      hybrid_vd
-     #    ),
-     #    simAPE = c(simpcal.APE, graph_fd.APE, nca.APE, hybrid.APE),
-     #    simMAPE = c(simpcal.MAPE, graph_fd.MAPE, nca.MAPE, hybrid.MAPE),
-     #    time.spent = c(
-     #      simpcal.out$time.spent,
-     #      graph.results_fd$time.spent,
-     #      nca.results_all$time.spent,
-     #      simpcal.out$time.spent
-     #    )
-     #  )
+        Model = c("One-compartment & first-order (absorption) and elimination",
+                  "One-compartment & first-order (absorption) and nonlinear elimination",
+                  "Two-compartment & first-order (absorption) and elimination",
+                  "Three-compartment with first-order (absorption) and elimination"),
 
+        ka= c(npd.1cmpt_results$ka,
+              npd.1cmpt.mm_results$ka,
+              npd.2cmpt_results$ka,
+              npd.3cmpt_results$ka
+              ),
 
-    colnames(all.out) <-
-      c(
-        "Method",
-        "Calculated Ka",
-        "Calculated CL",
-        "Calculated Vd",
-        "Absolute Prediction Error (APE)",
-        "Mean absolute prediction error (MAPE)",
-        "Time spent"
+        cl = c(npd.1cmpt_results$cl,
+               NA,
+               npd.2cmpt_results$cl,
+               npd.3cmpt_results$cl),
+
+        vc = c(npd.1cmpt_results$vd,
+               npd.1cmpt.mm_results$vd,
+               npd.2cmpt_results$vc,
+               npd.3cmpt_results$vc),
+
+        vp =  c(NA,
+                NA,
+                npd.2cmpt_results$vp,
+                npd.3cmpt_results$vp),
+
+        vp2 =  c(NA,
+                NA,
+                NA,
+                npd.3cmpt_results$vp2),
+
+        q =   c(NA,
+                 NA,
+                 npd.2cmpt_results$q,
+                 npd.3cmpt_results$q),
+
+        q2 =  c(NA,
+                 NA,
+                 NA,
+                 npd.3cmpt_results$q2),
+
+        simAPE = c(npd.1cmpt.APE, npd.1cmpt.mm.APE, npd.2cmpt.APE, npd.3cmpt.APE),
+        simMAPE = c(npd.1cmpt.MAPE, npd.1cmpt.mm.MAPE, npd.2cmpt.MAPE, npd.3cmpt.MAPE),
+
+        time.spent = c(
+          npd.1cmpt_results$timespent,
+          npd.1cmpt.mm_results$timespent,
+          npd.2cmpt_results$timespent,
+          npd.3cmpt_results$timespent
+        )
       )
+
+
+    # colnames(all.out) <-
+    #   c(
+    #     "Method",
+    #     "Calculated Ka",
+    #     "Calculated CL",
+    #     "Calculated Vd",
+    #     "Absolute Prediction Error (APE)",
+    #     "Mean absolute prediction error (MAPE)",
+    #     "Time spent"
+    #   )
 
   }
 
@@ -1101,7 +1136,6 @@ message(black(
                        round(all.out.part$`Calculated Vd`, 1) == round(total.vd, 1),]$Method[1]
     }
 
-
     # vmax.km
     f_init_vmax <-
       as.numeric(sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE ==
@@ -1117,19 +1151,30 @@ message(black(
     f_init_vp2cmpt <-
       sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$vp[1]
 
+    f_init_q2cmpt <-
+      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$q[1]
+
     f_init_vc3cmpt <-
+
       sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$vc[1]
     f_init_vp3cmpt <-
+
       sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$vp[1]
     f_init_vp23cmpt <-
       sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$vp2[1]
+
+    f_init_q3cmpt <-
+      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$q[1]
+
+    f_init_q23cmpt <-
+      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$q2[1]
 
     sel.method.multi <- "Sensitivity analysis by simulation "
 
     sel.method.ka<-"Wanger_nelson"
 
     if (sel.method.ka.cl.vd== "Hybrid simplified calculation"){
-        sel.method.ka<-"Wanger_nelson_ (median)"
+        sel.method.ka<-"Wanger_nelson (median)"
     }
 
     if (sel.method.ka.cl.vd== "Graphic calculation"){
@@ -1154,9 +1199,12 @@ message(black(
       method  =  sel.method.multi,
       vc2cmpt =  f_init_vc2cmpt,
       vp2cmpt =   f_init_vp2cmpt,
+      q2cmpt =   f_init_q2cmpt,
       vc3cmpt =  f_init_vc3cmpt,
       vp3cmpt =  f_init_vp3cmpt,
-      vp23cmpt =   f_init_vp23cmpt
+      vp23cmpt =   f_init_vp23cmpt,
+      q3cmpt =   f_init_q3cmpt,
+      q23cmpt =   f_init_q23cmpt
     )
   }
 
@@ -1170,9 +1218,13 @@ message(black(
     c("Method",
       "Vc2cmpt",
       "Vp2cmpt",
+      "Q2cmpt",
       "Vc3cmpt",
       "Vp3cmpt",
-      "Vp23cmpt")
+      "Vp23cmpt",
+      "Q3cmpt",
+      "Q23cmpt"
+      )
 
   init.params.out.all <- list(
     init.params.ka = init.params.out.ka,
@@ -1191,10 +1243,14 @@ message(black(
       "Km",
       "Vc(2CMPT)",
       "Vp(2CMPT)",
+      "Q(2CMPT)",
       "Vc(3CMPT)",
       "Vp(3CMPT)",
-      "Vp2(3CMPT)"
+      "Vp2(3CMPT)",
+      "Q(3CMPT)",
+      "Q2(3CMPT)"
     ),
+
     Methods = c(
       init.params.out.all$init.params.ka$Method,
       init.params.out.all$init.params.cl$Method,
@@ -1205,7 +1261,11 @@ message(black(
       init.params.out.all$init.params.multi$Method,
       init.params.out.all$init.params.multi$Method,
       init.params.out.all$init.params.multi$Method,
+      init.params.out.all$init.params.multi$Method,
+      init.params.out.all$init.params.multi$Method,
+      init.params.out.all$init.params.multi$Method,
       init.params.out.all$init.params.multi$Method
+
     ),
     Values = c(
       init.params.out.all$init.params.ka$Ka,
@@ -1215,9 +1275,12 @@ message(black(
       init.params.out.all$init.params.vmax.km$Km,
       init.params.out.all$init.params.multi$Vc2cmpt,
       init.params.out.all$init.params.multi$Vp2cmpt,
+      init.params.out.all$init.params.multi$Q2cmpt,
       init.params.out.all$init.params.multi$Vc3cmpt,
       init.params.out.all$init.params.multi$Vp3cmpt,
-      init.params.out.all$init.params.multi$Vp23cmpt
+      init.params.out.all$init.params.multi$Vp23cmpt,
+      init.params.out.all$init.params.multi$Q3cmpt,
+      init.params.out.all$init.params.multi$Q23cmpt
     )
   )
 
@@ -1315,6 +1378,7 @@ message(black(
     c(
       "Simulated Vc",
       "Simulated Vp",
+      "Simulated Q",
       "Absolute prediction error (APE)",
       "Mean absolute prediction error (MAPE)",
       "Time spent"
@@ -1324,6 +1388,8 @@ message(black(
       "Simulated Vc",
       "Simulated Vp",
       "Simulated Vp2",
+      "Simulated Q",
+      "Simulated Q2",
       "Absolute prediction error (APE)",
       "Mean absolute prediction error (MAPE)",
       "Time spent"
@@ -1401,7 +1467,7 @@ print_env_output <- function(env) {
   cat("Data Information:\n")
   print(env$Datainfo)
   cat("\nRecommended Initial Estimates:\n")
-  print(head(env$Recommended_initial_estimates, 10))
+  print(head(env$Recommended_initial_estimates, 13))
   cat("\nParameter Descriptions:\n")
   print(env$Parameter.descriptions)
   cat("\n=== End of Summary ===\n")
