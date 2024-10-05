@@ -11,10 +11,9 @@ sim_sens_3cmpt(
   sim_vp2_list,
   estcl,
   estvd,
-  estq,
-  estq2,
-  estka,
-  noniv_flag
+  sim_q_list,
+  estka = NA,
+  noniv_flag = 0
 )
 }
 \arguments{
@@ -42,5 +41,6 @@ This function performs sensitivity analysis by testing a series of potential rat
 }
 \examples{
 dat <- Bolus_2CPT
-sim_sens_3cmpt(dat, estcl = 4, estvd = 70)
+sim_results<-sim_sens_3cmpt(dat, estka=1, estcl = 4, estvd = 70)
+sim_results
 }

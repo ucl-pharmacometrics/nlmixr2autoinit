@@ -10,9 +10,9 @@ sim_sens_2cmpt(
   sim_vp_list,
   estcl,
   estvd,
-  estq,
-  estka,
-  noniv_flag
+  sim_q_list,
+  estka = NA,
+  noniv_flag = 0
 )
 }
 \arguments{
@@ -26,15 +26,17 @@ sim_sens_2cmpt(
 
 \item{estvd}{Estimated volume of distribution (optional, required if \code{sim_vc_list} and \code{sim_vp_list} are not provided).}
 
-\item{estq}{Estimated intercompartmental clearance (optional, default is \code{estcl}).}
+\item{sim_q_list}{A list of inter-compartmental clearance (Q) to simulate (optional).}
+
+\item{estka}{Estimated absorption rate if oral case.}
 }
 \value{
 A data frame containing the Vc, Vp, APE, MAPE, and time spent for each simulation.
 }
 \description{
-This function performs sensitivity analysis by testing a series of potential ratios of vc to vp.
+Performs sensitivity analysis by testing a series of potential ratios of vc to vp.
 }
 \examples{
 dat <- Bolus_2CPT
-sim_sens_2cmpt(dat, estcl = 4, estvd = 70)
+sim.results<-sim_sens_2cmpt(dat, estka=1,estcl = 4, estvd = 70)
 }

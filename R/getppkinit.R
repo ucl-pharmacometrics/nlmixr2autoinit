@@ -10,7 +10,7 @@
 #' @importFrom tidyr fill
 #' @import crayon
 #' @examples
-#' getppkinit(dat = Oral_1CPT[Oral_1CPT$SS==99,],runnpd = 0)
+#' getppkinit(dat = Oral_1CPT[Oral_1CPT$SS==99,],runnpd = 1)
 #' getppkinit(dat = Bolus_1CPT,runnpd = 0)
 #' getppkinit(dat = Bolus_1CPT,runnpd = 0, getinit.settings=c(trap.rule.method =2))
 #' getppkinit(dat = Oral_1CPT,runnpd = 0)
@@ -1084,8 +1084,7 @@ message(black(
 
   ######################## Finally selection########################################
 
-  if (runnpd == 0) {
-    # ka,cl,vd.
+   # ka,cl,vd.
     f_init_ka <-
       as.numeric(all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` ==
                                 min(all.out.part$`Mean absolute prediction error (MAPE)`,
@@ -1206,8 +1205,6 @@ message(black(
       q3cmpt =   f_init_q3cmpt,
       q23cmpt =   f_init_q23cmpt
     )
-  }
-
 
 
   colnames(init.params.out.ka) <- c("Method", "Ka")

@@ -8,11 +8,11 @@ Perform parameter estimation on naive pooled data for a one-compartment Michaeli
 run_npd_1cmpt_mm_oral(
   dat,
   est.method = "nls",
-  npdmm_inputka = 1,
-  npdmm_inputvmax = 1,
-  npdmm_inputkm = 1,
-  npdmm_inputcl = 1,
-  npdmm_inputvd = 1,
+  input.ka = 1,
+  input.vmax = 1,
+  input.km = 1,
+  input.cl = 1,
+  input.vd = 1,
   km_threshold = T
 )
 }
@@ -22,6 +22,12 @@ such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT}.}
 
 \item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
 
+\item{input.ka}{A numeric value for the initial estimate of absorption rate constant. Default is 1.}
+
+\item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},
+initial estimates of Vmax and Km are adjusted based on a threshold related
+to the maximum observed concentration in the data.}
+
 \item{npdmm_inputvmax}{A numeric value for the initial estimate of Vmax.}
 
 \item{npdmm_inputkm}{A numeric value for the initial estimate of Km.}
@@ -29,12 +35,6 @@ such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT}.}
 \item{npdmm_inputcl}{A numeric value for the clearance.}
 
 \item{npdmm_inputvd}{A numeric value for the initial estimate of volume of distribution (Vd).}
-
-\item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},
-initial estimates of Vmax and Km are adjusted based on a threshold related
-to the maximum observed concentration in the data.}
-
-\item{input.ka}{A numeric value for the initial estimate of absorption rate constant. Default is 1.}
 }
 \value{
 A list with the following elements:
@@ -62,19 +62,18 @@ regardless of whether the dynamics are linear or nonlinear.
 }
 \examples{
 \dontrun{
-# Example 1 (Linear kinetics):
+# Example 1 (Linear kinetics case):
 result <- run_npd_1cmpt_mm_oral(dat = Oral_1CPT,
                               est.method="foce",
-                              npdmm_inputcl = 4,
-                              npdmm_inputvd = 70,
+                              input.cl = 4,
+                              input.vd = 70,
                               km_threshold = TRUE)
 result
 
-# Example 2 ( nonlinear kinetics):
+# Example 2 ( nonlinear-kinetics case):
 result2 <- run_npd_1cmpt_mm_oral(dat = Oral_1CPTMM,
-                              est.method="foce",
-                              npdmm_inputcl = 4,
-                              npdmm_inputvd = 70,
+                              input.cl = 4,
+                              input.vd = 70,
                               km_threshold = TRUE)
 result2
 }
