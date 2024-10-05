@@ -118,18 +118,19 @@ sim_sens_vmax_km <- function(dat,
 
 #' Sensitivity analysis for a two-compartment model
 #'
-#' This function performs sensitivity analysis by testing a series of potential ratios of vc to vp.
+#' Performs sensitivity analysis by testing a series of potential ratios of vc to vp.
 #' @param dat A data frame containing the pharmacokinetic data
 #' @param sim_vc_list A list of central compartment volumes (Vc) to simulate (optional).
 #' @param sim_vp_list A list of peripheral compartment volumes (Vp) to simulate (optional).
+#' @param sim_q_list A list of inter-compartmental clearance (Q) to simulate (optional).
+#' @param estka Estimated absorption rate if oral case.
 #' @param estcl Estimated clearance.
 #' @param estvd Estimated volume of distribution (optional, required if `sim_vc_list` and `sim_vp_list` are not provided).
-#' @param estq Estimated intercompartmental clearance (optional, default is `estcl`).
 #' @return A data frame containing the Vc, Vp, APE, MAPE, and time spent for each simulation.
 #' @import nlmixr2
 #' @examples
 #' dat <- Bolus_2CPT
-#' sim_sens_2cmpt(dat, estcl = 4, estvd = 70)
+#' sim.results<-sim_sens_2cmpt(dat, estka=1,estcl = 4, estvd = 70)
 #' @export
 #'
 sim_sens_2cmpt <- function(dat,
@@ -137,23 +138,12 @@ sim_sens_2cmpt <- function(dat,
                            sim_vp_list,
                            estcl,
                            estvd,
-                           estq,
-                           estka,
-                           noniv_flag) {
-
-  if (missing(estka)){
-    estka<-NA
-  }
-  if(missing(noniv_flag)){
-    noniv_flag<-0
-  }
+                           sim_q_list,
+                           estka=NA,
+                           noniv_flag=0) {
 
   if (missing(estcl)) {
     stop("Error: no estimated clearance for simulation was provided")
-  }
-
-  if (missing(estq)) {
-    estq = estcl
   }
 
   if (missing(sim_vc_list) || missing(sim_vp_list)) {
@@ -173,12 +163,17 @@ sim_sens_2cmpt <- function(dat,
     }
   }
 
+  if (missing(sim_q_list)){
+    sim_q_list<-c(0.1,1,10,100)
+  }
 
   sim.2cmpt.results.all <- NULL
 
   for (loop2cmpt in 1:length(sim_vc_list)) {
     input.vc <- sim_vc_list[loop2cmpt]
     input.vp <- sim_vp_list[loop2cmpt]
+
+    for (estq in sim_q_list){
 
     if (noniv_flag==0){
     sim.lst <- Fit_2cmpt_iv(
@@ -191,7 +186,6 @@ sim_sens_2cmpt <- function(dat,
       input.add = 0
     )
     }
-
 
     if (noniv_flag==1){
       sim.lst <- Fit_2cmpt_oral(
@@ -218,6 +212,7 @@ sim_sens_2cmpt <- function(dat,
     sim.2cmpt.results <- data.frame(
       vc = input.vc,
       vp = input.vp,
+      q= estq,
       sim.2cmpt.APE = sim.APE,
       sim.2cmpt.MAPE = sim.MAPE,
       time.spent = time.spent
@@ -226,6 +221,7 @@ sim_sens_2cmpt <- function(dat,
     sim.2cmpt.results.all <-
       rbind(sim.2cmpt.results.all, sim.2cmpt.results)
 
+    }
   }
 
   return(sim.2cmpt.results.all)
@@ -248,7 +244,8 @@ sim_sens_2cmpt <- function(dat,
 #' @import nlmixr2
 #' @examples
 #' dat <- Bolus_2CPT
-#' sim_sens_3cmpt(dat, estcl = 4, estvd = 70)
+#' sim_results<-sim_sens_3cmpt(dat, estka=1, estcl = 4, estvd = 70)
+#' sim_results
 #' @export
 #'
 
@@ -258,27 +255,14 @@ sim_sens_3cmpt <- function(dat,
                            sim_vp2_list,
                            estcl,
                            estvd,
-                           estq,
-                           estq2,
-                           estka,
-                           noniv_flag) {
+                           sim_q_list,
+                           estka=NA,
+                           noniv_flag=0) {
 
-  if (missing(estka)){
-    estka<-NA
+# default value
+if (missing(sim_q_list)){
+    sim_q_list<-c(0.1,1,10,100)
   }
-  if(missing(noniv_flag)){
-    noniv_flag<-0
-  }
-
-  # default value
-  if (missing(estq)) {
-    estq = estcl
-  }
-
-  if (missing(estq2)) {
-    estq2 = estcl
-  }
-
 
   if (missing(sim_vc_list) ||
       missing(sim_vp_list) || missing(sim_vp2_list)) {
@@ -288,8 +272,8 @@ sim_sens_3cmpt <- function(dat,
     else{
       # generate the default parameter list
       start.time <- Sys.time()
-      vc_vp_ratio_range <- c(5, 2, 1, 0.5, 0.25)
-      vp_vp2_ratio_range <- c(5, 2, 1, 0.5, 0.25)
+      vc_vp_ratio_range <- c(5, 2, 1, 0.5, 0.2)
+      vp_vp2_ratio_range <- c(5, 2, 1, 0.5, 0.2)
 
       # Generate the matrix of all combinations
       combs <- expand.grid(vc_vp_ratio_range,  vp_vp2_ratio_range)
@@ -319,6 +303,8 @@ sim_sens_3cmpt <- function(dat,
     input.vp <- sim_vp_list[loop3cmpt]
     input.vp2 <- sim_vp2_list[loop3cmpt]
 
+   for (estq in sim_q_list){
+
     if (noniv_flag==0){
     sim.lst <- Fit_3cmpt_iv(
       data = dat[dat$EVID != 2,],
@@ -327,8 +313,8 @@ sim_sens_3cmpt <- function(dat,
       input.vc3cmpt = input.vc,
       input.vp3cmpt = input.vp,
       input.vp23cmpt = input.vp2,
-      input.q3cmpt = 10,
-      input.q23cmpt = 10,
+      input.q3cmpt = estq,
+      input.q23cmpt = estq,
       input.add = 0
     )
     }
@@ -341,8 +327,8 @@ sim_sens_3cmpt <- function(dat,
       input.vc3cmpt = input.vc,
       input.vp3cmpt = input.vp,
       input.vp23cmpt = input.vp2,
-      input.q3cmpt = 10,
-      input.q23cmpt = 10,
+      input.q3cmpt = estq,
+      input.q23cmpt = estq,
       input.add = 0
     )
     }
@@ -356,19 +342,20 @@ sim_sens_3cmpt <- function(dat,
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
 
-
     sim.3cmpt.results <- data.frame(
       vc = input.vc,
       vp = input.vp,
       vp2 = input.vp2,
+      q =  estq,
+      q2 = estq,
       sim.3cmpt.APE = sim.APE,
       sim.3cmpt.MAPE = sim.MAPE,
       time.spent = time.spent
     )
 
-
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results)
+   }
   }
 
   return(sim.3cmpt.results.all)
