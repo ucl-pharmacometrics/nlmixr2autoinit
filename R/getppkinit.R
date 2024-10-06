@@ -1515,21 +1515,6 @@ message(black(
       )
   }
 
-  if (!exists("all.out.vmax.km")) {
-    all.out.vmax.km <-
-      "No model fitting by naive pool data approach was conducted"
-  }
-
-  if (!exists("all.out.2cmpt")) {
-    all.out.2cmpt <-
-      "No model fitting by naive pool data approach was conducted"
-  }
-
-  if (!exists("all.out.3cmpt")) {
-    all.out.3cmpt <-
-      "No model fitting by naive pool data approach was conducted"
-  }
-
   if (!exists("init.messages.multi")) {
     init.messages.multi <- NULL
   }
@@ -1550,6 +1535,10 @@ message(black(
   if (!exists("npdcmpt.all.out")) {
     npdcmpt.all.out <-
       "No model fitting by naive pool data approach was conducted"
+    npd.1cmpt_results=      "No model fitting by naive pool data approach was conducted"
+    npd.1cmpt.mm_results=   "No model fitting by naive pool data approach was conducted"
+    npd.2cmpt_results=      "No model fitting by naive pool data approach was conducted"
+    npd.3cmpt_results=      "No model fitting by naive pool data approach was conducted"
   }
 
   colnames(all.out) <-
@@ -1596,9 +1585,10 @@ message(black(
     sim.vmax.km = sim.vmax.km.results.all,
     sim.2cmpt = sim.2cmpt.results.all,
     sim.3cmpt = sim.3cmpt.results.all,
-    npd.out.vmax.km = all.out.vmax.km,
-    npd.out.2cmpt = all.out.2cmpt,
-    npd.out.3cmpt = all.out.3cmpt
+    npd.1cmpt_results=npd.1cmpt_results,
+    npd.1cmpt.mm_results=npd.1cmpt.mm_results,
+    npd.2cmpt_results=npd.2cmpt_results,
+    npd.3cmpt_results=npd.3cmpt_results
   )
 
   params.descriptions <- c(
@@ -1660,16 +1650,16 @@ message(black(
 #'
 print_env_output <- function(env) {
   cat("===============Initial Parameter Estimation Summary ===============\n")
-  cat("Data Information:\n")
+  cat("Data information:\n")
   print(env$Datainfo)
 
-  cat("\nRecommended Initial Estimates by using non-model fitting methods:\n")
+  cat("\nRecommended initial estimates by using non-model fitting methods:\n")
   print(head(env$Recommended_initial_estimates, 13))
 
-  cat("\nRecommended Initial Estimates by naive pooled data compartmental analysis:\n")
+  cat("\nRecommended initial estimates by naive pooled data compartmental analysis:\n")
   print(head(env$npdcmpt.all.out, 13))
 
-  cat("\nParameter Descriptions:\n")
+  cat("\nParameter descriptions:\n")
   print(env$Parameter.descriptions)
 
   cat("\n=============== End of Summary ===============\n")
