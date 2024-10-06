@@ -11,8 +11,8 @@
 #' @importFrom dplyr %>% mutate if_else group_by ungroup
 #' @import nlmixr2
 #' @examples
-#' # Example 1 (iv case)
 #'
+#' # Example 1 (iv case)
 #' dat <- Bolus_1CPT
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
