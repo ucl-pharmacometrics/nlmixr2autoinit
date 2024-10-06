@@ -1113,6 +1113,7 @@ message(black(
       input.q23cmpt =  input.q23cmpt)
   }
 
+# summarise results
     npd.1cmpt_results <- npd_1cmpt_out$npd.1cmpt_results
     npd.1cmpt.APE <- npd_1cmpt_out$npd.1cmpt.APE
     npd.1cmpt.MAPE <- npd_1cmpt_out$npd.1cmpt.MAPE
@@ -1132,6 +1133,64 @@ message(black(
 
    # Output
    # Naive pooled data approach (compartmental analysis)"
+    if (noniv_flag==0){
+    npdcmpt.all.out <- data.frame(
+
+      Model = c("One-compartment & first-order (absorption) and elimination",
+                "One-compartment & first-order (absorption) and nonlinear elimination",
+                "Two-compartment & first-order (absorption) and elimination",
+                "Three-compartment with first-order (absorption) and elimination"),
+
+      ka= c(NA,
+            npd.1cmpt.mm_results$ka,
+            npd.2cmpt_results$ka,
+            npd.3cmpt_results$ka
+      ),
+
+      cl = c(npd.1cmpt_results$cl,
+             NA,
+             npd.2cmpt_results$cl,
+             npd.3cmpt_results$cl),
+
+      vc = c(npd.1cmpt_results$vd,
+             npd.1cmpt.mm_results$vd,
+             npd.2cmpt_results$vc,
+             npd.3cmpt_results$vc),
+
+      vp =  c(NA,
+              NA,
+              npd.2cmpt_results$vp,
+              npd.3cmpt_results$vp),
+
+      vp2 =  c(NA,
+               NA,
+               NA,
+               npd.3cmpt_results$vp2),
+
+      q =   c(NA,
+              NA,
+              npd.2cmpt_results$q,
+              npd.3cmpt_results$q),
+
+      q2 =  c(NA,
+              NA,
+              NA,
+              npd.3cmpt_results$q2),
+
+      simAPE = c(npd.1cmpt.APE, npd.1cmpt.mm.APE, npd.2cmpt.APE, npd.3cmpt.APE),
+      simMAPE = c(npd.1cmpt.MAPE, npd.1cmpt.mm.MAPE, npd.2cmpt.MAPE, npd.3cmpt.MAPE),
+
+      time.spent = c(
+        npd.1cmpt_results$timespent,
+        npd.1cmpt.mm_results$timespent,
+        npd.2cmpt_results$timespent,
+        npd.3cmpt_results$timespent
+      )
+    )
+    }
+
+
+    if (noniv_flag==1){
     npdcmpt.all.out <- data.frame(
 
         Model = c("One-compartment & first-order (absorption) and elimination",
@@ -1186,7 +1245,7 @@ message(black(
         )
       )
 
-
+}
     # colnames(all.out) <-
     #   c(
     #     "Method",
