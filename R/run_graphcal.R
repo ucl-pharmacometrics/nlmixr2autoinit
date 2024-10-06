@@ -18,13 +18,13 @@
 #' dat <- calculate_tad(dat)
 #' run_graphcal(dat, route="bolus")
 #'
-#' Example 2 (oral case)
+#' # Example 2 (oral case)
 #' dat <- Oral_1CPT
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
 #' run_graphcal(dat, route="oral")
 #'
-#' Example 3 (infusion case).
+#' # Example 3 (infusion case).
 #' Approximate calculation. only use when the infusion duration is very short
 #'
 #' dat <- Infusion_1CPT
