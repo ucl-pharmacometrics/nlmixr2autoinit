@@ -297,6 +297,9 @@ trap.rule <- function(x, y) {
 #
 trap.rule_linear_up_log_down <- function(x, y) {
 
+  # Calculate the first triangle (between the first two points)
+  first_triangle_area <- x[1] * y[1] / 2
+
   delta_x <- diff(x)
   delta_y <- diff(y)
 
@@ -311,7 +314,7 @@ trap.rule_linear_up_log_down <- function(x, y) {
                      log(y[-length(y)][log_down_] / y[-1][log_down_])) * delta_x[log_down_]
 
   # Sum the AUC from both the linear up and log down phases
-  total_auc <- sum(linear_up_auc) + sum(log_down_auc)
+  total_auc <- first_triangle_area + sum(linear_up_auc) + sum(log_down_auc)
 
   return(total_auc)
 }
