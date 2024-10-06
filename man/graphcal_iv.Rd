@@ -9,7 +9,7 @@ graphcal_iv(dat, nlastpoints)
 \arguments{
 \item{dat}{A data frame with intravenous pharmacokinetic data, at least containing TIME and DV these two columns}
 
-\item{nlastpoints}{Number of last points to use for the linear regression of terminal slope}
+\item{nlastpoints}{Numeric value specifying the number of last data points used for linear regression to obtain the slope in the terminal phase. (default is \code{3} in the graphical analysis).}
 }
 \value{
 A named vector containing the calculated clearance (cl), volume of distribution (vd), slope of terminal phase (slope), and concentration at the time 0 (C0).

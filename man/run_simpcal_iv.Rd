@@ -2,14 +2,14 @@
 % Please edit documentation in R/run_simpcal_iv.R
 \name{run_simpcal_iv}
 \alias{run_simpcal_iv}
-\title{Run simplified calculation for intravenous pharmacokinetic data}
+\title{Run approximate pharmacokinetic calculation for intravenous pharmacokinetic data}
 \usage{
-run_simpcal_iv(dat, infusion_flag, sdflag, fdobsflag, half_life)
+run_simpcal_iv(dat, route = "bolus", sdflag = 0, fdobsflag = 1, half_life = NA)
 }
 \arguments{
 \item{dat}{A data frame containing the intravenous pharmacokinetic data.}
 
-\item{infusion_flag}{A flag indicating whether the dataset includes infusion doses. Set to 1 if the data includes infusions, otherwise set to 0.}
+\item{route}{A character string specifying the route of administration (e.g, "bolus" and "infusion"). The default value is "bolus".}
 
 \item{sdflag}{A flag indicating whether this is only single-dose data.}
 
@@ -24,8 +24,17 @@ A list containing the results of the simplified calculation, including clearance
 Perform a simplified calculation for clearance and volume of distribution in intravenous cases.
 }
 \examples{
+
+# Example 1 (iv case)
 dat <- Bolus_1CPT
-dat<- nmpkconvert(dat)
-dat<- calculate_tad(dat)
-run_simpcal_iv(dat, infusion_flag = 0, sdflag = 0, fdobsflag = 1)
+dat <- nmpkconvert(dat)
+dat <- calculate_tad(dat)
+run_simpcal_iv(dat)
+
+# Example 2 (infusion case).
+
+dat <- Infusion_1CPT
+dat <- nmpkconvert(dat)
+dat <- calculate_tad(dat,infusion_flag=1)
+run_simpcal_iv(dat,route="infusion")
 }

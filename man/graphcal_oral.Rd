@@ -7,7 +7,7 @@
 graphcal_oral(dat, nlastpoints)
 }
 \arguments{
-\item{dat}{A data frame with intravenous pharmacokinetic data, at least containing TIME and DV these two columns}
+\item{dat}{A data frame with oral pharmacokinetic data, at least containing TIME and DV these two columns}
 
 \item{nlastpoints}{Number of last points to use for the linear regression of terminal slope}
 }

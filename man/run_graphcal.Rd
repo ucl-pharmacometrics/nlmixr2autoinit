@@ -2,18 +2,19 @@
 % Please edit documentation in R/run_graphcal.R
 \name{run_graphcal}
 \alias{run_graphcal}
-\title{Run graphical calculation}
+\title{Graphical calculation of pharmacokinetic parameters}
 \usage{
-run_graphcal(dat, fdobsflag, noniv_flag, nbins, nlastpoints)
+run_graphcal(dat, route, nbins = 8, nlastpoints = 3)
 }
 \arguments{
-\item{dat}{A data frame containing the intravenous pharmacokinetic data.}
+\item{dat}{A data frame containing the pharmacokinetic data.}
 
-\item{fdobsflag}{A flag indicating whether the dataset includes first-dose observations. Set to 1 if the data includes first-dose observations, otherwise set to 0.}
+\item{route}{A character string specifying the route of administration. It can be "bolus",
+"infusion", or "oral". The function will adapt its calculations based on the specified route.}
 
-\item{nbins}{The number of bins for time binning.}
+\item{nbins}{An integer specifying the number of bins used to divide the time points for naive pooling of the data. The default is 8.}
 
-\item{nlastpoints}{The number of last points to be used for slope linear regression.}
+\item{nlastpoints}{Numeric value specifying the number of last data points used for linear regression to obtain the slope in the terminal phase. (default is \code{3} in the graphical analysis).}
 }
 \value{
 A data frame with calculated clearance, volume of distribution, slope, and time spent for the calculation.
@@ -22,16 +23,25 @@ A data frame with calculated clearance, volume of distribution, slope, and time 
 Performs a graphical calculation of clearance and volume of distribution based on provided pharmacokinetic data with concentration normalised by dose
 }
 \examples{
-# example 1 (iv case)
 
+# Example 1 (iv case)
 dat <- Bolus_1CPT
 dat <- nmpkconvert(dat)
 dat <- calculate_tad(dat)
-run_graphcal(dat, fdobsflag = 1, noniv_flag=0, nbins = 8, nlastpoints = 4)
+run_graphcal(dat, route="bolus")
 
-# example2 (oral case)
+# Example 2 (oral case)
 dat <- Oral_1CPT
 dat <- nmpkconvert(dat)
 dat <- calculate_tad(dat)
-run_graphcal(dat, fdobsflag = 1,  noniv_flag=1, nbins = 8, nlastpoints = 4)
+run_graphcal(dat, route="oral")
+
+# Example 3 (infusion case).
+Approximate calculation. only use when the infusion duration is very short
+
+dat <- Infusion_1CPT
+dat <- nmpkconvert(dat)
+dat <- calculate_tad(dat)
+run_graphcal(dat, route="infusion")
+
 }

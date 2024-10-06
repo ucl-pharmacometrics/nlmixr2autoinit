@@ -2,7 +2,7 @@
 % Please edit documentation in R/nmpkconvert.R
 \name{nmpkconvert}
 \alias{nmpkconvert}
-\title{Convert pharmacokinetic dataset to depreciated format with Additional Dosing}
+\title{Convert pharmacokinetic dataset to depreciated format with additional dosing}
 \usage{
 nmpkconvert(dat)
 }
