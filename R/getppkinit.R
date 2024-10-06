@@ -1,84 +1,72 @@
 #' Get initial estimates for a population pharmacokinetic modelling
 #'
-#' Calculates initial pharmacokinetic parameters using multiple methods including simplified calculation, non-compartmental analysis, graphical methods, and parameter estimation with naive pooled data approach if specified.
+#' Computes initial pharmacokinetic parameters using multiple methods including simplified calculation, non-compartmental analysis, graphical methods, and parameter estimation with naive pooled data approach if specified.
 #' @param dat A data frame containing the intravenous pharmacokinetic data.
-#' @param runnpd An integer indicating whether to run the naive pooled data approach (default is 0).
-#' @param getinit.settings A list or data frame containing calculation settings (optional). It should include 'half_life', 'nlastpoints', 'nbins', and 'est.method'.
+#' @param run.npdcmpt An integer indicating whether to run the naive pooled data approach (default is 0).
+#' @param getinit.settings A list or data frame containing calculation settings (optional). The following settings can be provided:
+#' \itemize{
+#'   \item \code{half_life}: Numeric value for the half-life of the drug (default is \code{NA}). If not provided, it will be estimated based on the data.
+#'   \item \code{nlastpoints}: Numeric value specifying the number of last data points used for linear regression to obtain the slope in the terminal phase. (default is \code{4}).
+#'   \item \code{trap.rule.method}: Numeric value indicating the trapezoidal rule method to use (default is \code{1}).
+#'   \code{1} refers to the linear trapezoidal method, while \code{2} refers to the linear-up/log-down trapezoidal method, which uses a linear method for the increasing phase and a logarithmic method for the decreasing phase.
+#'   \item \code{nbins}: Numeric value specifying the number of bins to use when performing naive pooling of data (default is \code{8}).
+#'   \item \code{est.method}: Character string indicating the estimation method to use (default is \code{"nls"}). This can be set to \code{"nls"} (non-linear least squares) or other methods ((e.g., "nls", "nlm", ""foce", "focei") depending on the analysis.
+#' }
+#' If any of these settings are not provided, default values will be used.
 #' @return A list containing data information, initial parameter estimates, messages, and run history.
 #' @importFrom dplyr %>% mutate filter select
 #' @import nlmixr2
 #' @importFrom tidyr fill
 #' @import crayon
 #' @examples
-#' getppkinit(dat = Oral_1CPT[Oral_1CPT$SS==99,],runnpd = 1)
-#' getppkinit(dat = Bolus_1CPT,runnpd = 0)
-#' getppkinit(dat = Bolus_1CPT,runnpd = 0, getinit.settings=c(trap.rule.method =2))
-#' getppkinit(dat = Oral_1CPT,runnpd = 0)
+#' getppkinit(dat = Infusion_1CPT,run.npdcmpt = 1)
+#' getppkinit(dat = Oral_1CPT[Oral_1CPT$SS==99,],run.npdcmpt = 1)
+#' getppkinit(dat = Bolus_1CPT,run.npdcmpt = 0)
+#' getppkinit(dat = Bolus_1CPT,run.npdcmpt = 0, getinit.settings=c(trap.rule.method =2))
+#' getppkinit(dat = Oral_1CPT,run.npdcmpt = 0)
 #'
 #' @export
 
 getppkinit <- function(dat,
-                       runnpd=0,
-                       getinit.settings) {
+                       run.npdcmpt=0,
+                       getinit.settings=NULL) {
 
- # tool setting
-  getinit.settings0 <- data.frame(
+ # Default settings for getppkinit
+  getinit.settings0 <- list(
     half_life = NA,
     nlastpoints = 4,
-    trap.rule.method=1,
+    trap.rule.method = 1,
     nbins = 8,
     est.method = "nls"
   )
 
-  # If getinit.settings is missing, use the default settings
-  if (missing(getinit.settings)) {
-    getinit.settings <- getinit.settings0
+  if (!is.null(getinit.settings)) {
+    getinit.settings <- as.list(getinit.settings)
+
+    for (name in names(getinit.settings)) {
+      getinit.settings0[[name]] <- getinit.settings[[name]]
+    }
   }
 
-  else {
-    getinit.settings <-
-      as.data.frame(t(as.data.frame(getinit.settings)))
-    # Update the values in getinit.settings0 (if they exist in getinit.settings)
-    common_cols <-
-      intersect(names(getinit.settings), names(getinit.settings0))
-    getinit.settings0[common_cols] <- getinit.settings[common_cols]
 
-  }
-
-  message(black(
-    paste0( "Settings of running nlmixr2autoinit",
-            "\n")))
-
-  message(blue(
-      paste0(
-            "Provided reference half-life------------------------------------------------------------------------------- ",
-            getinit.settings0[1],
-            "\n",
-            "Number of plasma samples selected for linear regression on terminal phase slope---------------------------- ",
-            getinit.settings0[2],
-            "\n",
-            "Trapezoidal rule method----------------------------------------------------------------------------------- ",
-            getinit.settings0[3],
-            "\n",
-            "Number of bins during the naive pooled median data processing--------------------------------------------- ",
-            getinit.settings0[4],
-            "\n",
-            "Estimated method for naive pooled approach data---------------------------------------------------------- ",
-            getinit.settings0[5]
-    )
-  ))
-
-  # Extract the final values
+  # Extract the setting values
   half_life <- as.numeric(getinit.settings0$half_life)
   nlastpoints <- as.numeric(getinit.settings0$nlastpoints)
   trap.rule.method <- as.numeric(getinit.settings0$trap.rule.method)
   nbins <- as.numeric(getinit.settings0$nbins)
   est.method <- getinit.settings0$est.method
-  ############################## Data information summary#######################
+
+  ################## Data preprocessing and information summary#################
+
+  message(black(
+    paste0("Processing data", strrep(".", 20))
+  ))
 
   # Calculate tad and dose number
   column_names <- toupper(colnames(dat))
   colnames(dat) <- toupper(colnames(dat))
+
+  # Convert pharmacokinetic dataset to depreciated format with additional dosing
   if ("ADDL" %in% column_names) {
     dat <- nmpkconvert(dat)
   }
@@ -87,11 +75,6 @@ getppkinit <- function(dat,
   infusion_flag <- 0
   infusion_flag_c <- "N"
 
-  if ("RATE" %in% column_names) {
-    infusion_flag <- 1
-    infusion_flag_c <- "Y"
-  }
-
   if ("DUR" %in% column_names) {
     if (!"RATE" %in% column_names) {
       dat$RATE <- 0
@@ -99,6 +82,18 @@ getppkinit <- function(dat,
         dat[dat$DUR > 0,]$AMT / dat[dat$DUR > 0,]$DUR
     }
   }
+
+  if ("RATE" %in% column_names) {
+    infusion_flag <- 1
+    infusion_flag_c <- "Y"
+
+    message(black(
+      paste0(
+        "Infusion administration detected.",strrep(".", 20)
+      )
+    ))
+  }
+
 
   dat <- calculate_tad(dat, infusion_flag)
 
@@ -110,9 +105,9 @@ getppkinit <- function(dat,
     if (length(unique(dat$CMT)) > 1) {
       noniv_flag <- 1
       noniv_flag_c <- "Y"
-      message(red(
+      message(black(
         paste0(
-          "Non-intravenous case(s) detected, Oral administration was assumed---------------------------------------- "
+          "Administration site detected to differ from measurement site; extravascular (oral) administration assumed."
         )
       ))
     }
@@ -120,7 +115,7 @@ getppkinit <- function(dat,
 
   sdflag <- 0
   sdflag_c <- "N"
-  # check whether single dose case
+  # check whether it is a single dose case
   if (nrow(dat[dat$EVID %in% c(1, 4, 101),]) == length(unique(dat[dat$EVID %in% c(1, 4, 101),]$ID))) {
     sdflag <- 1
     sdflag_c <- "Y"
@@ -134,10 +129,10 @@ getppkinit <- function(dat,
     fdobsflag_c <- "Y"
   }
 
-
   # check characteristics of dataset
   nids <- nrow(dat[!duplicated(dat$ID),])
   nobs <- nrow(dat[dat$EVID == 0,])
+
   Datainfo <-
     paste0(
       "No. of subjects: ",
@@ -148,7 +143,7 @@ getppkinit <- function(dat,
       infusion_flag_c,
       ", Is single dose? ",
       sdflag_c,
-      ", First-dose data available? ",
+      ", Data within the first dosing interval available? ",
       fdobsflag_c,
 
       ", is Oral case? ",
@@ -156,9 +151,13 @@ getppkinit <- function(dat,
     )
 
   ########################Half-life estimated ##############################
+
   message(black(
-    paste0("Performed linear regression on the terminal phase of pooled dose-normalized data, estimated half-life: ",
-           half_life)))
+    paste0("Estimating half-life",strrep(".", 20))))
+
+  # message(black(
+  #   paste0("Performed linear regression on the terminal phase of pooled dose-normalized data, estimated half-life: ",
+  #          half_life)))
 
    half_life<-half_life_estimated(dat = dat,
                                   sdflag = sdflag,
@@ -166,7 +165,15 @@ getppkinit <- function(dat,
                                   nlastpoints = nlastpoints,
                                   nbins=nbins)
 
+   message(black(
+     paste0("Estimated half-life : ", half_life)))
+
+
   ##############Rapid calculation############################################
+
+  message(black(
+     paste0("Run rapid PK calculation on individual data",strrep(".", 20))))
+
   simpcal.APE <- Inf
   simpcal.MAPE <- Inf
 
@@ -904,7 +911,7 @@ message(black(
   rm(list = vars_to_remove, envir = .GlobalEnv)
 
 #####################Naive pooled data approach compartmental analysis #######
-  if (runnpd==1){
+  if (run.npdcmpt==1){
 
     input.cl = mean(base.cl.best)
     input.vd = mean(base.vd.best)
