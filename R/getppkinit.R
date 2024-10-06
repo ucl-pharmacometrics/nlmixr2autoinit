@@ -10,7 +10,9 @@
 #'   \item \code{trap.rule.method}: Numeric value indicating the trapezoidal rule method to use (default is \code{1}).
 #'   \code{1} refers to the linear trapezoidal method, while \code{2} refers to the linear-up/log-down trapezoidal method, which uses a linear method for the increasing phase and a logarithmic method for the decreasing phase.
 #'   \item \code{nbins}: Numeric value specifying the number of bins to use when performing naive pooling of data (default is \code{8}).
-#'   \item \code{est.method}: Character string indicating the estimation method to use (default is \code{"nls"}). This can be set to \code{"nls"} (non-linear least squares) or other methods ((e.g., "nls", "nlm", ""foce", "focei") depending on the analysis.
+#'   \item \code{est.method}: Character string indicating the estimation method for naive pooled data compartmental analysis to use (default is \code{"nls"}) or other methods ((e.g., "nls", "nlm", ""foce", "focei") depending on the analysis.
+#'   \item \code{selection.criteria}: Character string indicating the selection criteria for method comparison (default is \code{"MAPE"}). The selection method can be set to either Mean Absolute Percentage Error (\code{"MAPE"}) or Absolute Percentage Error (\code{"APE"}), depending on the user requirement.
+#'   \item \code{npdcmpt.inits.strategy}: Numeric value indicating the strategy for setting initial estimates in the model (default is \code{0}).  \code{0} means all initial estimates are set to \code{1} in this step, while \code{1} means that the initial estimates are based on parameters derived from non-model-fitting calculation methods.
 #' }
 #' If any of these settings are not provided, default values will be used.
 #' @return A list containing data information, initial parameter estimates, messages, and run history.
@@ -19,12 +21,8 @@
 #' @importFrom tidyr fill
 #' @import crayon
 #' @examples
-#' getppkinit(dat = Infusion_1CPT,run.npdcmpt = 0)
-#' getppkinit(dat = Oral_1CPT[Oral_1CPT$SS==99,],run.npdcmpt = 1)
-#' getppkinit(dat = Bolus_1CPT,run.npdcmpt = 0)
-#' getppkinit(dat = Bolus_1CPT,run.npdcmpt = 0, getinit.settings=c(trap.rule.method =2))
-#' getppkinit(dat = Oral_1CPT,run.npdcmpt = 0)
-#'
+#' inits.out<-getppkinit(dat = Bolus_1CPT)
+#' inits.out
 #' @export
 
 getppkinit <- function(dat,
@@ -37,7 +35,9 @@ getppkinit <- function(dat,
     nlastpoints = 4,
     trap.rule.method = 1,
     nbins = 8,
-    est.method = "nls"
+    est.method = "nls",
+    selection.criteria="MAPE",
+    npdcmpt.inits.strategy= 1
   )
 
   if (!is.null(getinit.settings)) {
@@ -55,7 +55,8 @@ getppkinit <- function(dat,
   trap.rule.method <- as.numeric(getinit.settings0$trap.rule.method)
   nbins <- as.numeric(getinit.settings0$nbins)
   est.method <- getinit.settings0$est.method
-
+  selection.criteria<-getinit.settings0$selection.criteria
+  npdcmpt.inits.strategy<-getinit.settings0$npdcmpt.inits.strategy
   ################## Data preprocessing and information summary#################
 
   message(black(
@@ -141,7 +142,7 @@ getppkinit <- function(dat,
       nids,
       ", No. of observations: ",
       nobs,
-      "Dose route",
+      ", Dose route: ",
       route,
       ", Is single dose? ",
       sdflag_c,
@@ -273,6 +274,11 @@ getppkinit <- function(dat,
   }
 
 #################Naive pooled Non-compartmental analysis ##################################
+
+  message(black(
+    paste0("Run non-compartmental analysis on naive pooling data", strrep(".", 20))
+  ))
+
  nca.results <- run_nca.normalised(
     dat = dat,
     nlastpoints = nlastpoints,
@@ -460,8 +466,14 @@ getppkinit <- function(dat,
   }
 
 ##############Graphic analysis##################################################
+
+
 # iv case
 if ( noniv_flag==0 & fdobsflag==1 ){
+ message(black(
+    paste0("Run graphical analysis on naive pooling data only after the first dose", strrep(".", 20))
+  ))
+
 # infusion case, the infusion rate should be very fast
  # if (route=="infusion"){
  #    duration_value_counts<- table(dat[dat$EVID %in% c(1,4) &!duplicated(dat$ID), ]$AMT/dat[dat$EVID %in% c(1,4)&!duplicated(dat$ID), ]$RATE)
@@ -501,6 +513,11 @@ if ( noniv_flag==0 & fdobsflag==1 ){
 
 # oral case
 if ( noniv_flag==1  & fdobsflag==1  ){
+
+  message(black(
+    paste0("Run graphical analysis on naive pooling data only after the first dose", strrep(".", 20))
+  ))
+
     graph.results_fd <- run_graphcal(
       dat = dat,
       route =   route ,
@@ -541,6 +558,10 @@ if ( noniv_flag==1  & fdobsflag==1  ){
   # if (nca_fd.MAPE >= nca.MAPE) {
   #   usedslope <- nca.results_all$slope
   # }
+
+ message(black(
+   paste0("Run hybrid calculation, combining approximate calculation methods and NCA ", strrep(".", 20))
+ ))
 
   if (min(c(nca_fd.MAPE,nca_efd.MAPE,nca.MAPE))==nca_fd.MAPE) {
     usedslope <- nca.results_fd$slope
@@ -711,13 +732,23 @@ if ( noniv_flag==1  & fdobsflag==1  ){
 
 
   all.out$`Mean absolute prediction error (MAPE)` <-
-    round(all.out$`Mean absolute prediction error (MAPE)`, 0)
-  # second check with APE if there are two rows
-  # base.cl.best= as.numeric(min_mape_rows[min_mape_rows$`Mean absolute prediction error (MAPE)` ==
-  #                                min(min_mape_rows$`Mean absolute prediction error (MAPE)`),]$`Calculated CL`)
-  # base.vd.best= as.numeric(min_mape_rows[min_mape_rows$`Mean absolute prediction error (MAPE)` ==
-  #                                min(min_mape_rows$`Mean absolute prediction error (MAPE)`),]$`Calculated Vd`)
+    round(all.out$`Mean absolute prediction error (MAPE)`, 1)
 
+  all.out$`Absolute Prediction Error (APE)`<-
+    round(all.out$`Absolute Prediction Error (APE)`, 1)
+
+  if (selection.criteria=="APE"){
+  base.ka.best <-
+    all.out[all.out$`Absolute Prediction Error (APE)` == min(all.out$`Absolute Prediction Error (APE)`),]$`Calculated Ka`
+
+  base.cl.best <-
+    all.out[all.out$`Absolute Prediction Error (APE)` == min(all.out$`Absolute Prediction Error (APE)`),]$`Calculated CL`
+
+  base.vd.best <-
+    all.out[all.out$`Absolute Prediction Error (APE)`== min(all.out$`Absolute Prediction Error (APE)`),]$`Calculated Vd`
+  }
+
+  if (selection.criteria=="MAPE"){
   base.ka.best <-
     all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated Ka`
 
@@ -726,15 +757,16 @@ if ( noniv_flag==1  & fdobsflag==1  ){
 
   base.vd.best <-
     all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated Vd`
+}
 
 message(black(
-    paste0("Base parameter estimation finished. Estimated ka :",base.ka.best, ", estimated CL : ", base.cl.best, ", estimated Vd : ", base.vd.best )))
+    paste0("Base PK parameter analysis finished. Estimated ka :",base.ka.best, ", estimated CL : ", base.cl.best, ", estimated Vd : ", base.vd.best )))
 
 
 ##############################Vmax and Km estimation##########################
-  all.out.part <-
-    all.out[all.out$Method != "Naive pooled approach",]
-  all.out.part2 <- all.out
+
+  message(black(
+    paste0("Run sensitivity analysis on nonlinear eliminiation kinetics PK parameters",strrep(".", 20))))
 
   # For vmax, km, if no model fitting for parameter estimation is used,
   # sensitivity analysis via simulation to select appropriate initial estimates
@@ -801,8 +833,14 @@ message(black(
   recommended_km_init <-
     sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == min(sim.vmax.km.results.all$sim.mm.MAPE),]$km[1]
 
+  # message(black(
+  #   paste0("Nonlinear elimination parameter analysis finished. Estimated Vmax : ",   recommended_vmax_init, ", estimated km : ", recommended_km_init  )))
 
   ###########Multi-Compartmental Model Parameter Analysis#######################
+
+  message(black(
+    paste0("Run sensitivity analysis on multi-compartmental PK parameters",strrep(".", 20))))
+
   # Default. simulation test
   sim.2cmpt.results.all <- NULL
 
@@ -833,12 +871,23 @@ message(black(
     }
   }
 
+  if (selection.criteria=="MAPE"){
   recommended_vc2cmpt_init <-
     sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE),]$vc[1]
   recommended_vp2cmpt_init <-
     sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE),]$vp[1]
   recommended_q2cmpt_init <-
     sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE),]$q[1]
+  }
+
+  if (selection.criteria=="APE"){
+    recommended_vc2cmpt_init <-
+      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE== min(sim.2cmpt.results.all$sim.2cmpt.APE),]$vc[1]
+    recommended_vp2cmpt_init <-
+      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE== min(sim.2cmpt.results.all$sim.2cmpt.APE),]$vp[1]
+    recommended_q2cmpt_init <-
+      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE == min(sim.2cmpt.results.all$sim.2cmpt.APE),]$q[1]
+  }
 
   sim.3cmpt.results.all <- NULL
 
@@ -866,8 +915,9 @@ message(black(
     rownames(sim.3cmpt.results.all) <-
       seq(1, nrow(sim.3cmpt.results.all), 1)
   }
- }
+  }
 
+  if (selection.criteria=="MAPE"){
   recommended_vc3cmpt_init <-
     sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$vc[1]
   recommended_vp3cmpt_init <-
@@ -878,6 +928,20 @@ message(black(
     sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$q[1]
   recommended_q23cmpt_init <-
     sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$q2[1]
+  }
+
+  if (selection.criteria=="APE"){
+    recommended_vc3cmpt_init <-
+      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$vc[1]
+    recommended_vp3cmpt_init <-
+      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$vp[1]
+    recommended_vp23cmpt_init <-
+      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$vp2[1]
+    recommended_q3cmpt_init <-
+      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$q[1]
+    recommended_q23cmpt_init <-
+      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$q2[1]
+  }
 
   # Remove these temporary global variables run before.
   # List of variables to remove
@@ -907,7 +971,25 @@ message(black(
 
 #####################Naive pooled data approach compartmental analysis #######
   if (run.npdcmpt==1){
+    message(black(
+      paste0("Run naive pooled data compartmental analysis ",strrep(".", 20))))
 
+    if (npdcmpt.inits.strategy==0){
+      message(red(
+        paste0("Warning: there is no reference for intial estimates in current naive pooled data compartmental analysis, running maybe crashed down due to failure convergence")))
+      input.cl = 1
+      input.vd = 1
+      input.vc2cmpt=  1
+      input.vp2cmpt= 1
+      input.vc3cmpt =  1
+      input.vp3cmpt = 1
+      input.vp23cmpt = 1
+      input.q2cmpt=    1
+      input.q3cmpt =   1
+      input.q23cmpt = 1
+    }
+
+    if (npdcmpt.inits.strategy==1){
     input.cl = mean(base.cl.best)
     input.vd = mean(base.vd.best)
     input.vc2cmpt=  recommended_vc2cmpt_init
@@ -918,8 +1000,14 @@ message(black(
     input.q2cmpt=    input.cl
     input.q3cmpt =   input.cl
     input.q23cmpt =  input.cl
+    }
+
 
   if (noniv_flag==0){
+
+    message(black(
+      paste0("Run one-compartment model with first-order elimination", strrep(".", 20))
+    ))
 
     npd_1cmpt_out <- run_npd_1cmpt_iv(
       dat = dat,
@@ -928,12 +1016,20 @@ message(black(
       input.vd =  input.vd
     )
 
+    message(black(
+      paste0("Run one-compartment model with Michaelis–Menten elimination", strrep(".", 20))
+    ))
+
     npd_1cmpt_mm_out <- run_npd_1cmpt_mm_iv(
       dat = dat,
       est.method = est.method,
       npdmm_inputcl =  input.cl,
       npdmm_inputvd =  input.vd
     )
+
+    message(black(
+      paste0("Run two-compartment model with first-order elimination", strrep(".", 20))
+    ))
 
     npd_2cmpt_out <- run_npd_2cmpt_iv(
       dat = dat,
@@ -943,6 +1039,10 @@ message(black(
       input.vp2cmpt=  input.vp2cmpt,
       input.q2cmpt=  input.q2cmpt
     )
+
+    message(black(
+      paste0("Run three-compartment model with first-order elimination", strrep(".", 20))
+    ))
 
     npd_3cmpt_out <- run_npd_3cmpt_iv(
       dat = dat,
@@ -960,6 +1060,10 @@ message(black(
 
     input.ka = mean(base.ka.best)
 
+    message(black(
+      paste0("Run one-compartment model with first-order absorption and elimination", strrep(".", 20))
+    ))
+
     npd_1cmpt_out <- run_npd_1cmpt_oral(
       dat = dat,
       est.method = est.method,
@@ -967,6 +1071,10 @@ message(black(
       input.cl = input.cl,
       input.vd =  input.vd
     )
+
+    message(black(
+      paste0("Run one-compartment model with first-order absorption and Michaelis–Menten elimination", strrep(".", 20))
+    ))
 
     npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
       dat = Oral_1CPT,
@@ -977,6 +1085,10 @@ message(black(
       km_threshold = T
     )
 
+    message(black(
+      paste0("Run two-compartment model with first-order absorption and elimination", strrep(".", 20))
+    ))
+
     npd_2cmpt_out <- run_npd_2cmpt_oral(
       dat = dat,
       est.method = est.method,
@@ -985,6 +1097,10 @@ message(black(
       input.vp2cmpt=   input.vp2cmpt,
       input.q2cmpt= input.q2cmpt,
     )
+
+    message(black(
+      paste0("Run three-compartment model with first-order absorption and elimination", strrep(".", 20))
+    ))
 
     npd_3cmpt_out <- run_npd_3cmpt_oral(
       dat = dat,
@@ -1087,26 +1203,18 @@ message(black(
   ######################## Finally selection########################################
 
    # ka,cl,vd.
-    f_init_ka <-
-      as.numeric(all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` ==
-                                min(all.out.part$`Mean absolute prediction error (MAPE)`,
-                                    na.rm = T),]$`Calculated Ka`)[1]
-    f_init_cl <-
-      as.numeric(all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` ==
-                                min(all.out.part$`Mean absolute prediction error (MAPE)`,
-                                    na.rm = T),]$`Calculated CL`)[1]
-    f_init_vd <-
-      as.numeric(all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` ==
-                                min(all.out.part$`Mean absolute prediction error (MAPE)`,
-                                    na.rm = T),]$`Calculated Vd`)[1]
+    f_init_ka <- base.ka.best[1]
+    f_init_cl <- base.cl.best[1]
+    f_init_vd <- base.vd.best[1]
 
+    if (selection.criteria=="MAPE"){
     sel.method.ka.cl.vd <-
-      all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` == min(all.out.part$`Mean absolute prediction error (MAPE)`,
+      all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`,
                                                                                na.rm = T),]$Method[1]
 
-    if (length(as.numeric(all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` ==
-                                       min(all.out.part$`Mean absolute prediction error (MAPE)`,
-                                           na.rm = T),]$`Calculated CL`)) > 1) {
+    if (length(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+                                  min(all.out$`Mean absolute prediction error (MAPE)`,
+                                      na.rm = T),]$`Calculated CL`)) > 1) {
       #check the total volume of distribution of two compartment
       total.vd <-
         sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$vc[1] +
@@ -1114,61 +1222,87 @@ message(black(
 
 
       f_init_ka <-
-        as.numeric(all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` ==
-                                  min(all.out.part$`Mean absolute prediction error (MAPE)` ,
-                                      na.rm = T) &
-                                  round(all.out.part$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Ka`)[1]
+        as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+                             min(all.out$`Mean absolute prediction error (MAPE)` ,
+                                 na.rm = T) &
+                             round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Ka`)[1]
 
       f_init_cl <-
-        as.numeric(all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` ==
-                                  min(all.out.part$`Mean absolute prediction error (MAPE)` ,
-                                      na.rm = T) &
-                                  round(all.out.part$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated CL`)[1]
+        as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+                             min(all.out$`Mean absolute prediction error (MAPE)` ,
+                                 na.rm = T) &
+                             round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated CL`)[1]
 
       f_init_vd <-
-        as.numeric(all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` ==
-                                  min(all.out.part$`Mean absolute prediction error (MAPE)` ,
-                                      na.rm = T) &
-                                  round(all.out.part$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Vd`)[1]
+        as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+                             min(all.out$`Mean absolute prediction error (MAPE)` ,
+                                 na.rm = T) &
+                             round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Vd`)[1]
 
       sel.method.ka.cl.vd <-
-        all.out.part[all.out.part$`Mean absolute prediction error (MAPE)` == min(all.out.part$`Mean absolute prediction error (MAPE)` ,
-                                                                                 na.rm = T) &
-                       round(all.out.part$`Calculated Vd`, 1) == round(total.vd, 1),]$Method[1]
+        all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)` ,
+                                                                       na.rm = T) &
+                  round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$Method[1]
     }
 
+    }
+
+    if (selection.criteria=="APE"){
+      sel.method.ka.cl.vd <-
+        all.out[all.out$`Absolute Prediction Error (APE)`== min(all.out$`Absolute Prediction Error (APE)`,
+                                                                       na.rm = T),]$Method[1]
+
+      if (length(as.numeric(all.out[all.out$`Absolute Prediction Error (APE)` ==
+                                    min(all.out$`Absolute Prediction Error (APE)`,
+                                        na.rm = T),]$`Calculated CL`)) > 1) {
+        #check the total volume of distribution of two compartment
+        total.vd <-
+          sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE == min(sim.2cmpt.results.all$sim.2cmpt.APE, na.rm = T),]$vc[1] +
+          sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE == min(sim.2cmpt.results.all$sim.2cmpt.APE, na.rm = T),]$vp[1]
+
+
+        f_init_ka <-
+          as.numeric(all.out[all.out$`Absolute Prediction Error (APE)` ==
+                               min(all.out$`Absolute Prediction Error (APE)` ,
+                                   na.rm = T) &
+                               round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Ka`)[1]
+
+        f_init_cl <-
+          as.numeric(all.out[all.out$`Absolute Prediction Error (APE)`==
+                               min(all.out$`Absolute Prediction Error (APE)`,
+                                   na.rm = T) &
+                               round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated CL`)[1]
+
+        f_init_vd <-
+          as.numeric(all.out[all.out$`Absolute Prediction Error (APE)` ==
+                               min(all.out$`Absolute Prediction Error (APE)` ,
+                                   na.rm = T) &
+                               round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Vd`)[1]
+
+        sel.method.ka.cl.vd <-
+          all.out[all.out$`Absolute Prediction Error (APE)` == min(all.out$`Absolute Prediction Error (APE)` ,
+                                                                         na.rm = T) &
+                    round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$Method[1]
+      }
+
+    }
+
+
+
     # vmax.km
-    f_init_vmax <-
-      as.numeric(sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE ==
-                                           min(sim.vmax.km.results.all$sim.mm.MAPE, na.rm = T),]$vmax)[1]
-    f_init_km <-
-      as.numeric(sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE ==
-                                           min(sim.vmax.km.results.all$sim.mm.MAPE, na.rm = T),]$km)[1]
+    f_init_vmax <- recommended_vmax_init
+    f_init_km <- recommended_km_init
     sel.method.vmax.km <- "Sensitivity analysis by simulation "
 
-    # multi-compartmental parameters
-    f_init_vc2cmpt <-
-      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$vc[1]
-    f_init_vp2cmpt <-
-      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$vp[1]
-
-    f_init_q2cmpt <-
-      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$q[1]
-
-    f_init_vc3cmpt <-
-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$vc[1]
-    f_init_vp3cmpt <-
-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$vp[1]
-    f_init_vp23cmpt <-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$vp2[1]
-
-    f_init_q3cmpt <-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$q[1]
-
-    f_init_q23cmpt <-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE, na.rm = T),]$q2[1]
+    # Multi-compartmental parameters
+    f_init_vc2cmpt <-  recommended_vc2cmpt_init
+    f_init_vp2cmpt <-  recommended_vp2cmpt_init
+    f_init_q2cmpt <-   recommended_q2cmpt_init
+    f_init_vc3cmpt <- recommended_vc3cmpt_init
+    f_init_vp3cmpt <- recommended_vp3cmpt_init
+    f_init_vp23cmpt <- recommended_vp23cmpt_init
+    f_init_q3cmpt <- recommended_q3cmpt_init
+    f_init_q23cmpt <-recommended_q23cmpt_init
 
     sel.method.multi <- "Sensitivity analysis by simulation "
 
@@ -1354,6 +1488,10 @@ message(black(
     init.messages <- c(init.messages.vmax.km, init.messages.multi)
   }
 
+  if (!exists("npdcmpt.all.out")) {
+    npdcmpt.all.out <-
+      "No model fitting by naive pool data approach was conducted"
+  }
 
   colnames(all.out) <-
     c(
@@ -1419,7 +1557,7 @@ message(black(
   output_env <- new.env()
   output_env$Datainfo <- Datainfo
   output_env$Recommended_initial_estimates <- Recommended_inits_df
-  # output_env$Message <- init.messages.vmax.km
+  output_env$npdcmpt.all.out<-npdcmpt.all.out
   output_env$Run.history <- init.history
   output_env$Parameter.descriptions <- params.descriptions
 
@@ -1462,13 +1600,19 @@ message(black(
 #' @export
 #'
 print_env_output <- function(env) {
-  cat("=== Initial Parameter Estimation Summary ===\n")
+  cat("===============Initial Parameter Estimation Summary ===============\n")
   cat("Data Information:\n")
   print(env$Datainfo)
-  cat("\nRecommended Initial Estimates:\n")
+
+  cat("\nRecommended Initial Estimates by using non-model fitting methods:\n")
   print(head(env$Recommended_initial_estimates, 13))
+
+  cat("\nRecommended Initial Estimates by naive pooled data compartmental analysis:\n")
+  print(head(env$npdcmpt.all.out, 13))
+
   cat("\nParameter Descriptions:\n")
   print(env$Parameter.descriptions)
-  cat("\n=== End of Summary ===\n")
+
+  cat("\n=============== End of Summary ===============\n")
 }
 
