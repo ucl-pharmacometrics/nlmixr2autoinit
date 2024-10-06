@@ -1,7 +1,7 @@
 #' Get initial estimates for a population pharmacokinetic modelling
 #'
-#' Computes initial pharmacokinetic parameters using multiple methods including simplified calculation, non-compartmental analysis, graphical methods, and parameter estimation with naive pooled data approach if specified.
-#' @param dat A data frame containing the intravenous pharmacokinetic data.
+#' Computes initial pharmacokinetic parameters using multiple methods including approximate calculation, non-compartmental analysis, graphical methods, and parameter estimation with naive pooled data approach if specified.
+#' @param dat A data frame containing the pharmacokinetic data.
 #' @param run.npdcmpt An integer indicating whether to run the naive pooled data approach (default is 0).
 #' @param getinit.settings A list or data frame containing calculation settings (optional). The following settings can be provided:
 #' \itemize{
@@ -19,7 +19,7 @@
 #' @importFrom tidyr fill
 #' @import crayon
 #' @examples
-#' getppkinit(dat = Infusion_1CPT,run.npdcmpt = 1)
+#' getppkinit(dat = Infusion_1CPT,run.npdcmpt = 0)
 #' getppkinit(dat = Oral_1CPT[Oral_1CPT$SS==99,],run.npdcmpt = 1)
 #' getppkinit(dat = Bolus_1CPT,run.npdcmpt = 0)
 #' getppkinit(dat = Bolus_1CPT,run.npdcmpt = 0, getinit.settings=c(trap.rule.method =2))
@@ -74,6 +74,7 @@ getppkinit <- function(dat,
   # Check whether infusion case, currently
   infusion_flag <- 0
   infusion_flag_c <- "N"
+  route<-"bolus"
 
   if ("DUR" %in% column_names) {
     if (!"RATE" %in% column_names) {
@@ -86,7 +87,7 @@ getppkinit <- function(dat,
   if ("RATE" %in% column_names) {
     infusion_flag <- 1
     infusion_flag_c <- "Y"
-
+    route="infusion"
     message(black(
       paste0(
         "Infusion administration detected.",strrep(".", 20)
@@ -105,6 +106,7 @@ getppkinit <- function(dat,
     if (length(unique(dat$CMT)) > 1) {
       noniv_flag <- 1
       noniv_flag_c <- "Y"
+      route="oral"
       message(black(
         paste0(
           "Administration site detected to differ from measurement site; extravascular (oral) administration assumed."
@@ -139,15 +141,12 @@ getppkinit <- function(dat,
       nids,
       ", No. of observations: ",
       nobs,
-      ", Is infusion? ",
-      infusion_flag_c,
+      "Dose route",
+      route,
       ", Is single dose? ",
       sdflag_c,
       ", Data within the first dosing interval available? ",
-      fdobsflag_c,
-
-      ", is Oral case? ",
-      noniv_flag_c
+      fdobsflag_c
     )
 
   ########################Half-life estimated ##############################
@@ -169,10 +168,10 @@ getppkinit <- function(dat,
      paste0("Estimated half-life : ", half_life)))
 
 
-  ##############Rapid calculation############################################
+  ##############Approximate calculation############################################
 
   message(black(
-     paste0("Run rapid PK calculation on individual data",strrep(".", 20))))
+     paste0("Run approximate PK calculation on individual data",strrep(".", 20))))
 
   simpcal.APE <- Inf
   simpcal.MAPE <- Inf
@@ -180,26 +179,23 @@ getppkinit <- function(dat,
   # iv case
   if (noniv_flag ==0){
     # half_life is estimated
-
     message(black(
-      paste0("Run quick calculation with estimated half-life: ",
-             half_life)))
-
+      paste0("Try approximate calculation using estimated half-life: ",half_life,strrep(".", 20))))
 
     simpcal.results <- run_simpcal_iv(
     dat = dat,
-    infusion_flag = infusion_flag,
+    route = route,
     sdflag = sdflag,
     fdobsflag = fdobsflag,
     half_life = half_life)
 
     message(black(
-      paste0("Run quick calculation without estimated half-life: ")))
+      paste0("Try approximate calculation without no prior estimated half-life",strrep(".", 20))))
 
     # use most commonly used dose-interval to replace half life
     simpcal.results.2 <- run_simpcal_iv(
       dat = dat,
-      infusion_flag = infusion_flag,
+      route = route,
       sdflag = sdflag,
       fdobsflag = fdobsflag,
       half_life = NA
@@ -245,33 +241,27 @@ getppkinit <- function(dat,
   }
 }
 
-  # oral case
-
-    # message(black(
-    #   paste0("Extravascular administration was observed; no rapid calculations were performed, and other processes continued.")))
+  # Extravascular/oral  case
 
   if (noniv_flag ==1){
     # half_life is estimated
-
     message(black(
-      paste0("Run quick calculation with estimated half-life: ",
-             half_life)))
-
+      paste0("Try approximate calculation using estimated half-life: ",half_life,strrep(".", 20))))
 
     simpcal.results <- run_simpcal_iv(
       dat = dat,
-      infusion_flag = infusion_flag,
+      route = route,
       sdflag = sdflag,
       fdobsflag = 0, # do not run vd part
       half_life = half_life)
 
     message(black(
-      paste0("Run quick calculation without estimated half-life: ")))
+      paste0("Try approximate calculation without no prior estimated half-life",strrep(".", 20))))
 
     # use most commonly used dose-interval to replace half life
     simpcal.results.2 <- run_simpcal_iv(
       dat = dat,
-      infusion_flag = infusion_flag,
+      route = route,
       sdflag = sdflag,
       fdobsflag = 0,
       half_life = NA
@@ -282,7 +272,7 @@ getppkinit <- function(dat,
 
   }
 
-#################Non-compartmental analysis ##################################
+#################Naive pooled Non-compartmental analysis ##################################
  nca.results <- run_nca.normalised(
     dat = dat,
     nlastpoints = nlastpoints,
@@ -292,12 +282,9 @@ getppkinit <- function(dat,
     sdflag=sdflag
   )
 
-# run extra ka part
+# Run extra ka part if oral case
   if ( noniv_flag==1 ){
-    # dat$DVnor <- dat$DV / dat$dose
-    # dat_fd <- dat[dat$dose_number == 1, ]
-    # datpooled_fd <- pk.time.binning(testdat = dat_fd,
-    #                                 nbins = nbins)
+
     if (!is.null(nrow(nca.results$datpooled_fd$test.pool.normalised))){
      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_fd$test.pool.normalised,
                       nlastpoints = nlastpoints,
@@ -334,6 +321,7 @@ getppkinit <- function(dat,
 
   }
 
+  # Simulation and evaluation
   if (noniv_flag==0){
   # All pooled
   nca.APE <- Inf
@@ -470,19 +458,25 @@ getppkinit <- function(dat,
     }
 
   }
+
 ##############Graphic analysis##################################################
 # iv case
-if ( noniv_flag==0 ){
+if ( noniv_flag==0 & fdobsflag==1 ){
+# infusion case, the infusion rate should be very fast
+ # if (route=="infusion"){
+ #    duration_value_counts<- table(dat[dat$EVID %in% c(1,4) &!duplicated(dat$ID), ]$AMT/dat[dat$EVID %in% c(1,4)&!duplicated(dat$ID), ]$RATE)
+ #    most_commonly_used_infusion_duration<- as.numeric(names(which.max(duration_value_counts)))
+ #  }
+  graph_fd.APE <- Inf
+  graph_fd.MAPE <- Inf
+
   graph.results_fd <- run_graphcal(
     dat = dat,
-    fdobsflag =  fdobsflag,
-    noniv_flag =  noniv_flag,
+    route =   route ,
     nbins = nbins,
     nlastpoints = nlastpoints
   )
 
-  graph_fd.APE <- Inf
-  graph_fd.MAPE <- Inf
   if (!is.na(graph.results_fd$cl) & !is.na(graph.results_fd$vd)) {
     if (graph.results_fd$cl > 0 & graph.results_fd$vd > 0) {
       graph_fd_sim <- Fit_1cmpt_iv(
@@ -502,12 +496,14 @@ if ( noniv_flag==0 ){
 
   }
 }
+
+
+
 # oral case
-if ( noniv_flag==1 ){
+if ( noniv_flag==1  & fdobsflag==1  ){
     graph.results_fd <- run_graphcal(
       dat = dat,
-      fdobsflag =  fdobsflag,
-      noniv_flag =  noniv_flag,
+      route =   route ,
       nbins = nbins,
       nlastpoints = nlastpoints
     )
@@ -535,7 +531,7 @@ if ( noniv_flag==1 ){
     }
   }
 
-  ############Hybrid simplified calculation##########################
+  ############Hybrid calculation##########################
   # volume of distribution was calculated by slope
   # Find an appropriate slope
   # if (nca_fd.MAPE < nca.MAPE) {
@@ -623,12 +619,12 @@ if ( noniv_flag==1 ){
 
   all.out <- data.frame(
     method = c(
-      "Simplified calculation",
+      "Approximate calculation",
       "Graphic calculation",
       "NCA (only first dose)",
       "NCA (data exclude first-dose part)",
       "NCA (all pooled)",
-      "Hybrid simplified calculation"
+      "Hybrid approximate calculation"
     ),
     ka=ka,
     cl = c(
@@ -673,10 +669,10 @@ if ( noniv_flag==1 ){
     ka=c(NA,graph.results_fd$ka,ka_method_1_fd,ka_median)
     all.out <- data.frame(
       method = c(
-        "Simplified calculation",
+        "Approximate calculation",
         "Graphic calculation",
         "NCA (only first dose)",
-        "Hybrid simplified calculation"
+        "Hybrid approximate calculation"
       ),
       ka=ka,
       cl = c(
@@ -730,7 +726,6 @@ if ( noniv_flag==1 ){
 
   base.vd.best <-
     all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated Vd`
-
 
 message(black(
     paste0("Base parameter estimation finished. Estimated ka :",base.ka.best, ", estimated CL : ", base.cl.best, ", estimated Vd : ", base.vd.best )))
@@ -1179,7 +1174,7 @@ message(black(
 
     sel.method.ka<-"Wanger_nelson"
 
-    if (sel.method.ka.cl.vd== "Hybrid simplified calculation"){
+    if (sel.method.ka.cl.vd== "Hybrid approximate calculation" & sdflag==0 & fdobsflag==0 ){
         sel.method.ka<-"Wanger_nelson (median)"
     }
 
