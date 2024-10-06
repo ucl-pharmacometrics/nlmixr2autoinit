@@ -604,7 +604,7 @@ run_npd_1cmpt_mm_oral <- function(dat,
     # calc.cmax <- max.dose / npdmm_inputvd
     # fcmax <- max(c(mean.pop.cmax, calc.cmax))
     estmaxkm <- mean.pop.cmax * 4 # if km>>4cmax, it nearly fall into the linear range
-    estkm<-fcmax # initial km starts from cmax
+    estkm<-mean.pop.cmax # initial km starts from cmax
     estvmax <-  estmaxkm * input.cl
   }
 
