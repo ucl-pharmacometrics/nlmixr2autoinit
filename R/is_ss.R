@@ -54,9 +54,9 @@ is_ss <- function(df,
           doses_to_check <- tail(previous_doses, doses_required)
           amts_to_check <- tail(previous_amts, doses_required)
 
-          # Check that there are no missed doses or dose interruptions, but allow for variations in the dose interval.
-          # Ensure that tad is less than the dose interval, and confirm that the observation falls within a dose interval.
-          # Verify that the amount of each dose is the same.
+# Check that there are no missed doses or dose interruptions, but allow for variations in the dose interval.
+# Ensure that tad is less than the dose interval, and confirm that the observation falls within a dose interval.
+# Verify that the amount of each dose is the same.
 
           if (all(diff(doses_to_check) < dose_interval * 1.5) &
               all(amts_to_check == amts_to_check[1]) &
