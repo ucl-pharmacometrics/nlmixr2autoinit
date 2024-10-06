@@ -3,20 +3,25 @@
 #' Calculates the time after dose (TAD) for each observation in a pharmacokinetic dataset. The TAD is calculated as the time difference between each observation and the most recent dose administration. The function handles both bolus and infusion dosing scenarios, adjusting the calculations accordingly based on the infusion_flag parameter.
 #' @param dat A data frame containing the pharmacokinetic data.
 #' @param infusion_flag A flag indicating whether it is an infusion case
-#' @return A data frame with the calculated TAD.
+#' @return A data frame with the calculated tad (time after the last dose).
 #' @import nlmixr2
 #' @import dplyr
 #' @importFrom tidyr fill
 #' @examples
+#'
+#' Example 1:
 #' dat <- Bolus_1CPT
 #' calculate_tad(dat)
+#'
+#' Example 2:
+#' dat <- Infusion_1CPT
+#' dat<-calculate_tad(dat,infusion_flag=1)
+#' dat
 #' @export
 
 calculate_tad <- function(dat,
-                          infusion_flag) {
-  if (missing(infusion_flag)) {
-    infusion_flag <- 0
-  }
+                          infusion_flag=0) {
+
   # Mark the dose number
   dat <- mark_dose_number(dat)
   # Create a column to store TAD
