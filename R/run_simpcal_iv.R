@@ -1,8 +1,8 @@
-#' Run simplified calculation for intravenous pharmacokinetic data
+#' Run approximate pharmacokinetic calculation for intravenous pharmacokinetic data
 #'
 #' Perform a simplified calculation for clearance and volume of distribution in intravenous cases.
 #' @param dat A data frame containing the intravenous pharmacokinetic data.
-#' @param infusion_flag A flag indicating whether the dataset includes infusion doses. Set to 1 if the data includes infusions, otherwise set to 0.
+#' @param route A character string specifying the route of administration (e.g, "bolus" and "infusion"). The default value is "bolus".
 #' @param sdflag A flag indicating whether this is only single-dose data.
 #' @param fdobsflag A flag indicating whether first dose observations are available.
 #' @param half_life The half-life of the drug.
@@ -10,22 +10,29 @@
 #' @importFrom dplyr %>% mutate if_else arrange group_by ungroup slice_min filter select
 #' @import nlmixr2
 #' @examples
+#'
+#' # Example 1 (iv case)
 #' dat <- Bolus_1CPT
-#' dat<- nmpkconvert(dat)
-#' dat<- calculate_tad(dat)
-#' run_simpcal_iv(dat, infusion_flag = 0, sdflag = 0, fdobsflag = 1)
+#' dat <- nmpkconvert(dat)
+#' dat <- calculate_tad(dat)
+#' run_simpcal_iv(dat)
+#'
+#' # Example 2 (infusion case).
+#'
+#' dat <- Infusion_1CPT
+#' dat <- nmpkconvert(dat)
+#' dat <- calculate_tad(dat)
+#' run_simpcal_iv(dat,route="infusion")
+
 #' @export
 
 run_simpcal_iv <- function(dat,
-                        infusion_flag,
-                        sdflag,
-                        fdobsflag,
-                        half_life) {
-  start.time <- Sys.time()
-  if (missing(half_life)) {
-    half_life <- NA
-  }
+                           route="bolus",
+                           sdflag=0,
+                           fdobsflag=1,
+                           half_life=NA) {
 
+  start.time <- Sys.time()
   ##################################Calculate of clearance######################
   median.simpcal.cl <- NA
   dat.ss.obs <- NA
@@ -52,9 +59,11 @@ run_simpcal_iv <- function(dat,
     if (exists("half_life")) {
       if (is.na(half_life)) {
         half_life = most_commonly_used_dose_interval
-        cat(
-          "Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
-        )
+        # cat(
+        #   "Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
+        # )
+        message(black(
+          paste0("No half life detected, change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered.")))
       }
     }
 
@@ -154,8 +163,7 @@ run_simpcal_iv <- function(dat,
   ########################### Calculate the Volume of distribution###############
   if (fdobsflag == 1) {
     dat$fdflag <- 0
-    fp_tad <-
-      3 # currently, it target the first plasma points within three hours, could make it variable in the future if needed.
+    fp_tad <-3 # currently, it target the first plasma points within three hours, could make it variable in the future if needed.
     dat[dat$EVID == 0 &
           dat$dose_number == 1 & dat$tad < fp_tad, ]$fdflag <- 1
     dat.fd.obs <- dat[dat$fdflag == 1,]
@@ -180,11 +188,11 @@ run_simpcal_iv <- function(dat,
       ungroup()
 
     # Bolus case calculation
-    if (infusion_flag == 0) {
+    if (route == "bolus") {
       dat.fd.obs$vd <- signif(dat.fd.obs$dose / dat.fd.obs$DV, 3)
     }
 
-    if (infusion_flag == 1) {
+    if (route == "infusion") {
       # If less than infusion time, then it needs to multiply the time
       dat.fd.obs <- dat.fd.obs %>%
         group_by(ID) %>%
