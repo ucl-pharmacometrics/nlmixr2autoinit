@@ -21,7 +21,7 @@
 #'
 #' dat <- Infusion_1CPT
 #' dat <- nmpkconvert(dat)
-#' dat <- calculate_tad(dat)
+#' dat <- calculate_tad(dat,infusion_flag=1)
 #' run_simpcal_iv(dat,route="infusion")
 
 #' @export
@@ -152,47 +152,77 @@ run_simpcal_iv <- function(dat,
 
       median.simpcal.cl <- median(dat.ss.obs$cl)
     }
-
-    # No selected points
-    if (nrow(dat.ss.obs) == 0) {
+    # if no enough points for statistics, even no available points found
+    if (nrow(dat.ss.obs) < 3) {
       median.simpcal.cl <- NA
+    }
+    if (nrow(dat.ss.obs) > 2) {
+      median.simpcal.cl <- median(dat.ss.obs$cl)
     }
 
   }
 
   ########################### Calculate the Volume of distribution###############
-  if (fdobsflag == 1) {
-    dat$fdflag <- 0
-    fp_tad <-3 # currently, it target the first plasma points within three hours, could make it variable in the future if needed.
-    dat[dat$EVID == 0 &
-          dat$dose_number == 1 & dat$tad < fp_tad, ]$fdflag <- 1
-    dat.fd.obs <- dat[dat$fdflag == 1,]
-    dat.fd.obs <- dat.fd.obs %>%
-      group_by(ID) %>%
-      slice_min(order_by = TIME, n = 1) %>%
-      ungroup()
-
-
-    # Extract rows to be marked in dat.ss.obs
-    dat <- dat %>%
-      rowwise() %>%
-      mutate(fdflag = ifelse(
-        any(
-          ID == dat.fd.obs$ID &
-            dose_number == dat.fd.obs$dose_number &
-            TIME == dat.fd.obs$TIME
-        ),
-        1,
-        0
-      )) %>%
-      ungroup()
+  if (fdobsflag == 1 & !is.na(half_life)) {
 
     # Bolus case calculation
     if (route == "bolus") {
+
+      dat$fdflag <- 0
+      dat[dat$EVID == 0 &
+            dat$dose_number == 1 & dat$tad < half_life*0.2, ]$fdflag <- 1
+      dat.fd.obs <- dat[dat$fdflag == 1,]
+      dat.fd.obs <- dat.fd.obs %>%
+        group_by(ID) %>%
+        slice_min(order_by = TIME, n = 1) %>%
+        ungroup()
+
+
+      # Extract rows to be marked in dat.ss.obs
+      dat <- dat %>%
+        rowwise() %>%
+        mutate(fdflag = ifelse(
+          any(
+            ID == dat.fd.obs$ID &
+              dose_number == dat.fd.obs$dose_number &
+              TIME == dat.fd.obs$TIME
+          ),
+          1,
+          0
+        )) %>%
+        ungroup()
+
       dat.fd.obs$vd <- signif(dat.fd.obs$dose / dat.fd.obs$DV, 3)
     }
 
+  # Infusion case, only collect the samples during infusion
+
     if (route == "infusion") {
+      dat$duration_obs<-dat$dose/dat$rateobs
+      dat$fdflag <- 0
+      dat[dat$EVID == 0 &
+            dat$dose_number == 1 & dat$tad < half_life*0.2 & dat$TIME<dat$duration_obs, ]$fdflag <- 1
+
+      dat.fd.obs <- dat[dat$fdflag == 1,]
+      dat.fd.obs <- dat.fd.obs %>%
+        group_by(ID) %>%
+        slice_min(order_by = TIME, n = 1) %>%
+        ungroup()
+
+
+      # Extract rows to be marked in dat.ss.obs
+      dat <- dat %>%
+        rowwise() %>%
+        mutate(fdflag = ifelse(
+          any(
+            ID == dat.fd.obs$ID &
+              dose_number == dat.fd.obs$dose_number &
+              TIME == dat.fd.obs$TIME
+          ),
+          1,
+          0
+        )) %>%
+        ungroup()
       # If less than infusion time, then it needs to multiply the time
       dat.fd.obs <- dat.fd.obs %>%
         group_by(ID) %>%
