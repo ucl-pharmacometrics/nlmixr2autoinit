@@ -1,4 +1,4 @@
-#' Convert pharmacokinetic dataset to depreciated format with Additional Dosing
+#' Convert pharmacokinetic dataset to depreciated format with additional dosing
 #'
 #' Process pharmacokinetic (PK) data to handle additional dosing (ADDL) by expanding the dose records accordingly.
 #' @param dat A data frame containing the pharmacokinetic data with columns for EVID, ADDL, TIME, II, AMT, and other relevant variables.
