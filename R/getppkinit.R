@@ -1006,6 +1006,7 @@ message(black(
     input.q23cmpt = recommended_q23cmpt_init
     input.vmax=  recommended_vmax_init
     input.km=  recommended_km_init
+    vmax_km_threshold=T
     }
 
 
@@ -1027,7 +1028,7 @@ message(black(
       paste0("Run one-compartment model with Michaelis–Menten elimination", strrep(".", 20))
     ))
 
-    if (vmax_km_threshold=T){
+    if (vmax_km_threshold==T){
     npd_1cmpt_mm_out <- run_npd_1cmpt_mm_iv(
       dat = dat,
       est.method = est.method,
@@ -1036,7 +1037,7 @@ message(black(
     )
     }
 
-    if (vmax_km_threshold=F){
+    if (vmax_km_threshold==F){
       npd_1cmpt_mm_out <- run_npd_1cmpt_mm_iv(
         dat = dat,
         est.method = est.method,
@@ -1096,7 +1097,7 @@ message(black(
       paste0("Run one-compartment model with first-order absorption and Michaelis–Menten elimination", strrep(".", 20))
     ))
 
-    if (vmax_km_threshold=T){
+    if (vmax_km_threshold==T){
     npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
       dat = Oral_1CPT,
       est.method = "nls",
@@ -1107,7 +1108,7 @@ message(black(
     )
     }
 
-    if (vmax_km_threshold=F){
+    if (vmax_km_threshold==F){
     npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
       dat = Oral_1CPT,
       est.method = "nls",
