@@ -331,12 +331,15 @@ getppkinit <- function(dat,
   # Simulation and evaluation
   if (noniv_flag==0){
   # All pooled
-  nca.APE <- Inf
-  nca.MAPE <- Inf
+
   nca.results_all <- nca.results$nca.all.results
   nca.results_fd <- nca.results$nca.fd.results
   nca.results_efd <- nca.results$nca.efd.results
 
+  nca.APE <- Inf
+  nca.MAPE <- Inf
+
+  if (!is.na(nca.results_all$cl) & !is.na(nca.results_all$vd )) {
   if (nca.results_all$cl > 0 & nca.results_all$vd > 0) {
     nca_sim <- Fit_1cmpt_iv(
       data = dat[dat$EVID != 2,],
@@ -352,9 +355,11 @@ getppkinit <- function(dat,
       round(sum(abs(nca_sim$cp - nca_sim$DV) / nca_sim$DV) / nrow(nca_sim) *
               100, 1)
   }
+  }
 
   nca_fd.APE <- Inf
   nca_fd.MAPE <- Inf
+
   if (!is.na(nca.results_fd$cl) & !is.na(nca.results_fd$vd)) {
     if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0) {
       nca_fd_sim <- Fit_1cmpt_iv(
@@ -371,11 +376,12 @@ getppkinit <- function(dat,
         round(sum(abs(nca_fd_sim$cp - nca_fd_sim$DV) / nca_fd_sim$DV) / nrow(nca_fd_sim) *
                 100, 1)
     }
-
   }
+
 
   nca_efd.APE <- Inf
   nca_efd.MAPE <- Inf
+
   if (!is.na(nca.results_efd$cl) & !is.na(nca.results_efd$vd)) {
     if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0) {
       nca_efd_sim <- Fit_1cmpt_iv(
@@ -398,13 +404,16 @@ getppkinit <- function(dat,
 
   if (noniv_flag==1){
     # All pooled
-    nca.APE <- Inf
-    nca.MAPE <- Inf
+
     nca.results_all <- nca.results$nca.all.results
     nca.results_fd <- nca.results$nca.fd.results
     nca.results_efd <- nca.results$nca.efd.results
 
-    if (nca.results_all$cl > 0 & nca.results_all$vd > 0) {
+    nca.APE <- Inf
+    nca.MAPE <- Inf
+
+    if (!is.na(nca.results_all$cl) & !is.na(nca.results_all$vd & !is.na(ka_method_1_all))) {
+    if (nca.results_all$cl > 0 & nca.results_all$vd > 0 &  ka_method_1_all>0 ) {
       nca_sim <- Fit_1cmpt_oral(
         data = dat[dat$EVID != 2,],
         est.method = "rxSolve",
@@ -420,11 +429,13 @@ getppkinit <- function(dat,
         round(sum(abs(nca_sim$cp - nca_sim$DV) / nca_sim$DV) / nrow(nca_sim) *
                 100, 1)
     }
+    }
 
     nca_fd.APE <- Inf
     nca_fd.MAPE <- Inf
-    if (!is.na(nca.results_fd$cl) & !is.na(nca.results_fd$vd)) {
-      if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0) {
+
+    if (!is.na(nca.results_fd$cl) & !is.na(nca.results_fd$vd & !is.na(ka_method_1_fd))) {
+      if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0  &  ka_method_1_fd>0 ) {
         nca_fd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
@@ -445,8 +456,9 @@ getppkinit <- function(dat,
 
     nca_efd.APE <- Inf
     nca_efd.MAPE <- Inf
-    if (!is.na(nca.results_efd$cl) & !is.na(nca.results_efd$vd)) {
-      if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0) {
+
+    if (!is.na(nca.results_efd$cl) & !is.na(nca.results_efd$vd &  !ka_method_1_efd)) {
+      if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0 &  ka_method_1_efd>0) {
         nca_efd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
