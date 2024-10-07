@@ -13,6 +13,7 @@
 #'   \item \code{est.method}: Character string indicating the estimation method for naive pooled data compartmental analysis to use (default is \code{"nls"}) or other methods ((e.g., "nls", "nlm", ""foce", "focei") depending on the analysis.
 #'   \item \code{selection.criteria}: Character string indicating the selection criteria for method comparison (default is \code{"MAPE"}). The selection method can be set to either Mean Absolute Percentage Error (\code{"MAPE"}) or Absolute Percentage Error (\code{"APE"}), depending on the user requirement.
 #'   \item \code{npdcmpt.inits.strategy}: Numeric value indicating the strategy for setting initial estimates in the model (default is \code{0}).  \code{0} means all initial estimates are set to \code{1} in this step, while \code{1} means that the initial estimates are based on parameters derived from non-model-fitting calculation methods.
+#'
 #' }
 #' If any of these settings are not provided, default values will be used.
 #' @return A list containing data information, initial parameter estimates, messages, and run history.
@@ -987,6 +988,9 @@ message(black(
       input.q2cmpt=    1
       input.q3cmpt =   1
       input.q23cmpt = 1
+      input.vmax=1
+      input.km=1
+      vmax_km_threshold=F
     }
 
     if (npdcmpt.inits.strategy==1){
@@ -1000,6 +1004,8 @@ message(black(
     input.q2cmpt=    recommended_q2cmpt_init
     input.q3cmpt =   recommended_q3cmpt_init
     input.q23cmpt = recommended_q23cmpt_init
+    input.vmax=  recommended_vmax_init
+    input.km=  recommended_km_init
     }
 
 
@@ -1008,6 +1014,7 @@ message(black(
     message(black(
       paste0("Run one-compartment model with first-order elimination", strrep(".", 20))
     ))
+
 
     npd_1cmpt_out <- run_npd_1cmpt_iv(
       dat = dat,
@@ -1020,12 +1027,25 @@ message(black(
       paste0("Run one-compartment model with Michaelis–Menten elimination", strrep(".", 20))
     ))
 
+    if (vmax_km_threshold=T){
     npd_1cmpt_mm_out <- run_npd_1cmpt_mm_iv(
       dat = dat,
       est.method = est.method,
       npdmm_inputcl =  input.cl,
       npdmm_inputvd =  input.vd
     )
+    }
+
+    if (vmax_km_threshold=F){
+      npd_1cmpt_mm_out <- run_npd_1cmpt_mm_iv(
+        dat = dat,
+        est.method = est.method,
+        npdmm_inputvmax =  input.vmax,
+        npdmm_inputkm =  input.km,
+        npdmm_inputvd =  input.vd,
+        km_threshold=F
+      )
+    }
 
     message(black(
       paste0("Run two-compartment model with first-order elimination", strrep(".", 20))
@@ -1076,6 +1096,7 @@ message(black(
       paste0("Run one-compartment model with first-order absorption and Michaelis–Menten elimination", strrep(".", 20))
     ))
 
+    if (vmax_km_threshold=T){
     npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
       dat = Oral_1CPT,
       est.method = "nls",
@@ -1084,6 +1105,18 @@ message(black(
       input.vd = input.vd,
       km_threshold = T
     )
+    }
+
+    if (vmax_km_threshold=F){
+    npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
+      dat = Oral_1CPT,
+      est.method = "nls",
+      input.ka =  input.ka,
+      input.vmax =  input.vmax,
+      input.km = input.km,
+      km_threshold = F
+    )
+    }
 
     message(black(
       paste0("Run two-compartment model with first-order absorption and elimination", strrep(".", 20))
