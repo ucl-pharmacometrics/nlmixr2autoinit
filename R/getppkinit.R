@@ -997,9 +997,9 @@ message(black(
     input.vc3cmpt =  recommended_vc3cmpt_init
     input.vp3cmpt =  recommended_vp3cmpt_init
     input.vp23cmpt = recommended_vp23cmpt_init
-    input.q2cmpt=    input.cl
-    input.q3cmpt =   input.cl
-    input.q23cmpt =  input.cl
+    input.q2cmpt=    recommended_q2cmpt_init
+    input.q3cmpt =   recommended_q3cmpt_init
+    input.q23cmpt = recommended_q23cmpt_init
     }
 
 
@@ -1585,10 +1585,10 @@ message(black(
     sim.vmax.km = sim.vmax.km.results.all,
     sim.2cmpt = sim.2cmpt.results.all,
     sim.3cmpt = sim.3cmpt.results.all,
-    npd.1cmpt_results=npd.1cmpt_results,
-    npd.1cmpt.mm_results=npd.1cmpt.mm_results,
-    npd.2cmpt_results=npd.2cmpt_results,
-    npd.3cmpt_results=npd.3cmpt_results
+    npd_1cmpt_out =npd_1cmpt_out,
+    npd_1cmpt_mm_out = npd_1cmpt_mm_out ,
+    npd_2cmpt_out=npd_2cmpt_out,
+    npd_3cmpt_out= npd_3cmpt_out
   )
 
   params.descriptions <- c(
