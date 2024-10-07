@@ -73,9 +73,15 @@ ka_wanger_nelson<-function(dat,nlastpoints,nca.out){
   dat$frac_remained<-1-  dat$frac_abs
   dat_absorb_phase<- dat[dat$frac_remained>0.1,]
   # dat_absorb_phase<- dat_absorb_phase[dat_absorb_phase$frac_remained>0.05,]
+  if (nrow(dat_absorb_phase)<2){
+    ka=NA
+  }
+
+  if (nrow(dat_absorb_phase)>1){
   abc2 <- lm(log(dat_absorb_phase$frac_remained) ~  dat_absorb_phase$TIME)
   slope_ka<-summary(abc2)[[4]][[2]]
   ka= -slope_ka
+  }
   return(list(ka=ka,dat_out_wanger_nelson=dat))
 }
 
