@@ -293,13 +293,9 @@ getppkinit <- function(dat,
     sdflag=sdflag
   )
 
+
 # Run extra ka part if oral case
   if ( noniv_flag==1 ){
-
-    ka_method_1_fd<-NA
-    ka_method_1_efd <-NA
-    ka_method_1_all<-NA
-
     if (!is.null(nrow(nca.results$datpooled_fd$test.pool.normalised))){
      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_fd$test.pool.normalised,
                       nlastpoints = nlastpoints,
@@ -487,7 +483,6 @@ getppkinit <- function(dat,
   }
 
 ##############Graphic analysis##################################################
-
 
 # iv case
 if ( noniv_flag==0 & fdobsflag==1 ){
@@ -708,7 +703,15 @@ if ( noniv_flag==1  & fdobsflag==1  ){
   # as it is the same as the results when all data are pooled together.
 
   if (sdflag == 1) {
-    ka=c(NA,graph.results_fd$ka,ka_method_1_fd,ka_median)
+    # Output all of test
+    if (noniv_flag==0){
+      ka=c(NA,NA,NA,NA)
+    }
+
+    if (noniv_flag==1){
+      ka=c(NA,graph.results_fd$ka,ka_method_1_fd,ka_median)
+    }
+
     all.out <- data.frame(
       method = c(
         "Approximate calculation",
