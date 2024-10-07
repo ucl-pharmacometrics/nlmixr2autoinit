@@ -216,8 +216,14 @@ nca.iv.normalised <- function(dat,
 
   # Select last 4/specified number for slope calculation
   temp1 <- tail(dat, n = nlastpoints)
+
   # linear regression for slope of log of DVs
+  if (nrow(temp1)<2){
+    return(rep(NA,9))
+  }
+
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
+
   slope <- summary(abc)[[4]][[2]]
   ke <- -slope
   lambda_z<- ke
