@@ -97,6 +97,10 @@ getppkinit <- function(dat,
     ))
   }
 
+  if ("DOSE" %in% column_names) {
+    dat$DOSE_PRE <- dat$DOSE
+    dat$DOSE<-NULL
+  }
 
   dat <- calculate_tad(dat, infusion_flag)
 
@@ -1338,7 +1342,7 @@ message(black(
       all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`,
                                                                                na.rm = T),]$Method[1]
 
-    if (length(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
+       if (length(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
                                   min(all.out$`Mean absolute prediction error (MAPE)`,
                                       na.rm = T),]$`Calculated CL`)) > 1) {
       #check the total volume of distribution of two compartment
@@ -1606,6 +1610,11 @@ message(black(
     npd.1cmpt.mm_results=   "No model fitting by naive pool data approach was conducted"
     npd.2cmpt_results=      "No model fitting by naive pool data approach was conducted"
     npd.3cmpt_results=      "No model fitting by naive pool data approach was conducted"
+    npd_1cmpt_out = "No model fitting by naive pool data approach was conducted"
+    npd_1cmpt_mm_out = "No model fitting by naive pool data approach was conducted"
+    npd_2cmpt_out = "No model fitting by naive pool data approach was conducted"
+    npd_3cmpt_out= "No model fitting by naive pool data approach was conducted"
+
   }
 
   colnames(all.out) <-
