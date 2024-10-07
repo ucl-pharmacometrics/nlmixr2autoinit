@@ -296,6 +296,10 @@ getppkinit <- function(dat,
 # Run extra ka part if oral case
   if ( noniv_flag==1 ){
 
+    ka_method_1_fd<-NA
+    ka_method_1_efd <-NA
+    ka_method_1_all<-NA
+
     if (!is.null(nrow(nca.results$datpooled_fd$test.pool.normalised))){
      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_fd$test.pool.normalised,
                       nlastpoints = nlastpoints,
