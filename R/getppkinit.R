@@ -1186,6 +1186,16 @@ message(black(
              npd.2cmpt_results$cl,
              npd.3cmpt_results$cl),
 
+      vmax = c(NA,
+             npd.1cmpt.mm_results$vmax,
+             NA,
+             NA),
+
+       km = c(NA,
+              npd.1cmpt.mm_results$km,
+               NA,
+               NA),
+
       vc = c(npd.1cmpt_results$vd,
              npd.1cmpt.mm_results$vd,
              npd.2cmpt_results$vc,
@@ -1242,6 +1252,17 @@ message(black(
                NA,
                npd.2cmpt_results$cl,
                npd.3cmpt_results$cl),
+
+
+        vmax = c(NA,
+                 npd.1cmpt.mm_results$vmax,
+                 NA,
+                 NA),
+
+        km = c(NA,
+               npd.1cmpt.mm_results$km,
+               NA,
+               NA),
 
         vc = c(npd.1cmpt_results$vd,
                npd.1cmpt.mm_results$vd,
