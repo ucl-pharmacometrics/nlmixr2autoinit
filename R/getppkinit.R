@@ -211,7 +211,7 @@ getppkinit <- function(dat,
   simpcal.out.2 <- simpcal.results.2$simpcal.results
 
  # Evaluate the provided initial values of cl and vd by their goodness of fit
-  if (!is.na(simpcal.out$cl) & !is.na(simpcal.out$vd)) {
+  if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F) {
     simpcal_sim <-
       Fit_1cmpt_iv(
         data = dat[dat$EVID != 2,],
@@ -229,7 +229,7 @@ getppkinit <- function(dat,
    }
 
   # Evaluate the provided initial values of cl and vd by their goodness of fit
-  if (!is.na(simpcal.out.2$cl) & !is.na(simpcal.out.2$vd)) {
+  if (is.na(simpcal.out.2$cl)==F & is.na(simpcal.out.2$vd)==F) {
     simpcal_sim_2 <-
       Fit_1cmpt_iv(
         data = dat[dat$EVID != 2,],
@@ -327,7 +327,7 @@ getppkinit <- function(dat,
     # can be used for later hybrid method
     ka_values<-c(ka_method_1_fd, ka_method_1_efd, ka_method_1_all)
     # Remove negative numbers
-    positive_ka_values <-    ka_values[   ka_values > 0 &  !is.na(ka_values)]
+    positive_ka_values <-    ka_values[   ka_values > 0 &  is.na(ka_values)==F]
     ka_median <- round(median(positive_ka_values),2)
 
   }
@@ -343,7 +343,7 @@ getppkinit <- function(dat,
   nca.APE <- Inf
   nca.MAPE <- Inf
 
-  if (!is.na(nca.results_all$cl) & !is.na(nca.results_all$vd )) {
+  if (is.na(nca.results_all$cl)==F & is.na(nca.results_all$vd )==F) {
   if (nca.results_all$cl > 0 & nca.results_all$vd > 0) {
     nca_sim <- Fit_1cmpt_iv(
       data = dat[dat$EVID != 2,],
@@ -364,7 +364,7 @@ getppkinit <- function(dat,
   nca_fd.APE <- Inf
   nca_fd.MAPE <- Inf
 
-  if (!is.na(nca.results_fd$cl) & !is.na(nca.results_fd$vd)) {
+  if (is.na(nca.results_fd$cl)==F & is.na(nca.results_fd$vd)==F) {
     if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0) {
       nca_fd_sim <- Fit_1cmpt_iv(
         data = dat[dat$EVID != 2,],
@@ -386,7 +386,7 @@ getppkinit <- function(dat,
   nca_efd.APE <- Inf
   nca_efd.MAPE <- Inf
 
-  if (!is.na(nca.results_efd$cl) & !is.na(nca.results_efd$vd)) {
+  if (is.na(nca.results_efd$cl)==F & is.na(nca.results_efd$vd)==F) {
     if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0) {
       nca_efd_sim <- Fit_1cmpt_iv(
         data = dat[dat$EVID != 2,],
@@ -416,7 +416,7 @@ getppkinit <- function(dat,
     nca.APE <- Inf
     nca.MAPE <- Inf
 
-    if (!is.na(nca.results_all$cl) & !is.na(nca.results_all$vd & !is.na(ka_method_1_all))) {
+    if (is.na(nca.results_all$cl)==F & is.na(nca.results_all$vd)==F & is.na(ka_method_1_all)==F) {
     if (nca.results_all$cl > 0 & nca.results_all$vd > 0 &  ka_method_1_all>0 ) {
       nca_sim <- Fit_1cmpt_oral(
         data = dat[dat$EVID != 2,],
@@ -438,7 +438,7 @@ getppkinit <- function(dat,
     nca_fd.APE <- Inf
     nca_fd.MAPE <- Inf
 
-    if (!is.na(nca.results_fd$cl) & !is.na(nca.results_fd$vd & !is.na(ka_method_1_fd))) {
+    if (is.na(nca.results_fd$cl)==F & is.na(nca.results_fd$vd)==F & is.na(ka_method_1_fd)==F) {
       if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0  &  ka_method_1_fd>0 ) {
         nca_fd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
@@ -461,7 +461,7 @@ getppkinit <- function(dat,
     nca_efd.APE <- Inf
     nca_efd.MAPE <- Inf
 
-    if (!is.na(nca.results_efd$cl) & !is.na(nca.results_efd$vd &  !ka_method_1_efd)) {
+    if (is.na(nca.results_efd$cl)==F & is.na(nca.results_efd$vd)==F &  is.na(ka_method_1_efd)==F) {
       if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0 &  ka_method_1_efd>0) {
         nca_efd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
@@ -505,7 +505,7 @@ if ( noniv_flag==0 & fdobsflag==1 ){
     nlastpoints = nlastpoints
   )
 
-  if (!is.na(graph.results_fd$cl) & !is.na(graph.results_fd$vd)) {
+  if (is.na(graph.results_fd$cl)==F & is.na(graph.results_fd$vd)==F) {
     if (graph.results_fd$cl > 0 & graph.results_fd$vd > 0) {
       graph_fd_sim <- Fit_1cmpt_iv(
         data = dat[dat$EVID != 2,],
@@ -543,7 +543,7 @@ if ( noniv_flag==1  & fdobsflag==1  ){
 
     graph_fd.APE <- Inf
     graph_fd.MAPE <- Inf
-    if (!is.na(graph.results_fd$cl) & !is.na(graph.results_fd$vd)) {
+    if (is.na(graph.results_fd$cl)==F & is.na(graph.results_fd$vd)==F) {
       if (graph.results_fd$cl > 0 & graph.results_fd$vd > 0) {
         graph_fd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
@@ -596,7 +596,7 @@ if ( noniv_flag==1  & fdobsflag==1  ){
   hybrid_vd <- NA
 
   # Rapid calculation clearance + slope estimated
-  if (!is.na(simpcal.out$cl)) {
+  if (is.na(simpcal.out$cl)==F) {
     hybrid_cl <- simpcal.out$cl
     hybrid_vd <-  signif(-simpcal.out$cl / usedslope, 3)
   }
@@ -605,7 +605,7 @@ if ( noniv_flag==1  & fdobsflag==1  ){
  if ( noniv_flag==0 ){
   hybrid.APE <- Inf
   hybrid.MAPE <- Inf
-  if (!is.na(hybrid_vd) & !is.na(simpcal.out$cl)) {
+  if (is.na(hybrid_vd)==F & is.na(simpcal.out$cl)==F) {
     hybrid_sim <- Fit_1cmpt_iv(
       data = dat[dat$EVID != 2,],
       est.method = "rxSolve",
@@ -626,7 +626,7 @@ if ( noniv_flag==1  & fdobsflag==1  ){
  if ( noniv_flag==1 ){
     hybrid.APE <- Inf
     hybrid.MAPE <- Inf
-    if (!is.na(hybrid_vd) & !is.na(simpcal.out$cl)) {
+    if (is.na(hybrid_vd)==F & is.na(simpcal.out$cl)==F) {
       hybrid_sim <- Fit_1cmpt_oral(
         data = dat[dat$EVID != 2,],
         est.method = "rxSolve",
