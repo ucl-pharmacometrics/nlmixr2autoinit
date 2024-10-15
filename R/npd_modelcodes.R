@@ -39,10 +39,21 @@ Fit_1cmpt_iv <- function(data,
     })
   }
 
-  fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(object = iv,
-                           data =  data,
-                           est = est.method)))
+  if (est.method=="nls"){
 
+    fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(object = iv,
+                                                               data =  data,
+                                                               est = est.method,
+                                                               control=nlsControl(warnOnly = T,
+                                                                                  algorithm="default")
+                                                               )))
+  }
+
+  if (est.method!="nls"){
+  fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(object = iv,
+                                                             data =  data,
+                                                             est = est.method)))
+  }
   return(fit.1cmpt.lst)
 }
 
