@@ -182,21 +182,35 @@ run_nca.normalised <- function(dat,
 }
 
 
-
 #' Non-compartmental analysis for intravenous pharmacokinetic data
 #'
 #' Perform non-compartmental analysis (NCA) on intravenous data to calculate pharmacokinetic parameters (clearance and volume of distribution) from the provided data.
 #' @param dat A data frame with at least two columns: TIME and DV.
 #' @param nlastpoints Number of last points to use for the linear regression on terminal slope (default is 4).
+#' @param trap.rule.method A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
+#'        1 for the standard linear trapezoidal method.
+#'        2 for the linear up and logarithmic down method, where the concentration increase is treated linearly,
+#'        and the concentration decrease is treated logarithmically.
+#' @param ss A flag indicating whether the analysis assumes steady state (TRUE or FALSE).
+#' \itemize{
+#'   \item \strong{FALSE (0)}: The model uses the extrapolated AUC (auc0_inf) to calculate clearance (CL) and volume of distribution (Vd).
+#'   \item \strong{TRUE (1)}: If at steady state, the model uses only the AUC up to the last time point (auct) for calculating clearance (CL) and volume of distribution (Vd), instead of auc0_inf.
+#' }
 #' @return A named vector containing the calculated clearance (cl), volume of distribution (vd), slope, and half-life.
 #' @examples
 #' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10), DV = c(12, 8, 5, 3, 2, 1.5, 1 ))
-#' nca.iv.normalised(dat, nlastpoints = 4)
+#' nca.iv.normalised(dat, nlastpoints = 3)
+#'
+#' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10), DV = c(12, 8, 5, 3, 2, 1.5, 1 ))
+#' nca.iv.normalised(dat, ss=1, nlastpoints = 3)
+#'
 #' @export
 
 nca.iv.normalised <- function(dat,
-                              trap.rule.method,
-                              nlastpoints) {
+                              trap.rule.method=1,
+                              ss=F,
+                              nlastpoints=3) {
+
   cl=NA
   vd=NA
   slope=NA
@@ -207,12 +221,6 @@ nca.iv.normalised <- function(dat,
   ke=NA
   aumc_0_inf=NA
 
-  if (missing(trap.rule.method)){
-    trap.rule.method=1
-  }
-  if (missing(nlastpoints)) {
-    nlastpoints <- 4
-  }
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
 
@@ -225,27 +233,41 @@ nca.iv.normalised <- function(dat,
 
   # Select last 4/specified number for slope calculation
   temp1 <- tail(dat, n = nlastpoints)
-
-  # linear regression for slope of log of DVs
-  if (nrow(temp1)<2){
-    return(rep(NA,9))
-  }
-
-  abc <- lm(log(temp1$DV) ~ temp1$TIME)
-  slope <- summary(abc)[[4]][[2]]
-
-  if (slope>=0){
-  ke <- -slope
-  lambda_z<- ke
-  half_life <- log(2) / ke
   C_last <- tail(temp1$DV, 1)
   t_last <- tail(temp1$TIME, 1)
 
+  # check number of points available for slope linear regression
+  if (nrow(temp1)<nlastpoints){
+    return(c(cl=cl,
+             vd=vd,
+             slope=slope,
+             half_life=half_life,
+             auct=auct,
+             auc0_inf=auc0_inf,
+             C_last=C_last,
+             ke=ke,
+             aumc_0_inf= aumc_0_inf))
+  }
+
+  # linear regression for slope of log of DVs
+  abc <- lm(log(temp1$DV) ~ temp1$TIME)
+  slope <- summary(abc)[[4]][[2]]
+
+  if (slope<0){
+  ke <- -slope
+  lambda_z<- ke
+  half_life <- log(2) / ke
   auct_inf <- C_last / ke
   auc0_inf <- auct + auct_inf
-  clnormalised <- 1 / auc0_inf
-  vdnormalised <- clnormalised / ke
 
+  if (ss==0){
+   clnormalised <- 1 / auc0_inf
+  }
+  if (ss==1){
+   clnormalised <- 1 / auct
+  }
+
+  vdnormalised <- clnormalised / ke
   cl <- clnormalised
   vd <- vdnormalised
   # AUMC calculation
@@ -254,7 +276,6 @@ nca.iv.normalised <- function(dat,
   moment_curve <- time * concentration
   # Calculate AUMC from 0 to t_last
   aumc0_t <- trap.rule(time, moment_curve)
-
   # Calculate AUMC from t_last to infinity
   aumc_tlast_to_inf <- (C_last * t_last) / lambda_z + C_last / (lambda_z^2)
   # Calculate AUMC from 0 to infinity
