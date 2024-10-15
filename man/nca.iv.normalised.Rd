@@ -4,10 +4,21 @@
 \alias{nca.iv.normalised}
 \title{Non-compartmental analysis for intravenous pharmacokinetic data}
 \usage{
-nca.iv.normalised(dat, trap.rule.method, nlastpoints)
+nca.iv.normalised(dat, trap.rule.method = 1, ss = F, nlastpoints = 3)
 }
 \arguments{
 \item{dat}{A data frame with at least two columns: TIME and DV.}
+
+\item{trap.rule.method}{A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
+1 for the standard linear trapezoidal method.
+2 for the linear up and logarithmic down method, where the concentration increase is treated linearly,
+and the concentration decrease is treated logarithmically.}
+
+\item{ss}{A flag indicating whether the analysis assumes steady state (TRUE or FALSE).
+\itemize{
+\item \strong{FALSE (0)}: The model uses the extrapolated AUC (auc0_inf) to calculate clearance (CL) and volume of distribution (Vd).
+\item \strong{TRUE (1)}: If at steady state, the model uses only the AUC up to the last time point (auct) for calculating clearance (CL) and volume of distribution (Vd), instead of auc0_inf.
+}}
 
 \item{nlastpoints}{Number of last points to use for the linear regression on terminal slope (default is 4).}
 }
@@ -19,5 +30,9 @@ Perform non-compartmental analysis (NCA) on intravenous data to calculate pharma
 }
 \examples{
 dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10), DV = c(12, 8, 5, 3, 2, 1.5, 1 ))
-calc.nca.iv.normalised(dat, nlastpoints = 4)
+nca.iv.normalised(dat, nlastpoints = 3)
+
+dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10), DV = c(12, 8, 5, 3, 2, 1.5, 1 ))
+nca.iv.normalised(dat, ss=1, nlastpoints = 3)
+
 }
