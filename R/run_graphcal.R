@@ -132,22 +132,32 @@ graphcal_iv <- function(dat,
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
 
-  temp1 <- tail(dat, n = nlastpoints)
+  cl = NA
+  vd = NA
+  slope = NA
+  C0 = NA
 
+  if (nrow(temp1)<nlastpoints){
+    return(c(
+      cl = cl,
+      vd = vd,
+      slope = slope,
+      C0 = C0
+    ))
+  }
+
+  temp1 <- tail(dat, n = nlastpoints)
   # linear regression for slope of log of DVs
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
-
   slope <- summary(abc)[[4]][[2]]
 
+  if (slope<0){
   Intercept <- summary(abc)[[4]][[1]]
-
   kel <- -slope
-
   C0 <- exp(Intercept)
-
   vd <- 1 / C0
-
   cl = kel * vd
+  }
 
   return(c(
     cl = cl,
@@ -171,13 +181,32 @@ graphcal_iv <- function(dat,
 
 graphcal_oral <- function(dat,
                           nlastpoints) {
+
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
+
+  ka = NA
+  cl = NA
+  vd = NA
+  slope = NA
+  C0 = NA
+
+  if (nrow(temp1)<nlastpoints){
+    return(c(
+      ka = ka,
+      cl = cl,
+      vd = vd,
+      slope = slope,
+      C0 = C0
+    ))
+  }
 
   temp1 <- tail(dat, n = nlastpoints)
   # linear regression for slope of log of DVs
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
   slope <- summary(abc)[[4]][[2]]
+
+  if (slope<0){
   Intercept <- summary(abc)[[4]][[1]]
   kel <- -slope
   C0 <- exp(Intercept)
@@ -204,6 +233,7 @@ graphcal_oral <- function(dat,
     slope_ka <- summary(abslinear)[[4]][[2]]
     ka =  -slope_ka
 
+  }
   }
 
   return(c(

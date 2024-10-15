@@ -484,17 +484,19 @@ getppkinit <- function(dat,
 
 ##############Graphic analysis##################################################
 
-# iv case
+# only for iv case
 if ( noniv_flag==0 & fdobsflag==1 ){
+
  message(black(
     paste0("Run graphical analysis on naive pooling data only after the first dose", strrep(".", 20))
   ))
 
-# infusion case, the infusion rate should be very fast
+ # infusion case, the infusion rate should be very fast
  # if (route=="infusion"){
  #    duration_value_counts<- table(dat[dat$EVID %in% c(1,4) &!duplicated(dat$ID), ]$AMT/dat[dat$EVID %in% c(1,4)&!duplicated(dat$ID), ]$RATE)
  #    most_commonly_used_infusion_duration<- as.numeric(names(which.max(duration_value_counts)))
  #  }
+
   graph_fd.APE <- Inf
   graph_fd.MAPE <- Inf
 
