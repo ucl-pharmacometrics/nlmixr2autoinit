@@ -1036,18 +1036,44 @@ message(black(
 
 
   if (noniv_flag==0){
-
     message(black(
       paste0("Run one-compartment model with first-order elimination", strrep(".", 20))
     ))
 
-
-    npd_1cmpt_out <- run_npd_1cmpt_iv(
+    npd_1cmpt_out <- tryCatch({run_npd_1cmpt_iv(
       dat = dat,
       est.method = est.method,
       input.cl =  input.cl ,
       input.vd =  input.vd
+     )
+      },
+    error = function(e) {
+      message("error2", e)
+      NULL
+    },
+
+    warning = function(w) {
+      message("warning", e)
+      NULL
+    }
     )
+
+
+    npd_1cmpt_out <- try(run_npd_1cmpt_iv(
+      dat = dat,
+      est.method = est.method,
+      input.cl =  input.cl ,
+      input.vd =  input.vd
+    ),silent = T )
+
+
+    npd_1cmpt_out <- try(run_npd_1cmpt_iv(
+      dat = dat,
+      est.method = est.method,
+      input.cl = input.cl,
+      input.vd = input.vd
+    ), silent = TRUE)
+
 
     message(black(
       paste0("Run one-compartment model with Michaelis–Menten elimination", strrep(".", 20))
