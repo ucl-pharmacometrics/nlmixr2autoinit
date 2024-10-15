@@ -137,6 +137,8 @@ graphcal_iv <- function(dat,
   slope = NA
   C0 = NA
 
+ temp1 <- tail(dat, n = nlastpoints)
+
   if (nrow(temp1)<nlastpoints){
     return(c(
       cl = cl,
@@ -146,7 +148,7 @@ graphcal_iv <- function(dat,
     ))
   }
 
-  temp1 <- tail(dat, n = nlastpoints)
+
   # linear regression for slope of log of DVs
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
   slope <- summary(abc)[[4]][[2]]
@@ -191,6 +193,8 @@ graphcal_oral <- function(dat,
   slope = NA
   C0 = NA
 
+  temp1 <- tail(dat, n = nlastpoints)
+
   if (nrow(temp1)<nlastpoints){
     return(c(
       ka = ka,
@@ -201,7 +205,7 @@ graphcal_oral <- function(dat,
     ))
   }
 
-  temp1 <- tail(dat, n = nlastpoints)
+
   # linear regression for slope of log of DVs
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
   slope <- summary(abc)[[4]][[2]]
