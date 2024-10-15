@@ -191,12 +191,21 @@ run_nca.normalised <- function(dat,
 #' @return A named vector containing the calculated clearance (cl), volume of distribution (vd), slope, and half-life.
 #' @examples
 #' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10), DV = c(12, 8, 5, 3, 2, 1.5, 1 ))
-#' calc.nca.iv.normalised(dat, nlastpoints = 4)
+#' nca.iv.normalised(dat, nlastpoints = 4)
 #' @export
 
 nca.iv.normalised <- function(dat,
                               trap.rule.method,
                               nlastpoints) {
+  cl=NA
+  vd=NA
+  slope=NA
+  half_life=NA
+  auct=NA
+  auc0_inf=NA
+  C_last=NA
+  ke=NA
+  aumc_0_inf=NA
 
   if (missing(trap.rule.method)){
     trap.rule.method=1
@@ -223,8 +232,9 @@ nca.iv.normalised <- function(dat,
   }
 
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
-
   slope <- summary(abc)[[4]][[2]]
+
+  if (slope>=0){
   ke <- -slope
   lambda_z<- ke
   half_life <- log(2) / ke
@@ -235,23 +245,33 @@ nca.iv.normalised <- function(dat,
   auc0_inf <- auct + auct_inf
   clnormalised <- 1 / auc0_inf
   vdnormalised <- clnormalised / ke
+
   cl <- clnormalised
   vd <- vdnormalised
-
   # AUMC calculation
   time<-dat$TIME
   concentration<-dat$DV
   moment_curve <- time * concentration
-
   # Calculate AUMC from 0 to t_last
   aumc0_t <- trap.rule(time, moment_curve)
+
   # Calculate AUMC from t_last to infinity
   aumc_tlast_to_inf <- (C_last * t_last) / lambda_z + C_last / (lambda_z^2)
   # Calculate AUMC from 0 to infinity
   aumc_0_inf<- aumc0_t + aumc_tlast_to_inf
+  }
 
-  return(c(cl, vd, slope, half_life, auct, auc0_inf, C_last, ke, aumc_0_inf))
+  return(c(cl=cl,
+           vd=vd,
+           slope=slope,
+           half_life=half_life,
+           auct=auct,
+           auc0_inf=auc0_inf,
+           C_last=C_last,
+           ke=ke,
+           aumc_0_inf= aumc_0_inf))
 }
+
 
 
 
