@@ -6,7 +6,7 @@ Installation nlmixr2autoinit
 library(devtools)
 install_github("ucl-pharmacometrics/nlmixr2autoinit")
 ```
-Iv Case Example
+IV Case Example
 ``` r
 library(nlmixr2autoinit)
 inits.out<-getppkinit(dat = Bolus_1CPT)
