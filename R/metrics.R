@@ -74,7 +74,7 @@ metrics. <-function(pred.x,
   metrics.mae <- mean(abs(pred.x - obs.y),na.rm = T)
 
   # mean absolute percentage error  (MAPE)
-  metrics.mape <-sum(abs(pred.x - obs.y)/obs.y,na.rm = T)
+  metrics.mape <-mean(abs(pred.x - obs.y)/obs.y,na.rm = T)*100
 
   # Root mean squared error (RMSE)
   metrics.rmse <- sqrt(mean((pred.x - obs.y)^2,na.rm = T))
