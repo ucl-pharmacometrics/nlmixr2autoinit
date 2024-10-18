@@ -163,7 +163,7 @@ run_simpcal_iv <- function(dat,
   }
 
   ########################### Calculate the Volume of distribution###############
-  if (fdobsflag == 1 & !is.na(half_life)) {
+  if (fdobsflag == 1 & !is.na(half_life) & route!="oral") {
 
     # Bolus case calculation
     if (route == "bolus") {
