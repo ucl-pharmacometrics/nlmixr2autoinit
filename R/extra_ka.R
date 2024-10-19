@@ -145,14 +145,79 @@ ka_calculation <- function(cl,     # Clearance of the drug (L/hr)
 
   # Use the uniroot function to numerically solve for ka (absorption rate constant)
   # The reasonable range for ka is provided as [lower, upper] for root finding
-  solution <- uniroot(ka.equation, lower = 0.01, upper = 100)
+  solution <- uniroot(ka.equation, lower = 0.001, upper = 1000)
 
   # Return the value of ka (solution$root) and full solution object
   return(list(ka = solution$root, full_solution = solution))
 }
 
 
+#' Calculate absorption rate constant (ka) for oral administration Data
+#'
+#' Calculate the absorption rate constant (ka) using sampling points from the absorption phase (t<Tmax). The single-point method is applied, with each plasma concentration point used to calculate a corresponding ka value
+#'
+#' @param df A data frame containing pharmacokinetic data with columns: `ID` (subject identifier), `TIME` (time point), `DV` (drug concentration), and `DOSE` (dose amount). The data frame is typically filtered to include data only from the first dosing interval (e.g., single dose and evid = 0).
+#' @param cl A numeric value representing the clearance (CL) of the drug.
+#' @param ke A numeric value representing the elimination rate constant (ke).
+#' @param Fbio A numeric value representing the fraction of the drug absorbed (bioavailability, F).
+#'
+#' @details
+#' The function first calculates the time to maximum concentration (Tmax) for each individual in the dataset. It then filters the data to include only the time points up to Tmax for each individual. The absorption rate constant (ka) is calculated for each time point using the `ka_calculation` function.
+#'
+#' @return A list containing:
+#' \item{ka_calc_median}{The median ka value across all individuals.}
+#' \item{data_before_tmax}{The original data frame filtered for times before Tmax, with an added `ka_calc` column for individual ka values.}
+#'
+#' @examples
+#' # Example usage:
+#'  df<-Oral_1CPT[Oral_1CPT$SD==1 & Oral_1CPT$EVID==0,]
+#'  result <- run_ka_solution(df = df, cl = 4, ke = 4/70, Fbio = 1)
+#'  ka_median <- result[[1]]
+#'  data_with_ka <- result[[2]]
+#'
+#' @import dplyr
+#' @export
+run_ka_solution<-function(df,cl,ke,Fbio){
 
+# df<-Oral_1CPT[Oral_1CPT$SD==1 & Oral_1CPT$EVID==0,]
+# Step 1: Find Tmax for each individual
+tmax_df <- df %>%
+  group_by(ID) %>%
+  summarize(Tmax = TIME[which.max(DV)])
 
+# Step 2: Join Tmax with the original data and filter rows where TIME <= Tmax
+data_before_tmax <- df %>%
+  left_join(tmax_df, by = "ID") %>%
+  filter(TIME <= Tmax)
 
+data_before_tmax$cl=cl
+data_before_tmax$ke=ke
+data_before_tmax$Fbio=Fbio
+data_before_tmax$ka_calc=NA
 
+data_before_tmax$ka_calc <-
+  mapply(
+    function(cl, ke, t, Ct, Fbio, Dose) {
+      try(ka_calculation(
+        cl = cl,
+        ke = ke,
+        t = t,
+        Ct = Ct,
+        Fbio = Fbio,
+        Dose = Dose
+      )$ka,
+      silent = TRUE)
+    },
+    cl = data_before_tmax$cl,
+    ke = data_before_tmax$ke,
+    t = data_before_tmax$TIME,
+    Ct = data_before_tmax$DV,
+    Fbio = data_before_tmax$Fbio,
+    Dose = data_before_tmax$DOSE
+  )
+
+data_before_tmax$ka_calcv<-suppressWarnings(suppressMessages(as.numeric(data_before_tmax$ka_calc)))
+
+ka_calc_median<-suppressWarnings(suppressMessages(median(data_before_tmax$ka_calcv,na.rm = T)))
+return(list(ka_calc_median, data_before_tmax))
+}
