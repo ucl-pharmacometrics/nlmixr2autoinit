@@ -174,108 +174,56 @@ getppkinit <- function(dat,
      paste0("Estimated half-life : ", half_life)))
 
 
-  ##############Approximate calculation############################################
+  ####################Approximate calculation ################################
 
   message(black(
      paste0("Run approximate PK calculation on individual data",strrep(".", 20))))
 
-  simpcal.APE <- Inf
-  simpcal.MAPE <- Inf
-
-  # iv case
-  if (noniv_flag ==0){
-    # half_life is estimated
-    message(black(
+  if (!is.na(half_life)){
+      message(black(
       paste0("Try approximate calculation using estimated half-life: ",half_life,strrep(".", 20))))
+  }
 
-    simpcal.results <- run_simpcal_iv(
+   if (is.na(half_life)){
+   # use most commonly used dose-interval to replace half life
+     message(black(
+      paste0("Try approximate calculation without no prior estimated half-life",strrep(".", 20))))
+   }
+
+ simpcal.results <- run_simpcal_iv(
     dat = dat,
     route = route,
     sdflag = sdflag,
     fdobsflag = fdobsflag,
     half_life = half_life)
 
-    message(black(
-      paste0("Try approximate calculation without no prior estimated half-life",strrep(".", 20))))
+simpcal.out <- simpcal.results$simpcal.results
 
-    # use most commonly used dose-interval to replace half life
-    simpcal.results.2 <- run_simpcal_iv(
-      dat = dat,
-      route = route,
-      sdflag = sdflag,
-      fdobsflag = fdobsflag,
-      half_life = NA
-  )
+######################Approximate calculation (extra)########################
 
-  simpcal.out <- simpcal.results$simpcal.results
-  simpcal.out.2 <- simpcal.results.2$simpcal.results
-
- # Evaluate the provided initial values of cl and vd by their goodness of fit
-  if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F) {
-    simpcal_sim <-
-      Fit_1cmpt_iv(
-        data = dat[dat$EVID != 2,],
-        est.method = "rxSolve",
-        input.cl = simpcal.out$cl,
-        input.vd = simpcal.out$vd,
-        input.add = 0
-      )
-    simpcal_sim$DV <- dat[dat$EVID == 0,]$DV
-    # Absolute prediction error
-    simpcal.APE <- sum(abs(simpcal_sim$cp - simpcal_sim$DV))
-    simpcal.MAPE <-
-      round(sum(abs(simpcal_sim$cp - simpcal_sim$DV) / simpcal_sim$DV) / nrow(simpcal_sim) *
-              100, 1)
-   }
-
-  # Evaluate the provided initial values of cl and vd by their goodness of fit
-  if (is.na(simpcal.out.2$cl)==F & is.na(simpcal.out.2$vd)==F) {
-    simpcal_sim_2 <-
-      Fit_1cmpt_iv(
-        data = dat[dat$EVID != 2,],
-        est.method = "rxSolve",
-        input.cl = simpcal.out.2$cl,
-        input.vd = simpcal.out.2$vd,
-        input.add = 0
-      )
-    simpcal_sim_2$DV <- dat[dat$EVID == 0,]$DV
-    # Absolute prediction error
-    simpcal2.APE <- sum(abs(simpcal_sim_2$cp - simpcal_sim_2$DV))
-    simpcal2.MAPE <-
-      round(sum(abs(simpcal_sim_2$cp - simpcal_sim_2$DV) / simpcal_sim_2$DV) / nrow(simpcal_sim_2) *
-              100, 1)
+  if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(half_life)==F) {
+    simpcal.out$message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on data within the dosing interval following the first dose "
   }
-}
+  if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(half_life)==T) {
+  simpcal.out$message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on data within the dosing interval following the first dose, the most commonly used dosing intervals were substituted for half-life to determine steady-state status."
+  }
 
-  # Extravascular/oral  case
-
-  if (noniv_flag ==1){
-    # half_life is estimated
+  # Approximate calculation clearance + half-life estimated
+  if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==T & is.na(half_life)==F) {
     message(black(
-      paste0("Try approximate calculation using estimated half-life: ",half_life,strrep(".", 20))))
+      paste0("Run approximate calculation part 2, using estimated half-life ", strrep(".", 20))
+    ))
+    simpcal.out$vd <-  signif(simpcal.out$cl * half_life/log(2), 3)
+    simpcal.out$message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on clearance and estimated half_life"
+  }
 
-    simpcal.results <- run_simpcal_iv(
-      dat = dat,
-      route = route,
-      sdflag = sdflag,
-      fdobsflag = 0, # do not run vd part
-      half_life = half_life)
-
+  # Approximate calculation volume of distribution + half-life estimated
+  if (is.na(simpcal.out$cl)==T & is.na(simpcal.out$vd)==F & is.na(half_life)==F) {
     message(black(
-      paste0("Try approximate calculation without no prior estimated half-life",strrep(".", 20))))
-
-    # use most commonly used dose-interval to replace half life
-    simpcal.results.2 <- run_simpcal_iv(
-      dat = dat,
-      route = route,
-      sdflag = sdflag,
-      fdobsflag = 0,
-      half_life = NA
-    )
-    # obtained clearance
-    simpcal.out <- simpcal.results$simpcal.results
-    simpcal.out.2 <- simpcal.results.2$simpcal.results
-
+      paste0("Run approximate calculation part 2, using estimated half-life ", strrep(".", 20))
+    ))
+    simpcal.out$cl<-  signif(simpcal.out$vd * log(2) / half_life, 3)
+    simpcal.out$message<-"Volume of distribution was calculated based on data within the dosing interval following the first dose  and clearance was calculated based on volume of distribution and estimated half_life"
   }
 
 #################Naive pooled Non-compartmental analysis ##################################
@@ -294,54 +242,71 @@ getppkinit <- function(dat,
   )
 
 
-# Run extra ka part if oral case
-  if ( noniv_flag==1 ){
+#####################################Extra ka##################################
+# Run extra ka to determine absorption constant rate
+# Method 1. Individual point.
+
+if ( noniv_flag==1 ){
+
+    ka_method_1_fd=NA
+    ka_method_1_out_fd=NA
+    ka_method_1_efd=NA
+    ka_method_1_out_efd=NA
+    ka_method_1_all=NA
+    ka_method_1_out_all=NA
+
     if (!is.null(nrow(nca.results$datpooled_fd$test.pool.normalised))){
+     if (is.na(nca.results$nca.fd.results$cl)==F & is.na(nca.results$nca.fd.results$vd)==F){
      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_fd$test.pool.normalised,
                       nlastpoints = nlastpoints,
                       nca.out = unlist(nca.results$nca.fd.results, use.names = FALSE))
 
      ka_method_1_fd <-ka_wanger_nelson_result$ka
      ka_method_1_out_fd<-ka_wanger_nelson_result$dat_out_wanger_nelson
-
+     }
   }
 
   if (!is.null(nrow(nca.results$datpooled_efd$test.pool.normalised))){
+    if (is.na(nca.results$nca.efd.results$cl)==F & is.na(nca.results$nca.efd.results$vd)==F){
       ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_efd$test.pool.normalised,
                                                 nlastpoints = nlastpoints,
                                                 nca.out = unlist(nca.results$nca.efd.results, use.names = FALSE))
       ka_method_1_efd <-ka_wanger_nelson_result$ka
       ka_method_1_out_efd<-ka_wanger_nelson_result$dat_out_wanger_nelson
-
+    }
     }
 
-   if (!is.null(nrow(nca.results$datpooled_all$test.pool.normalised))){
+
+    if (!is.null(nrow(nca.results$datpooled_all$test.pool.normalised))){
+      if (is.na(nca.results$nca.all.results$cl)==F & is.na(nca.results$nca.all.results$vd)==F){
       ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_all$test.pool.normalised,
                                                 nlastpoints = nlastpoints,
                                                 nca.out = unlist(nca.results$nca.all.results, use.names = FALSE))
       ka_method_1_all <-ka_wanger_nelson_result$ka
       ka_method_1_out_all<-ka_wanger_nelson_result$dat_out_wanger_nelson
-
+      }
    }
 
     # can be used for later hybrid method
     ka_values<-c(ka_method_1_fd, ka_method_1_efd, ka_method_1_all)
     # Remove negative numbers
-    positive_ka_values <-    ka_values[   ka_values > 0 &  is.na(ka_values)==F]
+    positive_ka_values <-  ka_values[   ka_values > 0 &  is.na(ka_values)==F]
     ka_median <- round(median(positive_ka_values),2)
 
   }
 
-  # Simulation and evaluation
+  # Simulation and evaluation for non-compartmental analysis
   if (noniv_flag==0){
   # All pooled
-
   nca.results_all <- nca.results$nca.all.results
   nca.results_fd <- nca.results$nca.fd.results
   nca.results_efd <- nca.results$nca.efd.results
 
-  nca.APE <- Inf
-  nca.MAPE <- Inf
+  nca.APE <- NA
+  nca.MAE <- NA
+  nca.MAPE <- NA
+  nca.RMSE <- NA
+  nca.rRMSE <- NA
 
   if (is.na(nca.results_all$cl)==F & is.na(nca.results_all$vd )==F) {
   if (nca.results_all$cl > 0 & nca.results_all$vd > 0) {
@@ -361,8 +326,11 @@ getppkinit <- function(dat,
   }
   }
 
-  nca_fd.APE <- Inf
-  nca_fd.MAPE <- Inf
+  nca_fd.APE <- NA
+  nca_fd.MAE <- NA
+  nca_fd.MAPE <- NA
+  nca_fd.RMSE <- NA
+  nca_fd.rRMSE <- NA
 
   if (is.na(nca.results_fd$cl)==F & is.na(nca.results_fd$vd)==F) {
     if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0) {
@@ -383,8 +351,11 @@ getppkinit <- function(dat,
   }
 
 
-  nca_efd.APE <- Inf
-  nca_efd.MAPE <- Inf
+  nca_efd.APE <- NA
+  nca_efd.MAE <- NA
+  nca_efd.MAPE <- NA
+  nca_efd.RMSE <- NA
+  nca_efd.rRMSE <- NA
 
   if (is.na(nca.results_efd$cl)==F & is.na(nca.results_efd$vd)==F) {
     if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0) {
@@ -403,18 +374,19 @@ getppkinit <- function(dat,
                 100, 1)
     }
   }
-
 }
 
   if (noniv_flag==1){
-    # All pooled
 
     nca.results_all <- nca.results$nca.all.results
     nca.results_fd <- nca.results$nca.fd.results
     nca.results_efd <- nca.results$nca.efd.results
 
-    nca.APE <- Inf
-    nca.MAPE <- Inf
+    nca.APE <- NA
+    nca.MAE <- NA
+    nca.MAPE <- NA
+    nca.RMSE <- NA
+    nca.rRMSE <- NA
 
     if (is.na(nca.results_all$cl)==F & is.na(nca.results_all$vd)==F & is.na(ka_method_1_all)==F) {
     if (nca.results_all$cl > 0 & nca.results_all$vd > 0 &  ka_method_1_all>0 ) {
@@ -428,15 +400,24 @@ getppkinit <- function(dat,
       )
 
       nca_sim$DV <- dat[dat$EVID == 0,]$DV
-      nca.APE <- sum(abs(nca_sim$cp - nca_sim$DV))
-      nca.MAPE <-
-        round(sum(abs(nca_sim$cp - nca_sim$DV) / nca_sim$DV) / nrow(nca_sim) *
-                100, 1)
+      # nca.APE <- sum(abs(nca_sim$cp - nca_sim$DV))
+      # nca.MAPE <-
+      #   round(sum(abs(nca_sim$cp - nca_sim$DV) / nca_sim$DV) / nrow(nca_sim) *
+      #           100, 1)
+      nca.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+      nca.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+      nca.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+      nca.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+      nca.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+
     }
     }
 
-    nca_fd.APE <- Inf
-    nca_fd.MAPE <- Inf
+    nca_fd.APE <- NA
+    nca_fd.MAE <- NA
+    nca_fd.MAPE <- NA
+    nca_fd.RMSE <- NA
+    nca_fd.rRMSE <- NA
 
     if (is.na(nca.results_fd$cl)==F & is.na(nca.results_fd$vd)==F & is.na(ka_method_1_fd)==F) {
       if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0  &  ka_method_1_fd>0 ) {
@@ -449,17 +430,25 @@ getppkinit <- function(dat,
           input.add = 0
         )
 
-        nca_fd_sim$DV <- dat[dat$EVID == 0,]$DV
-        nca_fd.APE <- sum(abs(nca_fd_sim$cp - nca_fd_sim$DV))
-        nca_fd.MAPE <-
-          round(sum(abs(nca_fd_sim$cp - nca_fd_sim$DV) / nca_fd_sim$DV) / nrow(nca_fd_sim) *
-                  100, 1)
+        # nca_fd_sim$DV <- dat[dat$EVID == 0,]$DV
+        # nca_fd.APE <- sum(abs(nca_fd_sim$cp - nca_fd_sim$DV))
+        # nca_fd.MAPE <-
+        #   round(sum(abs(nca_fd_sim$cp - nca_fd_sim$DV) / nca_fd_sim$DV) / nrow(nca_fd_sim) *
+        #           100, 1)
+        nca_fd.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+        nca_fd.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+        nca_fd.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+        nca_fd.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+        nca_fd.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
       }
 
     }
 
-    nca_efd.APE <- Inf
-    nca_efd.MAPE <- Inf
+    nca_efd.APE <- NA
+    nca_efd.MAE <- NA
+    nca_efd.MAPE <- NA
+    nca_efd.RMSE <- NA
+    nca_efd.rRMSE <- NA
 
     if (is.na(nca.results_efd$cl)==F & is.na(nca.results_efd$vd)==F &  is.na(ka_method_1_efd)==F) {
       if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0 &  ka_method_1_efd>0) {
@@ -472,21 +461,71 @@ getppkinit <- function(dat,
           input.add = 0
         )
 
-        nca_efd_sim$DV <- dat[dat$EVID == 0,]$DV
-        nca_efd.APE <- sum(abs(nca_efd_sim$cp - nca_efd_sim$DV))
-        nca_efd.MAPE <-
-          round(sum(abs(nca_efd_sim$cp - nca_efd_sim$DV) / nca_efd_sim$DV) / nrow(nca_efd_sim) *
-                  100, 1)
+        # nca_efd_sim$DV <- dat[dat$EVID == 0,]$DV
+        # nca_efd.APE <- sum(abs(nca_efd_sim$cp - nca_efd_sim$DV))
+        # nca_efd.MAPE <-
+        #   round(sum(abs(nca_efd_sim$cp - nca_efd_sim$DV) / nca_efd_sim$DV) / nrow(nca_efd_sim) *
+        #           100, 1)
+        nca_efd.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+        nca_efd.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+        nca_efd.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+        nca_efd.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+        nca_efd.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
       }
     }
 
   }
 
+
+
+########################## hybird evaluation####################################
+ #iv case
+ if ( noniv_flag==0 ){
+   hybrid.APE <- Inf
+   hybrid.MAPE <- Inf
+   if (is.na(hybrid_vd)==F & is.na(simpcal.out$cl)==F) {
+     hybrid_sim <- Fit_1cmpt_iv(
+       data = dat[dat$EVID != 2,],
+       est.method = "rxSolve",
+       input.cl = simpcal.out$cl,
+       input.vd =   hybrid_vd,
+       input.add = 0
+     )
+
+     hybrid_sim$DV <- dat[dat$EVID == 0,]$DV
+     hybrid.APE <- sum(abs(hybrid_sim$cp - hybrid_sim$DV))
+     hybrid.MAPE <-
+       round(sum(abs(hybrid_sim$cp - hybrid_sim$DV) / hybrid_sim$DV) / nrow(hybrid_sim) *
+               100, 1)
+
+   }
+ }
+
+ if ( noniv_flag==1 ){
+   hybrid.APE <- Inf
+   hybrid.MAPE <- Inf
+   if (is.na(hybrid_vd)==F & is.na(simpcal.out$cl)==F) {
+     hybrid_sim <- Fit_1cmpt_oral(
+       data = dat[dat$EVID != 2,],
+       est.method = "rxSolve",
+       input.ka=ka_median,
+       input.cl = simpcal.out$cl,
+       input.vd =   hybrid_vd,
+       input.add = 0
+     )
+
+     hybrid_sim$DV <- dat[dat$EVID == 0,]$DV
+     hybrid.APE <- sum(abs(hybrid_sim$cp - hybrid_sim$DV))
+     hybrid.MAPE <-
+       round(sum(abs(hybrid_sim$cp - hybrid_sim$DV) / hybrid_sim$DV) / nrow(hybrid_sim) *
+               100, 1)
+
+   }
+ }
 ##############Graphic analysis##################################################
 
-# only for iv case
+# Applicable only for IV cases with data available post-first dose.
 if ( noniv_flag==0 & fdobsflag==1 ){
-
  message(black(
     paste0("Run graphical analysis on naive pooling data only after the first dose", strrep(".", 20))
   ))
@@ -497,8 +536,11 @@ if ( noniv_flag==0 & fdobsflag==1 ){
  #    most_commonly_used_infusion_duration<- as.numeric(names(which.max(duration_value_counts)))
  #  }
 
-  graph_fd.APE <- Inf
-  graph_fd.MAPE <- Inf
+  graph_fd.APE <- NA
+  graph_fd.MAE <- NA
+  graph_fd.MAPE <- NA
+  graph_fd.RMSE <- NA
+  graph_fd.rRMSE <- NA
 
   graph.results_fd <- run_graphcal(
     dat = dat,
@@ -517,25 +559,20 @@ if ( noniv_flag==0 & fdobsflag==1 ){
         input.add = 0
       )
 
-      graph_fd_sim$DV <- dat[dat$EVID == 0,]$DV
-      graph_fd.APE <- sum(abs(graph_fd_sim$cp - graph_fd_sim$DV))
-      graph_fd.MAPE <-
-        round(sum(abs(graph_fd_sim$cp - graph_fd_sim$DV) / graph_fd_sim$DV) / nrow(graph_fd_sim) *
-                100, 1)
+   graph_fd.APE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+   graph_fd.MAE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+   graph_fd.MAPE <- signif( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+   graph_fd.RMSE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+   graph_fd.rRMSE <- signif( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
     }
-
   }
 }
 
-
-
-# oral case
+# Applicable only for oral cases with data available post-first dose.
 if ( noniv_flag==1  & fdobsflag==1  ){
-
   message(black(
     paste0("Run graphical analysis on naive pooling data only after the first dose", strrep(".", 20))
   ))
-
     graph.results_fd <- run_graphcal(
       dat = dat,
       route =   route ,
@@ -543,10 +580,14 @@ if ( noniv_flag==1  & fdobsflag==1  ){
       nlastpoints = nlastpoints
     )
 
-    graph_fd.APE <- Inf
-    graph_fd.MAPE <- Inf
-    if (is.na(graph.results_fd$cl)==F & is.na(graph.results_fd$vd)==F) {
-      if (graph.results_fd$cl > 0 & graph.results_fd$vd > 0) {
+    graph_fd.APE <- NA
+    graph_fd.MAE <- NA
+    graph_fd.MAPE <- NA
+    graph_fd.RMSE <- NA
+    graph_fd.rRMSE <- NA
+
+    if (is.na(graph.results_fd$cl)==F & is.na(graph.results_fd$vd)==F & is.na(graph.results_fd$ka)==F) {
+      if (graph.results_fd$cl > 0 & graph.results_fd$vd > 0 & graph.results_fd$ka > 0) {
         graph_fd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
@@ -555,99 +596,87 @@ if ( noniv_flag==1  & fdobsflag==1  ){
           input.vd = graph.results_fd$vd,
           input.add = 0
         )
+     graph_fd.APE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+     graph_fd.MAE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+     graph_fd.MAPE <- signif( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+     graph_fd.RMSE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+     graph_fd.rRMSE <- signif( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
 
-        graph_fd_sim$DV <- dat[dat$EVID == 0,]$DV
-        graph_fd.APE <- sum(abs(graph_fd_sim$cp - graph_fd_sim$DV))
-        graph_fd.MAPE <-
-          round(sum(abs(graph_fd_sim$cp - graph_fd_sim$DV) / graph_fd_sim$DV) / nrow(graph_fd_sim) *
-                  100, 1)
       }
-
     }
   }
 
-  ############Hybrid calculation##########################
-  # volume of distribution was calculated by slope
-  # Find an appropriate slope
-  # if (nca_fd.MAPE < nca.MAPE) {
-  #   usedslope <- nca.results_fd$slope
-  # }
-  #
-  # if (nca_fd.MAPE >= nca.MAPE) {
-  #   usedslope <- nca.results_all$slope
-  # }
 
- message(black(
-   paste0("Run hybrid calculation, combining approximate calculation methods and NCA ", strrep(".", 20))
- ))
+##############################Part 1 evaluation ################################
 
-  if (min(c(nca_fd.MAPE,nca_efd.MAPE,nca.MAPE))==nca_fd.MAPE) {
-    usedslope <- nca.results_fd$slope
-  }
+ simpcal.APE <- NA
+ simpcal.MAE <- NA
+ simpcal.MAPE <- NA
+ simpcal.RMSE <- NA
+ simpcal.rRMSE <- NA
 
-  if (min(c(nca_fd.MAPE,nca_efd.MAPE,nca.MAPE))==nca_efd.MAPE) {
-    usedslope <- nca.results_efd$slope
-  }
-
-  if (min(c(nca_fd.MAPE,nca_efd.MAPE,nca.MAPE))==nca.MAPE) {
-    usedslope <- nca.results_all$slope
-  }
-
-
-  hybrid_cl <- NA
-  hybrid_vd <- NA
-
-  # Rapid calculation clearance + slope estimated
-  if (is.na(simpcal.out$cl)==F) {
-    hybrid_cl <- simpcal.out$cl
-    hybrid_vd <-  signif(-simpcal.out$cl / usedslope, 3)
-  }
-
-#iv case
- if ( noniv_flag==0 ){
-  hybrid.APE <- Inf
-  hybrid.MAPE <- Inf
-  if (is.na(hybrid_vd)==F & is.na(simpcal.out$cl)==F) {
-    hybrid_sim <- Fit_1cmpt_iv(
-      data = dat[dat$EVID != 2,],
-      est.method = "rxSolve",
-      input.cl = simpcal.out$cl,
-      input.vd =   hybrid_vd,
-      input.add = 0
-    )
-
-    hybrid_sim$DV <- dat[dat$EVID == 0,]$DV
-    hybrid.APE <- sum(abs(hybrid_sim$cp - hybrid_sim$DV))
-    hybrid.MAPE <-
-      round(sum(abs(hybrid_sim$cp - hybrid_sim$DV) / hybrid_sim$DV) / nrow(hybrid_sim) *
-              100, 1)
-
-  }
+ # Evaluate the provided initial values of cl and vd by their goodness of fit
+ if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F) {
+   simpcal_sim <-
+     Fit_1cmpt_iv(
+       data = dat[dat$EVID != 2,],
+       est.method = "rxSolve",
+       input.cl = simpcal.out$cl,
+       input.vd = simpcal.out$vd,
+       input.add = 0
+     )
+   simpcal_sim$DV <- dat[dat$EVID == 0,]$DV
+   # Absolute prediction error
+   simpcal.APE <- sum(abs(simpcal_sim$cp - simpcal_sim$DV))
+   simpcal.MAPE <-
+     round(sum(abs(simpcal_sim$cp - simpcal_sim$DV) / simpcal_sim$DV) / nrow(simpcal_sim) *
+             100, 1)
  }
 
- if ( noniv_flag==1 ){
-    hybrid.APE <- Inf
-    hybrid.MAPE <- Inf
-    if (is.na(hybrid_vd)==F & is.na(simpcal.out$cl)==F) {
-      hybrid_sim <- Fit_1cmpt_oral(
-        data = dat[dat$EVID != 2,],
-        est.method = "rxSolve",
-        input.ka=ka_median,
-        input.cl = simpcal.out$cl,
-        input.vd =   hybrid_vd,
-        input.add = 0
-      )
-
-      hybrid_sim$DV <- dat[dat$EVID == 0,]$DV
-      hybrid.APE <- sum(abs(hybrid_sim$cp - hybrid_sim$DV))
-      hybrid.MAPE <-
-        round(sum(abs(hybrid_sim$cp - hybrid_sim$DV) / hybrid_sim$DV) / nrow(hybrid_sim) *
-                100, 1)
-
-    }
+ # Evaluate the provided initial values of cl and vd by their goodness of fit
+ if (is.na(simpcal.out.2$cl)==F & is.na(simpcal.out.2$vd)==F) {
+   simpcal_sim_2 <-
+     Fit_1cmpt_iv(
+       data = dat[dat$EVID != 2,],
+       est.method = "rxSolve",
+       input.cl = simpcal.out.2$cl,
+       input.vd = simpcal.out.2$vd,
+       input.add = 0
+     )
+   simpcal_sim_2$DV <- dat[dat$EVID == 0,]$DV
+   # Absolute prediction error
+   simpcal2.APE <- sum(abs(simpcal_sim_2$cp - simpcal_sim_2$DV))
+   simpcal2.MAPE <-
+     round(sum(abs(simpcal_sim_2$cp - simpcal_sim_2$DV) / simpcal_sim_2$DV) / nrow(simpcal_sim_2) *
+             100, 1)
+ }
   }
 
-  # Output all of test
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##################### Output one-compartmental parameter results################
   if (noniv_flag==0){
      ka=c(NA,NA,NA,NA,NA,NA)
   }
