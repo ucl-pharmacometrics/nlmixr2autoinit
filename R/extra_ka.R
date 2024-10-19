@@ -86,50 +86,73 @@ ka_wanger_nelson<-function(dat,nlastpoints,nca.out){
 }
 
 
-#' Calculate absorption rate constant (ka) using statistical moments
+
+#' Calculate Absorption Rate Constant (ka) in a One-Compartment Model
 #'
-#' Calculates the absorption rate constant (ka) for oral drug administration using statistical moments.
-#' It calculates the area under the concentration-time curve (AUC) and the area under the moment curve (AUMC) based on non-compartmental analysis (NCA).
-#' The absorption rate constant is derived from the mean absorption time (MAT), which is calculated using the difference between
-#' the mean residence time (MRT) for oral and intravenous (IV) administration.
+#' Calculates the absorption rate constant (\code{ka}) for a drug administered orally
+#' using a one-compartment model with first-order absorption and elimination kinetics.
+#' The calculation is based on known values of clearance (\code{cl}), elimination rate constant
+#' (\code{ke}), time (\code{t}), observed concentration (\code{Ct}), bioavailability (\code{Fbio}),
+#' and dose (\code{Dose}).
 #'
-#' @param x A numeric vector representing the time points.
-#' @param y A numeric vector representing the concentrations corresponding to the time points.
-#' @param nlastpoints An integer specifying the number of last points to be used for the slope calculation of the terminal elimination rate constant.
+#' @param cl Numeric. Clearance of the drug (in L/hr).
+#' @param ke Numeric. Elimination rate constant (in 1/hr).
+#' @param t Numeric. Time after drug administration (in hours) at which the concentration is measured.
+#' @param Ct Numeric. Observed concentration of the drug at time \code{t} (in mg/L).
+#' @param Fbio Numeric. Bioavailability fraction (default = 1, meaning 100% bioavailability).
+#' @param Dose Numeric. Administered dose of the drug (in mg).
+#'
+#' @return A list containing the following components:
+#' \item{ka}{The calculated absorption rate constant.}
+#' \item{full_solution}{The full solution object returned by the \code{uniroot()} function, which includes additional details about the root-finding process.}
 #'
 #' @details
-#' The function performs the following steps:
-#' \itemize{
-#'   \item It uses the `nca.iv.normalised` function to calculate the area under the curve (AUC), the area under the moment curve (AUMC), and the mean residence time (MRT) for IV administration.
-#'   \item The MRT for oral administration is calculated as the ratio of AUMC to AUC.
-#'   \item The mean absorption time (MAT) is calculated as the difference between the MRT for oral and IV administration.
-#'   \item Finally, the absorption rate constant (ka) is estimated as the inverse of MAT.
-#' }
+#' This function uses a one-compartment model with first-order absorption and elimination to
+#' estimate the absorption rate constant (\code{ka}). The function solves the following equation
+#' for \code{ka} numerically using \code{uniroot()}:
 #'
-#' @return A numeric value representing the estimated absorption rate constant (ka).
+#' \deqn{Ct = \frac{Fbio \cdot Dose \cdot ka}{Vd \cdot (ka - ke)} \left( e^{-ke \cdot t} - e^{-ka \cdot t} \right)}
+#'
+#' The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
+#' between the predicted and observed concentrations equal to zero. The reasonable range for
+#' \code{ka} is set as [0.01, 100] for root-finding.
 #'
 #' @examples
-#' # Example data from Oral_1CPT dataset (first subject and single dose)
-#' dat <- Oral_1CPT[Oral_1CPT$ID == 1 & Oral_1CPT$SD == 1 & Oral_1CPT$EVID == 0, ]
-#' dat <- data.frame(TIME = dat$TIME, DV = dat$DV)
-#'
-#' # Calculate ka using statistical moments with the last 4 points for lambda_z
-#' calculate_ka_statistical_moments(x = dat$TIME, y = dat$DV, nlastpoints = 4)
+#' # Example usage:
+#' # Data from first point in simulated dataset Oral_1CPT
+#' ka_result <- ka_calculation(cl = 4, ke = 0.057, t = 0.25, Ct = 204.8, Dose = 60000)
+#' print(ka_result$ka)
 #'
 #' @export
-#'
-calculate_ka_statistical_moments <- function(x, y, nlastpoints) {
-  # Calculate AUC and AUMC for i.v. administration
-  nca.out<-nca.iv.normalised(dat = data.frame(time=x,conc=y),nlastpoints=nlastpoints)
-  auc_ <- nca.out[6]
-  aumc_ <- nca.out[9]
-  mrt_oral <- aumc_ / auc_
-  # Calculate MRT for iv, Vss = CL * MRT
-  mrt_iv <- nca.out[4]/log(2)
-  # Calculate Mean Absorption Time (MAT)
-  mat <- mrt_oral - mrt_iv
-  # Estimate absorption rate constant (ka)
-  ka <- 1 / mat
-  return(ka)
+#
+ka_calculation <- function(cl,     # Clearance of the drug (L/hr)
+                           ke,     # Elimination rate constant (1/hr)
+                           t,      # Time (hr) after drug administration at which concentration is measured
+                           Ct,     # Observed concentration of the drug at time 't' (mg/L)
+                           Fbio=1, # Bioavailability fraction, default is 1 (100% bioavailability)
+                           Dose) { # Administered dose of the drug (mg)
+
+  # Define the equation to solve for the absorption rate constant (ka)
+  ka.equation <- function(ka) {
+
+    # Predicted concentration using the one-compartment model with first-order absorption and elimination
+    predicted_Ct <- (Fbio * Dose * ka) / (Vd * (ka - ke)) *
+      (exp(-ke * t) - exp(-ka * t))
+
+    # Return the difference between predicted concentration and observed concentration
+    return(predicted_Ct - Ct)
+  }
+
+  # Use the uniroot function to numerically solve for ka (absorption rate constant)
+  # The reasonable range for ka is provided as [lower, upper] for root finding
+  solution <- uniroot(ka.equation, lower = 0.01, upper = 100)
+
+  # Return the value of ka (solution$root) and full solution object
+  return(list(ka = solution$root, full_solution = solution))
 }
+
+
+
+
+
 
