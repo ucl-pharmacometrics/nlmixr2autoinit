@@ -60,27 +60,33 @@ run_npd_1cmpt_iv <- function(dat,
       timespent = time.spent
     )
 
-  npd.APE <- sum(abs(npd.list$IRES), na.rm = T)
-  npd.MAPE <- sum(abs(npd.list$IRES) / npd.list$DV) / nrow(npd.list) * 100
+  npd.APE <-  round(metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[1],1)
+  npd.MAE <-  round(metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[2],1)
+  npd.MAPE <- round( metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[3],1)
+  npd.RMSE <-  round(metrics.(pred.x = npd.list$cp obs.y = npd.list$DV  )[4],1)
+  npd.rRMSE <- round( metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[5],1)
 
-  # add penalty of rse
-  if (max(npd.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
-    npd.APE <- Inf
-    npd.MAPE <- Inf
-  }
-
-  # Filter out failed runs
-  if (npd.list$message != "relative convergence (4)" &
-      est.method == "focei") {
-    npd.APE <- Inf
-    npd.MAPE <- Inf
-  }
+  # # add penalty of rse
+  # if (max(npd.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
+  #   npd.APE <- Inf
+  #   npd.MAPE <- Inf
+  # }
+  #
+  # # Filter out failed runs
+  # if (npd.list$message != "relative convergence (4)" &
+  #     est.method == "focei") {
+  #   npd.APE <- Inf
+  #   npd.MAPE <- Inf
+  # }
 
   return(
     list(
       npd.1cmpt_results = npd_results,
       npd.1cmpt.APE = npd.APE,
+      npd.1cmpt.MAE = npd.MAE,
       npd.1cmpt.MAPE = npd.MAPE,
+      npd.1cmpt.RMSE = npd.RMSE,
+      npd.1cmpt.rRMSE = npd.rRMSE,
       nnpd.1cmpt.list = npd.list
     )
   )
@@ -157,10 +163,6 @@ run_npd_1cmpt_mm_iv <- function(dat,
                           FUN = max,
                           na.rm = T)
     mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
-    # max.dose <-
-    #   max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0,]$dose)[1]
-    # calc.cmax <- max.dose / npdmm_inputvd
-    # fcmax <- max(c(mean.pop.cmax, calc.cmax))
     estmaxkm <- mean.pop.cmax * 4 # if km>>4cmax, it nearly fall into the linear range
     estkm<-mean.pop.cmax # initial km starts from cmax
     estvmax <-  estmaxkm * npdmm_inputcl
@@ -185,31 +187,40 @@ run_npd_1cmpt_mm_iv <- function(dat,
       timespent = time.spent
     )
 
-  npdmm.APE <- sum(abs(npdmm.list$IRES), na.rm = T)
-  npdmm.MAPE <-
-    sum(abs(npdmm.list$IRES) / npdmm.list$DV) / nrow(npdmm.list) * 100
+  npd.APE <-  round(metrics.(pred.x = npdmm.list$cp, obs.y = npdmm.list$DV  )[1],1)
+  npd.MAE <-  round(metrics.(pred.x =  npdmm.list$cp, obs.y = npdmm.list$DV  )[2],1)
+  npd.MAPE <- round( metrics.(pred.x = npdmm.list$cp, obs.y = npdmm.list$DV  )[3],1)
+  npd.RMSE <-  round(metrics.(pred.x = npdmm.list$cp, obs.y = npdmm.list$DV  )[4],1)
+  npd.rRMSE <- round( metrics.(pred.x =npdmm.list$cp, obs.y = npdmm.list$DV  )[5],1)
 
-  countna <- is.na(npdmm.list$IRES)
-  if (sum(countna) > (nrow(npdmm.list) / 2)) {
-    npdmm.APE <- Inf
-    npdmm.MAPE <- Inf
-  }
+  # npdmm.APE <- sum(abs(npdmm.list$IRES), na.rm = T)
+  # npdmm.MAPE <-
+  #   sum(abs(npdmm.list$IRES) / npdmm.list$DV) / nrow(npdmm.list) * 100
 
-  if (max(npdmm.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
-    npdmm.APE <- Inf
-    npdmm.MAPE <- Inf
-  }
-  if (npdmm.list$message != "relative convergence (4)" &
-      est.method == "focei") {
-    npdmm.APE <- Inf
-    npdmm.MAPE <- Inf
-  }
+  # countna <- is.na(npdmm.list$IRES)
+  # if (sum(countna) > (nrow(npdmm.list) / 2)) {
+  #   npdmm.APE <- Inf
+  #   npdmm.MAPE <- Inf
+  # }
+
+  # if (max(npdmm.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
+  #   npdmm.APE <- Inf
+  #   npdmm.MAPE <- Inf
+  # }
+  # if (npdmm.list$message != "relative convergence (4)" &
+  #     est.method == "focei") {
+  #   npdmm.APE <- Inf
+  #   npdmm.MAPE <- Inf
+  # }
 
   return(
     list(
       npd.1cmpt.mm_results = npdmm_results,
-      npd.1cmpt.mm.APE = npdmm.APE,
-      npd.1cmpt.mm.MAPE = npdmm.MAPE,
+      npd.1cmpt.mm.APE = npd.APE,
+      npd.1cmpt.mm.MAE = npd.MAE,
+      npd.1cmpt.mm.MAPE = npd.MAPE,
+      npd.1cmpt.mm.RMSE = npd.RMSE,
+      npd.1cmpt.mm.rRMSE = npd.rRMSE,
       npd.1cmpt.mm.list = npdmm.list
     )
   )
@@ -289,26 +300,31 @@ run_npd_2cmpt_iv <- function(dat,
       timespent = time.spent
     )
 
-  npd.2cmpt.APE <- sum(abs(npd.list.2cmpt$IRES), na.rm = T)
-  npd.2cmpt.MAPE  <-
-    sum(abs(npd.list.2cmpt$IRES) / npd.list.2cmpt$DV) / nrow(npd.list.2cmpt) *
-    100
+  npd.APE <-  round(metrics.(pred.x = npd.list.2cmpt$cp, obs.y = npd.list.2cmpt$DV  )[1],1)
+  npd.MAE <-  round(metrics.(pred.x = npd.list.2cmpt$cp, obs.y = npd.list.2cmpt$DV  )[2],1)
+  npd.MAPE <- round( metrics.(pred.x = npd.list.2cmpt$cp, obs.y = npd.list.2cmpt$DV  )[3],1)
+  npd.RMSE <-  round(metrics.(pred.x = npd.list.2cmpt$cp, obs.y = npd.list.2cmpt$DV  )[4],1)
+  npd.rRMSE <- round( metrics.(pred.x = npd.list.2cmpt$cp, obs.y = npd.list.2cmpt$DV  )[5],1)
 
-  if (max(npd.list.2cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
-    npd.2cmpt.APE <- Inf
-    npd.2cmpt.MAPE <- Inf
-  }
-  if (npd.list.2cmpt$message != "relative convergence (4)" &
-      est.method == "focei") {
-    npd.2cmpt.APE <- Inf
-    npd.2cmpt.MAPE <- Inf
-  }
+
+  # if (max(npd.list.2cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
+  #   npd.2cmpt.APE <- Inf
+  #   npd.2cmpt.MAPE <- Inf
+  # }
+  # if (npd.list.2cmpt$message != "relative convergence (4)" &
+  #     est.method == "focei") {
+  #   npd.2cmpt.APE <- Inf
+  #   npd.2cmpt.MAPE <- Inf
+  # }
 
   return(
     list(
       npd.2cmpt_results = npd_results_2cmpt,
-      npd.2cmpt.APE = npd.2cmpt.APE,
-      npd.2cmpt.MAPE = npd.2cmpt.MAPE,
+      npd.2cmpt.APE= npd.APE,
+      npd.2cmpt.MAE  = npd.MAE,
+      npd.2cmpt.MAPE = npd.MAPE,
+      npd.2cmpt.RMSE = npd.RMSE,
+      npd.2cmpt.rRMSE  = npd.rRMSE,
       npd.list.2cmpt = npd.list.2cmpt
     )
   )
@@ -400,26 +416,30 @@ run_npd_3cmpt_iv <- function(dat,
       timespent = time.spent
     )
 
-  npd.3cmpt.APE <- sum(abs(npd.list.3cmpt$IRES), na.rm = T)
-  npd.3cmpt.MAPE  <-
-    sum(abs(npd.list.3cmpt$IRES) / npd.list.3cmpt$DV) / nrow(npd.list.3cmpt) *
-    100
+  npd.APE <-  round(metrics.(pred.x =  npd.list.3cmpt$cp, obs.y = npd.list.3cmpt$DV  )[1],1)
+  npd.MAE <-  round(metrics.(pred.x =  npd.list.3cmpt$cp, obs.y = npd.list.3cmpt$DV  )[2],1)
+  npd.MAPE <- round( metrics.(pred.x =  npd.list.3cmpt$cp, obs.y = npd.list.3cmpt$DV  )[3],1)
+  npd.RMSE <-  round(metrics.(pred.x =  npd.list.3cmpt$cp, obs.y = npd.list.3cmpt$DV  )[4],1)
+  npd.rRMSE <- round( metrics.(pred.x =  npd.list.3cmpt$cp, obs.y = npd.list.3cmpt$DV  )[5],1)
 
-  if (max(npd.list.3cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
-    npd.3cmpt.APE <- Inf
-    npd.3cmpt.MAPE  <- Inf
-  }
-  if (npd.list.3cmpt$message != "relative convergence (4)" &
-      est.method == "focei") {
-    npd.3cmpt.APE <- Inf
-    npd.3cmpt.MAPE <- Inf
-  }
+  # if (max(npd.list.3cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
+  #   npd.3cmpt.APE <- Inf
+  #   npd.3cmpt.MAPE  <- Inf
+  # }
+  # if (npd.list.3cmpt$message != "relative convergence (4)" &
+  #     est.method == "focei") {
+  #   npd.3cmpt.APE <- Inf
+  #   npd.3cmpt.MAPE <- Inf
+  # }
 
   return(
     list(
       npd.3cmpt_results = npd_results_3cmpt,
-      npd.3cmpt.APE = npd.3cmpt.APE,
-      npd.3cmpt.MAPE = npd.3cmpt.MAPE,
+      npd.3cmpt.APE= npd.APE,
+      npd.3cmpt.MAE  = npd.MAE,
+      npd.3cmpt.MAPE = npd.MAPE,
+      npd.3cmpt.RMSE = npd.RMSE,
+      npd.3cmpt.rRMSE  = npd.rRMSE,
       npd.list.3cmpt =  npd.list.3cmpt
     )
   )
@@ -492,27 +512,35 @@ run_npd_1cmpt_oral <- function(dat,
       timespent = time.spent
     )
 
-  npd.APE <- sum(abs(npd.list$IRES), na.rm = T)
-  npd.MAPE <- sum(abs(npd.list$IRES) / npd.list$DV) / nrow(npd.list) * 100
+  npd.APE <-  round(metrics.(pred.x =  npd.list$cp, obs.y = npd.list$DV  )[1],1)
+  npd.MAE <-  round(metrics.(pred.x =  npd.list$cp, obs.y = npd.list$DV  )[2],1)
+  npd.MAPE <- round( metrics.(pred.x =  npd.list$cp, obs.y = npd.list$DV  )[3],1)
+  npd.RMSE <-  round(metrics.(pred.x =  npd.list$cp, obs.y = npd.list$DV  )[4],1)
+  npd.rRMSE <- round( metrics.(pred.x =  npd.list$cp, obs.y = npd.list$DV  )[5],1)
 
-  # add penalty of rse
-  if (max(npd.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
-    npd.APE <- Inf
-    npd.MAPE <- Inf
-  }
-
-  # Filter out failed runs
-  if (npd.list$message != "relative convergence (4)" &
-      est.method == "focei") {
-    npd.APE <- Inf
-    npd.MAPE <- Inf
-  }
+  # # add penalty of rse
+  # if (max(npd.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
+  #   npd.APE <- Inf
+  #   npd.MAPE <- Inf
+  # }
+  #
+  # # Filter out failed runs
+  # if (npd.list$message != "relative convergence (4)" &
+  #     est.method == "focei") {
+  #   npd.APE <- Inf
+  #   npd.MAPE <- Inf
+  # }
 
   return(
     list(
       npd.1cmpt_results = npd_results,
+
       npd.1cmpt.APE = npd.APE,
+      npd.1cmpt.MAE = npd.MAE,
       npd.1cmpt.MAPE = npd.MAPE,
+      npd.1cmpt.RMSE = npd.RMSE,
+      npd.1cmpt.rRMSE = npd.rRMSE,
+
       nnpd.1cmpt.list = npd.list
     )
   )
@@ -599,10 +627,6 @@ run_npd_1cmpt_mm_oral <- function(dat,
                           FUN = max,
                           na.rm = T)
     mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
-    # max.dose <-
-    #   max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0,]$dose)[1]
-    # calc.cmax <- max.dose / npdmm_inputvd
-    # fcmax <- max(c(mean.pop.cmax, calc.cmax))
     estmaxkm <- mean.pop.cmax * 4 # if km>>4cmax, it nearly fall into the linear range
     estkm<-mean.pop.cmax # initial km starts from cmax
     estvmax <-  estmaxkm * input.cl
@@ -629,31 +653,36 @@ run_npd_1cmpt_mm_oral <- function(dat,
       timespent = time.spent
     )
 
-  npdmm.APE <- sum(abs(npdmm.list$IRES), na.rm = T)
-  npdmm.MAPE <-
-    sum(abs(npdmm.list$IRES) / npdmm.list$DV) / nrow(npdmm.list) * 100
+  npd.APE <-  round(metrics.(pred.x =  npdmm.list$cp, obs.y = npdmm.list$DV  )[1],1)
+  npd.MAE <-  round(metrics.(pred.x =  npdmm.list$cp, obs.y = npdmm.list$DV  )[2],1)
+  npd.MAPE <- round( metrics.(pred.x =  npdmm.list$cp, obs.y =npdmm.list$DV  )[3],1)
+  npd.RMSE <-  round(metrics.(pred.x =  npdmm.list$cp, obs.y = npdmm.list$DV  )[4],1)
+  npd.rRMSE <- round( metrics.(pred.x =  npdmm.list$cp, obs.y = npdmm.list$DV  )[5],1)
 
-  countna <- is.na(npdmm.list$IRES)
-  if (sum(countna) > (nrow(npdmm.list) / 2)) {
-    npdmm.APE <- Inf
-    npdmm.MAPE <- Inf
-  }
-
-  if (max(npdmm.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
-    npdmm.APE <- Inf
-    npdmm.MAPE <- Inf
-  }
-  if (npdmm.list$message != "relative convergence (4)" &
-      est.method == "focei") {
-    npdmm.APE <- Inf
-    npdmm.MAPE <- Inf
-  }
+  # countna <- is.na(npdmm.list$IRES)
+  # if (sum(countna) > (nrow(npdmm.list) / 2)) {
+  #   npdmm.APE <- Inf
+  #   npdmm.MAPE <- Inf
+  # }
+  #
+  # if (max(npdmm.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
+  #   npdmm.APE <- Inf
+  #   npdmm.MAPE <- Inf
+  # }
+  # if (npdmm.list$message != "relative convergence (4)" &
+  #     est.method == "focei") {
+  #   npdmm.APE <- Inf
+  #   npdmm.MAPE <- Inf
+  # }
 
   return(
     list(
       npd.1cmpt.mm_results = npdmm_results,
-      npd.1cmpt.mm.APE = npdmm.APE,
-      npd.1cmpt.mm.MAPE = npdmm.MAPE,
+      npd.1cmpt.mm.APE = npd.APE,
+      npd.1cmpt.mm.MAE = npd.MAE,
+      npd.1cmpt.mm.MAPE = npd.MAPE,
+      npd.1cmpt.mm.RMSE = npd.RMSE,
+      npd.1cmpt.mm.rRMSE = npd.rRMSE,
       npd.1cmpt.mm.list = npdmm.list
     )
   )
@@ -738,26 +767,30 @@ run_npd_2cmpt_oral <- function(dat,
       timespent = time.spent
     )
 
-  npd.2cmpt.APE <- sum(abs(npd.list.2cmpt$IRES), na.rm = T)
-  npd.2cmpt.MAPE  <-
-    sum(abs(npd.list.2cmpt$IRES) / npd.list.2cmpt$DV) / nrow(npd.list.2cmpt) *
-    100
+  npd.APE <-  round(metrics.(pred.x =   npd.list.2cmpt$cp, obs.y =  npd.list.2cmpt$DV  )[1],1)
+  npd.MAE <-  round(metrics.(pred.x =   npd.list.2cmpt$cp, obs.y =  npd.list.2cmpt$DV  )[2],1)
+  npd.MAPE <- round( metrics.(pred.x =   npd.list.2cmpt$cp, obs.y = npd.list.2cmpt$DV  )[3],1)
+  npd.RMSE <-  round(metrics.(pred.x =   npd.list.2cmpt$cp, obs.y =  npd.list.2cmpt$DV  )[4],1)
+  npd.rRMSE <- round( metrics.(pred.x =   npd.list.2cmpt$cp, obs.y =  npd.list.2cmpt$DV  )[5],1)
 
-  if (max(npd.list.2cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
-    npd.2cmpt.APE <- Inf
-    npd.2cmpt.MAPE <- Inf
-  }
-  if (npd.list.2cmpt$message != "relative convergence (4)" &
-      est.method == "focei") {
-    npd.2cmpt.APE <- Inf
-    npd.2cmpt.MAPE <- Inf
-  }
+  # if (max(npd.list.2cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
+  #   npd.2cmpt.APE <- Inf
+  #   npd.2cmpt.MAPE <- Inf
+  # }
+  # if (npd.list.2cmpt$message != "relative convergence (4)" &
+  #     est.method == "focei") {
+  #   npd.2cmpt.APE <- Inf
+  #   npd.2cmpt.MAPE <- Inf
+  # }
 
   return(
     list(
       npd.2cmpt_results = npd_results_2cmpt,
-      npd.2cmpt.APE = npd.2cmpt.APE,
-      npd.2cmpt.MAPE = npd.2cmpt.MAPE,
+      npd.2cmpt.APE = npd.APE,
+      npd.2cmpt.MAE = npd.MAE,
+      npd.2cmpt.MAPE = npd.MAPE,
+      npd.2cmpt.RMSE = npd.RMSE,
+      npd.2cmpt.rRMSE = npd.rRMSE,
       npd.list.2cmpt = npd.list.2cmpt
     )
   )
@@ -854,26 +887,30 @@ run_npd_3cmpt_oral <- function(dat,
       timespent = time.spent
     )
 
-  npd.3cmpt.APE <- sum(abs(npd.list.3cmpt$IRES), na.rm = T)
-  npd.3cmpt.MAPE  <-
-    sum(abs(npd.list.3cmpt$IRES) / npd.list.3cmpt$DV) / nrow(npd.list.3cmpt) *
-    100
+  npd.APE <-  round(metrics.(pred.x =   npd.list.3cmpt$cp, obs.y =  npd.list.3cmpt$DV  )[1],1)
+  npd.MAE <-  round(metrics.(pred.x =   npd.list.3cmpt$cp, obs.y =  npd.list.3cmpt$DV  )[2],1)
+  npd.MAPE <- round( metrics.(pred.x =   npd.list.3cmpt$cp, obs.y = npd.list.3cmpt$DV  )[3],1)
+  npd.RMSE <-  round(metrics.(pred.x =   npd.list.3cmpt$cp, obs.y =  npd.list.3cmpt$DV  )[4],1)
+  npd.rRMSE <- round( metrics.(pred.x =   npd.list.3cmpt$cp, obs.y =  npd.list.3cmpt$DV  )[5],1)
 
-  if (max(npd.list.3cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
-    npd.3cmpt.APE <- Inf
-    npd.3cmpt.MAPE  <- Inf
-  }
-  if (npd.list.3cmpt$message != "relative convergence (4)" &
-      est.method == "focei") {
-    npd.3cmpt.APE <- Inf
-    npd.3cmpt.MAPE <- Inf
-  }
+  # if (max(npd.list.3cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
+  #   npd.3cmpt.APE <- Inf
+  #   npd.3cmpt.MAPE  <- Inf
+  # }
+  # if (npd.list.3cmpt$message != "relative convergence (4)" &
+  #     est.method == "focei") {
+  #   npd.3cmpt.APE <- Inf
+  #   npd.3cmpt.MAPE <- Inf
+  # }
 
   return(
     list(
       npd.3cmpt_results = npd_results_3cmpt,
-      npd.3cmpt.APE = npd.3cmpt.APE,
-      npd.3cmpt.MAPE = npd.3cmpt.MAPE,
+      npd.3cmpt.APE = npd.APE,
+      npd.3cmpt.MAE = npd.MAE,
+      npd.3cmpt.MAPE = npd.MAPE,
+      npd.3cmpt.RMSE = npd.RMSE,
+      npd.3cmpt.rRMSE = npd.rRMSE,
       npd.list.3cmpt =  npd.list.3cmpt
     )
   )
