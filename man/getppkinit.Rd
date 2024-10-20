@@ -29,7 +29,7 @@ If any of these settings are not provided, default values will be used.}
 A list containing data information, initial parameter estimates, messages, and run history.
 }
 \description{
-Computes initial pharmacokinetic parameters using multiple methods including approximate calculation, non-compartmental analysis, graphical methods, and parameter estimation with naive pooled data approach if specified.
+Computes initial pharmacokinetic parameters using multiple methods including single-point method, non-compartmental analysis, graphical methods, and parameter estimation with naive pooled data approach if specified.
 }
 \examples{
 inits.out<-getppkinit(dat = Bolus_1CPT)

@@ -6,13 +6,13 @@
 \usage{
 sim_sens_vmax_km(
   dat,
-  sim_vmax_list,
-  sim_km_list,
+  sim_vmax_list = NA,
+  sim_km_list = NA,
   estvd,
   estcl,
   estcmax,
-  estka,
-  noniv_flag
+  estka = NA,
+  noniv_flag = 0
 )
 }
 \arguments{

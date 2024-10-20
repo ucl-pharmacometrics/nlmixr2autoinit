@@ -6,9 +6,9 @@
 \usage{
 sim_sens_3cmpt(
   dat,
-  sim_vc_list,
-  sim_vp_list,
-  sim_vp2_list,
+  sim_vc_list = NA,
+  sim_vp_list = NA,
+  sim_vp2_list = NA,
   estcl,
   estvd,
   sim_q_list,

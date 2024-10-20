@@ -6,11 +6,11 @@
 \usage{
 sim_sens_2cmpt(
   dat,
-  sim_vc_list,
-  sim_vp_list,
+  sim_vc_list = NA,
+  sim_vp_list = NA,
   estcl,
   estvd,
-  sim_q_list,
+  sim_q_list = NA,
   estka = NA,
   noniv_flag = 0
 )
