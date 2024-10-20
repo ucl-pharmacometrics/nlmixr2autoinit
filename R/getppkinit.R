@@ -359,6 +359,7 @@ if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$
 
 #============================== for iv case===================================#
   if (noniv_flag==0){
+    ka=  c(NA,NA,NA,NA,NA)
    # single-point method
     if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F) {
       simpcal_sim <-
@@ -459,6 +460,7 @@ if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$
 
 #================================== for oral case================================#
   if (noniv_flag==1){
+    ka=  c(ka_simpcal_value,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all)
     # single-point method
     if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(  ka_simpcal_value)==F) {
       if (simpcal.out$cl > 0 & simpcal.out$vd > 0 & ka_simpcal_value>0 ) {
@@ -563,6 +565,8 @@ if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$
   }
 
 ##################### Summarise one-compartmental parameter results################
+
+
 all.out <- data.frame(
     method = c(
       "Single-point method",
@@ -572,7 +576,7 @@ all.out <- data.frame(
       "NCA (all pooled)"
     ),
 
-    ka=c(ka_simpcal_value,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all),
+    ka=ka,
 
     cl = c(
       simpcal.out$cl,
@@ -740,7 +744,7 @@ cat(message_text, "\n")
 
   ########### Simulation-based Multi-Compartmental Model Parameter Analysis#####
   message(black(
-    paste0("Run simulation-basedsensitivity analysis on multi-compartmental PK parameters",strrep(".", 20))))
+    paste0("Run simulation-based sensitivity analysis on multi-compartmental PK parameters",strrep(".", 20))))
 
   # Two-compartment model simulation
   sim.2cmpt.results.all <- NULL
