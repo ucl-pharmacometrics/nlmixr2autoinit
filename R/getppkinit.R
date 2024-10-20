@@ -37,7 +37,7 @@ getppkinit <- function(dat,
     trap.rule.method = 1,
     nbins = 8,
     est.method = "nls",
-    selection.criteria="MAPE",
+    selection.criteria="APE",
     npdcmpt.inits.strategy= 1
   )
 
@@ -58,7 +58,7 @@ getppkinit <- function(dat,
   est.method <- getinit.settings0$est.method
   selection.criteria<-getinit.settings0$selection.criteria
   npdcmpt.inits.strategy<-getinit.settings0$npdcmpt.inits.strategy
-  ################## 1. Data preprocessing and information summary#################
+  ################## Data preprocessing and information summary#################
 
   message(black(
     paste0("Processing data", strrep(".", 20))
@@ -155,7 +155,7 @@ getppkinit <- function(dat,
       fdobsflag_c
     )
 
-  ######################## 2. Half-life estimated ##############################
+  ######################## Half-life estimated ##############################
 
   message(black(
     paste0("Estimating half-life",strrep(".", 20))))
@@ -174,7 +174,7 @@ getppkinit <- function(dat,
      paste0("Estimated half-life : ", half_life)))
 
 
-  ####################3. Single point method ################################
+  ####################Single point method ################################
 
   message(black(
      paste0("Run single-point method to calculate PK parameters",strrep(".", 20))))
@@ -199,7 +199,7 @@ getppkinit <- function(dat,
 
 simpcal.out <- simpcal.results$simpcal.results
 
-###################### 4. Single point method (extra)########################
+###################### Single point method (extra)########################
 
   if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(half_life)==F) {
     simpcal.out$message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on data within the dosing interval following the first dose "
@@ -227,7 +227,21 @@ simpcal.out <- simpcal.results$simpcal.results
     simpcal.out$message<-"Volume of distribution was calculated based on data within the dosing interval following the first dose  and clearance was calculated based on volume of distribution and estimated half_life"
   }
 
-#################5. Naive pooled Non-compartmental analysis ##################################
+
+# Run extra ka to determine absorption constant rate
+ka_simpcal_value<-NA
+ka_simpcal.out<-NA
+
+if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F ){
+
+  ka_simpcal.out<-run_ka_solution(df = dat[dat$EVID==0 & dat$dose_number==1,],
+                                  cl = simpcal.out$cl,
+                                  ke = simpcal.out$cl/simpcal.out$vd )
+
+  ka_simpcal_value<-  signif(ka_simpcal.out$ka_calc_median,3)
+}
+
+################# Naive pooled Non-compartmental analysis ##################################
   message(black(
     paste0("Run non-compartmental analysis on naive pooling data", strrep(".", 20))
   ))
@@ -241,25 +255,8 @@ simpcal.out <- simpcal.results$simpcal.results
     sdflag=sdflag
   )
 
-
-#####################6. Determine absorption rate of constant ######################
-# Run extra ka to determine absorption constant rate
-# Method 1. single-point method. (useful for rich data in elimination phase, but not for absorption phase)
-
-  ka_simpcal_value<-NA
-  ka_simpcal.out<-NA
-
-  if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F ){
-
-  ka_simpcal.out<-run_ka_solution(df = dat[dat$EVID==0 & dat$dose_number==1,],
-                              cl = simpcal.out$cl,
-                              ke = simpcal.out$cl/simpcal.out$vd )
-
-  ka_simpcal_value<-  ka_simpcal.out$ka_calc_median
-  }
-
-  # Method 2. Wanger nelson method (needs more than one data in the absorption phase)
-
+ # Determine absorption rate of constant
+ # Wanger nelson method (needs more than one data in the absorption phase)
     ka_method_1_fd=NA
     ka_method_1_out_fd=NA
     ka_method_1_efd=NA
@@ -304,8 +301,7 @@ simpcal.out <- simpcal.results$simpcal.results
     positive_ka_values <-  ka_values[   ka_values > 0 &  is.na(ka_values)==F]
     ka_median <- round(median(positive_ka_values),2)
 
-
- ##############################7. Graphic analysis#################################
+ ############################ Graphic analysis#################################
    message(black(
      paste0("Run graphical analysis on naive pooling data only after the first dose", strrep(".", 20))
    ))
@@ -329,7 +325,7 @@ simpcal.out <- simpcal.results$simpcal.results
      nlastpoints = nlastpoints
    )
 
-####################8. Predictive performance evaluation##########################
+######### Predictive performance evaluation (one-compartmental parameter)#######
 # default setting
    simpcal.APE <- NA
    simpcal.MAE <- NA
@@ -361,7 +357,7 @@ simpcal.out <- simpcal.results$simpcal.results
    graph_fd.RMSE <- NA
    graph_fd.rRMSE <- NA
 
-#============================== for iv case================================#
+#============================== for iv case===================================#
   if (noniv_flag==0){
    # single-point method
     if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F) {
@@ -374,11 +370,11 @@ simpcal.out <- simpcal.results$simpcal.results
           input.add = 0
         )
 
-      simpcal.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-      simpcal.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-      simpcal.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-      simpcal.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-      simpcal.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+      simpcal.APE <-  signif(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+      simpcal.MAE <-  signif(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+      simpcal.MAPE <- signif( metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+      simpcal.RMSE <-  signif(metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+      simpcal.rRMSE <- signif( metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
     }
 
 
@@ -396,11 +392,12 @@ simpcal.out <- simpcal.results$simpcal.results
       input.vd = nca.results_all$vd,
       input.add = 0
     )
-    nca_sim$DV <- dat[dat$EVID == 0,]$DV
-    nca.APE <- sum(abs(nca_sim$cp - nca_sim$DV))
-    nca.MAPE <-
-      round(sum(abs(nca_sim$cp - nca_sim$DV) / nca_sim$DV) / nrow(nca_sim) *
-              100, 1)
+    nca.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+    nca.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+    nca.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+    nca.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+    nca.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+
   }
   }
 
@@ -414,11 +411,11 @@ simpcal.out <- simpcal.results$simpcal.results
         input.add = 0
       )
 
-      nca_fd_sim$DV <- dat[dat$EVID == 0,]$DV
-      nca_fd.APE <- sum(abs(nca_fd_sim$cp - nca_fd_sim$DV))
-      nca_fd.MAPE <-
-        round(sum(abs(nca_fd_sim$cp - nca_fd_sim$DV) / nca_fd_sim$DV) / nrow(nca_fd_sim) *
-                100, 1)
+      nca_fd.APE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+      nca_fd.MAE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+      nca_fd.MAPE <- signif( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+      nca_fd.RMSE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+      nca_fd.rRMSE <- signif( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
     }
   }
 
@@ -432,11 +429,11 @@ simpcal.out <- simpcal.results$simpcal.results
         input.add = 0
       )
 
-      nca_efd_sim$DV <- dat[dat$EVID == 0,]$DV
-      nca_efd.APE <- sum(abs(nca_efd_sim$cp - nca_efd_sim$DV))
-      nca_efd.MAPE <-
-        round(sum(abs(nca_efd_sim$cp - nca_efd_sim$DV) / nca_efd_sim$DV) / nrow(nca_efd_sim) *
-                100, 1)
+      nca_efd.APE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+      nca_efd.MAE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+      nca_efd.MAPE <- signif( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+      nca_efd.RMSE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+      nca_efd.rRMSE <- signif( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
     }
   }
 
@@ -462,9 +459,7 @@ simpcal.out <- simpcal.results$simpcal.results
 
 #================================== for oral case================================#
   if (noniv_flag==1){
-
     # single-point method
-
     if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(  ka_simpcal_value)==F) {
       if (simpcal.out$cl > 0 & simpcal.out$vd > 0 & ka_simpcal_value>0 ) {
         simpcal_sim <- Fit_1cmpt_oral(
@@ -476,16 +471,15 @@ simpcal.out <- simpcal.results$simpcal.results
           input.add = 0
         )
 
-        simpcal.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-        simpcal.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-        simpcal.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-        simpcal.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-        simpcal.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+        simpcal.APE <-  signif(metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+        simpcal.MAE <-  signif(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+        simpcal.MAPE <- signif( metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+        simpcal.RMSE <-  signif(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+        simpcal.rRMSE <- signif( metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
 
       }
     }
-
-
+    # non-compartmental analysis
     nca.results_all <- nca.results$nca.all.results
     nca.results_fd <- nca.results$nca.fd.results
     nca.results_efd <- nca.results$nca.efd.results
@@ -520,11 +514,11 @@ simpcal.out <- simpcal.results$simpcal.results
           input.vd = nca.results_fd$vd,
           input.add = 0
         )
-        nca_fd.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-        nca_fd.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-        nca_fd.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-        nca_fd.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-        nca_fd.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+        nca_fd.APE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+        nca_fd.MAE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+        nca_fd.MAPE <- signif( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+        nca_fd.RMSE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+        nca_fd.rRMSE <- signif( metrics.(pred.x =nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
       }
     }
 
@@ -538,16 +532,15 @@ simpcal.out <- simpcal.results$simpcal.results
           input.vd = nca.results_efd$vd,
           input.add = 0
         )
-        nca_efd.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-        nca_efd.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-        nca_efd.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-        nca_efd.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-        nca_efd.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+        nca_efd.APE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+        nca_efd.MAE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+        nca_efd.MAPE <- signif( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+        nca_efd.RMSE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+        nca_efd.rRMSE <- signif( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
       }
     }
 
     # Graphic analysis
-    # Applicable only for oral cases with data available post-first dose.
     if (is.na(graph.results_fd$cl)==F & is.na(graph.results_fd$vd)==F & is.na(graph.results_fd$ka)==F) {
       if (graph.results_fd$cl > 0 & graph.results_fd$vd > 0 & graph.results_fd$ka > 0) {
         graph_fd_sim <- Fit_1cmpt_oral(
@@ -569,103 +562,75 @@ simpcal.out <- simpcal.results$simpcal.results
 
   }
 
-##################### Output one-compartmental parameter results################
-  if (noniv_flag==0){
-     ka=c(NA,NA,NA,NA,NA,NA)
-  }
-
-  if (noniv_flag==1){
-    ka=c(NA,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all,ka_median)
-  }
-
-  all.out <- data.frame(
+##################### Summarise one-compartmental parameter results################
+all.out <- data.frame(
     method = c(
       "Single-point method",
-      "Graphic calculation",
+      "Graphic analysis",
       "NCA (only first dose)",
       "NCA (data exclude first-dose part)",
-      "NCA (all pooled)",
-      "Hybrid single-point method"
+      "NCA (all pooled)"
     ),
-    ka=ka,
+
+    ka=c(ka_simpcal_value,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all),
+
     cl = c(
       simpcal.out$cl,
       graph.results_fd$cl,
       nca.results_fd$cl,
       nca.results_efd$cl,
-      nca.results_all$cl,
-      hybrid_cl
+      nca.results_all$cl
     ),
+
     vd = c(
       simpcal.out$vd,
       graph.results_fd$vd,
       nca.results_fd$vd,
       nca.results_efd$vd,
-      nca.results_all$vd,
-      hybrid_vd
+      nca.results_all$vd
     ),
-    simAPE = c(simpcal.APE, graph_fd.APE, nca_fd.APE, nca_efd.APE,nca.APE, hybrid.APE),
-    simMAPE = c(
-      simpcal.MAPE,
-      graph_fd.MAPE,
-      nca_fd.MAPE,
-      nca_efd.MAPE,
-      nca.MAPE,
-      hybrid.MAPE
+
+    simAPE = c(simpcal.APE,
+               graph_fd.APE,
+               nca_fd.APE,
+               nca_efd.APE,
+               nca.APE),
+
+    simMAE = c(
+      simpcal.MAE,
+      graph_fd.MAE,
+      nca_fd.MAE,
+      nca_efd.MAE,
+      nca.MAE),
+
+    simMAPE = c(simpcal.MAPE,
+                graph_fd.MAPE,
+                nca_fd.MAPE,
+                nca_efd.MAPE,
+                nca.MAPE),
+
+    simRMSE = c(
+      simpcal.RMSE,
+      graph_fd.RMSE,
+      nca_fd.RMSE,
+      nca_efd.RMSE,
+      nca.RMSE
     ),
+
+    simrRMSE = c(simpcal.rRMSE,
+                 graph_fd.rRMSE,
+                 nca_fd.rRMSE,
+                 nca_efd.rRMSE,
+                 nca.rRMSE),
+
     time.spent = c(
       simpcal.out$time.spent,
       graph.results_fd$time.spent,
       nca.results_fd$time.spent,
       nca.results_efd$time.spent,
-      nca.results_all$time.spent,
-      simpcal.out$time.spent
+      nca.results_all$time.spent
     )
   )
-
-  # For single dose case, only report the pooled results of the single dose,
-  # as it is the same as the results when all data are pooled together.
-
-  if (sdflag == 1) {
-    # Output all of test
-    if (noniv_flag==0){
-      ka=c(NA,NA,NA,NA)
-    }
-
-    if (noniv_flag==1){
-      ka=c(NA,graph.results_fd$ka,ka_method_1_fd,ka_median)
-    }
-
-    all.out <- data.frame(
-      method = c(
-        "Single-point method",
-        "Graphic calculation",
-        "NCA (only first dose)",
-        "Hybrid single-point method"
-      ),
-      ka=ka,
-      cl = c(
-        simpcal.out$cl,
-        graph.results_fd$cl,
-        nca.results_fd$cl,
-        hybrid_cl
-      ),
-      vd = c(
-        simpcal.out$vd,
-        graph.results_fd$vd,
-        nca.results_fd$vd,
-        hybrid_vd
-      ),
-      simAPE = c(simpcal.APE, graph_fd.APE, nca.APE, hybrid.APE),
-      simMAPE = c(simpcal.MAPE, graph_fd.MAPE, nca.MAPE, hybrid.MAPE),
-      time.spent = c(
-        simpcal.out$time.spent,
-        graph.results_fd$time.spent,
-        nca.results_all$time.spent,
-        simpcal.out$time.spent
-      )
-    )
-  }
 
   colnames(all.out) <-
     c(
@@ -673,56 +638,58 @@ simpcal.out <- simpcal.results$simpcal.results
       "Calculated Ka",
       "Calculated CL",
       "Calculated Vd",
-      "Absolute Prediction Error (APE)",
-      "Mean absolute prediction error (MAPE)",
+      "Absolute Predicted Error (APE)",
+      "Mean Absolute Error (MAE)",
+      "Mean Absolute Percentage Error (MAPE)",
+      "Root Mean Squared Error (RMSE)",
+      "Relative Root Mean Squared Error (rRMSE)",
       "Time spent"
     )
 
 
-  all.out$`Mean absolute prediction error (MAPE)` <-
-    round(all.out$`Mean absolute prediction error (MAPE)`, 1)
-
-  all.out$`Absolute Prediction Error (APE)`<-
-    round(all.out$`Absolute Prediction Error (APE)`, 1)
-
   if (selection.criteria=="APE"){
-  base.ka.best <-
-    all.out[all.out$`Absolute Prediction Error (APE)` == min(all.out$`Absolute Prediction Error (APE)`),]$`Calculated Ka`
+  base.best <-
+    all.out[all.out$`Absolute Predicted Error (APE)` == min(all.out$`Absolute Predicted Error (APE)`,na.rm = T) & is.na(all.out$`Absolute Predicted Error (APE)`)==F,]
+  }
 
-  base.cl.best <-
-    all.out[all.out$`Absolute Prediction Error (APE)` == min(all.out$`Absolute Prediction Error (APE)`),]$`Calculated CL`
-
-  base.vd.best <-
-    all.out[all.out$`Absolute Prediction Error (APE)`== min(all.out$`Absolute Prediction Error (APE)`),]$`Calculated Vd`
+  if (selection.criteria=="MAE"){
+  base.best <-
+    all.out[all.out$`Mean Absolute Error (MAE)` == min(all.out$`Mean Absolute Error (MAE)`,na.rm = T) & is.na(all.out$`Mean Absolute Error (MAE)`)==F ,]
   }
 
   if (selection.criteria=="MAPE"){
-  base.ka.best <-
-    all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated Ka`
+    base.best <-
+      all.out[all.out$`Mean Absolute Percentage Error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`,na.rm = T) & is.na(all.out$`Mean absolute prediction error (MAPE)`)==F,]
+  }
 
-  base.cl.best <-
-    all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated CL`
+  if (selection.criteria=="RMSE"){
+    base.best <-
+      all.out[all.out$`Root Mean Squared Error (RMSE)` == min(all.out$`Root Mean Squared Error (RMSE)`,na.rm = T) & is.na(all.out$`Mean absolute prediction error (MAPE)`)==F ,]
+  }
 
-  base.vd.best <-
-    all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`),]$`Calculated Vd`
-}
-
-message(black(
-    paste0("Base PK parameter analysis finished. Estimated ka :",base.ka.best, ", estimated CL : ", base.cl.best, ", estimated Vd : ", base.vd.best )))
+  if (selection.criteria=="rRMSE"){
+    base.best <-
+      all.out[all.out$`Relative Root Mean Squared Error (rRMSE)` == min(all.out$`Relative Root Mean Squared Error (rRMSE)`,na.rm = T),]
+  }
 
 
-##############################Vmax and Km estimation##########################
+  base.ka.best<-base.best$`Calculated Ka`
+  base.cl.best <-base.best$`Calculated CL`
+  base.vd.best <-base.best$`Calculated Vd`
+
+message_text <- paste0("Base PK parameter analysis finished. Estimated ka: ", base.ka.best,
+                       ", estimated CL: ", base.cl.best, ", estimated Vd: ", base.vd.best)
+
+cat(message_text, "\n")
+
+################# Simulation-based Vmax and Km analysis#######################
 
   message(black(
-    paste0("Run sensitivity analysis on nonlinear eliminiation kinetics PK parameters",strrep(".", 20))))
+    paste0("Run simulation-based sensitivity analysis on nonlinear eliminiation kinetics PK parameters",strrep(".", 20))))
+  # max.dose <-
+  #     max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0, ]$dose)[1]
 
-  # For vmax, km, if no model fitting for parameter estimation is used,
-  # sensitivity analysis via simulation to select appropriate initial estimates
-  max.dose <-
-    max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0, ]$dose)[1]
-
-  # sort out the cmax during the whole pk course
-  # observed maximum cmax (median value of population)
+  # obtain cmax in the current dataset
   dat.obs <- dat[dat$EVID == 0,]
   pop.cmax <- aggregate(dat.obs$DV,
                         list(dat.obs$ID),
@@ -730,16 +697,7 @@ message(black(
                         na.rm = T)
   mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
   fcmax<-  mean.pop.cmax
-  # calc.cmax <- max.dose / min(base.vd.best)[1]
-  # fcmax <- max(c(mean.pop.cmax, calc.cmax))[1]
-  # fcmax <- max(c(mean.pop.cmax, calc.cmax))[1]
-  # if (fcmax == mean.pop.cmax) {
-  #   cmax.message = "Cmax (mean maximum concontration) was obtained from mean observed cmax of analysis dataset"
-  # }
-  #
-  # if (fcmax == calc.cmax) {
-  #   cmax.message = "Cmax was calculated from maximum dose divided by volume of distribution"
-  # }
+ #  Make an assumption that when the parameter Km (Michaelis constant) is much greater than 4 * Cmax, drug metabolism largely enters the linear range.
   linear_minkm <- fcmax * 4 # if km>>4cmax, it nearly fall into the linear range
 
   sim.vmax.km.results.all <- NULL
@@ -776,20 +734,15 @@ message(black(
 
   }
 
-  recommended_vmax_init <-
-    sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == min(sim.vmax.km.results.all$sim.mm.MAPE),]$vmax[1]
-  recommended_km_init <-
-    sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == min(sim.vmax.km.results.all$sim.mm.MAPE),]$km[1]
 
   # message(black(
   #   paste0("Nonlinear elimination parameter analysis finished. Estimated Vmax : ",   recommended_vmax_init, ", estimated km : ", recommended_km_init  )))
 
-  ###########Multi-Compartmental Model Parameter Analysis#######################
-
+  ########### Simulation-based Multi-Compartmental Model Parameter Analysis#####
   message(black(
-    paste0("Run sensitivity analysis on multi-compartmental PK parameters",strrep(".", 20))))
+    paste0("Run simulation-basedsensitivity analysis on multi-compartmental PK parameters",strrep(".", 20))))
 
-  # Default. simulation test
+  # Two-compartment model simulation
   sim.2cmpt.results.all <- NULL
 
   if (noniv_flag==0){
@@ -819,24 +772,8 @@ message(black(
     }
   }
 
-  if (selection.criteria=="MAPE"){
-  recommended_vc2cmpt_init <-
-    sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE),]$vc[1]
-  recommended_vp2cmpt_init <-
-    sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE),]$vp[1]
-  recommended_q2cmpt_init <-
-    sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE),]$q[1]
-  }
 
-  if (selection.criteria=="APE"){
-    recommended_vc2cmpt_init <-
-      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE== min(sim.2cmpt.results.all$sim.2cmpt.APE),]$vc[1]
-    recommended_vp2cmpt_init <-
-      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE== min(sim.2cmpt.results.all$sim.2cmpt.APE),]$vp[1]
-    recommended_q2cmpt_init <-
-      sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE == min(sim.2cmpt.results.all$sim.2cmpt.APE),]$q[1]
-  }
-
+  # Three-compartment model simulation
   sim.3cmpt.results.all <- NULL
 
   if (noniv_flag==0){
@@ -865,31 +802,62 @@ message(black(
   }
   }
 
-  if (selection.criteria=="MAPE"){
-  recommended_vc3cmpt_init <-
-    sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$vc[1]
-  recommended_vp3cmpt_init <-
-    sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$vp[1]
-  recommended_vp23cmpt_init <-
-    sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$vp2[1]
-  recommended_q3cmpt_init <-
-    sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$q[1]
-  recommended_q23cmpt_init <-
-    sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE == min(sim.3cmpt.results.all$sim.3cmpt.MAPE),]$q2[1]
+
+################## Parameter Selection Selection############################
+  if (selection.criteria=="APE"){
+    recommended_mm<-
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.APE == min(sim.vmax.km.results.all$sim.mm.APE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.APE)==F,]
+
+    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE== min(sim.2cmpt.results.all$sim.2cmpt.APE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.APE)==F,][1,]
+    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE== min(sim.3cmpt.results.all$sim.3cmpt.APE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.APE)==F,][1,]
   }
 
-  if (selection.criteria=="APE"){
-    recommended_vc3cmpt_init <-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$vc[1]
-    recommended_vp3cmpt_init <-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$vp[1]
-    recommended_vp23cmpt_init <-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$vp2[1]
-    recommended_q3cmpt_init <-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$q[1]
-    recommended_q23cmpt_init <-
-      sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE == min(sim.3cmpt.results.all$sim.3cmpt.APE),]$q2[1]
+  if (selection.criteria=="MAE"){
+    recommended_mm<-
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAE == min(sim.vmax.km.results.all$sim.mm.MAE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.MAE)==F,]
+
+    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAE== min(sim.2cmpt.results.all$sim.2cmpt.MAE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.MAE)==F,][1,]
+    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAE== min(sim.3cmpt.results.all$sim.3cmpt.MAE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.MAE)==F,][1,]
   }
+
+  if (selection.criteria=="MAPE"){
+    recommended_mm<-
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == min(sim.vmax.km.results.all$sim.mm.MAPE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.MAPE)==F,]
+
+    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE== min(sim.2cmpt.results.all$sim.2cmpt.MAPE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.MAPE)==F,][1,]
+    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE== min(sim.3cmpt.results.all$sim.3cmpt.MAPE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.MAPE)==F,][1,]
+  }
+
+  if (selection.criteria=="RMSE"){
+    recommended_mm<-
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.RMSE == min(sim.vmax.km.results.all$sim.mm.RMSE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.RMSE)==F,]
+
+    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.RMSE== min(sim.2cmpt.results.all$sim.2cmpt.RMSE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.RMSE)==F,][1,]
+    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.RMSE== min(sim.3cmpt.results.all$sim.3cmpt.RMSE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.RMSE)==F,][1,]
+  }
+
+  if (selection.criteria=="rRMSE"){
+    recommended_mm<-
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.rRMSE == min(sim.vmax.km.results.all$sim.mm.rRMSE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.rRMSE)==F,]
+
+    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.rRMSE== min(sim.2cmpt.results.all$sim.2cmpt.rRMSE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.rRMSE)==F,][1,]
+    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.rRMSE== min(sim.3cmpt.results.all$sim.3cmpt.rRMSE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.rRMSE)==F,][1,]
+  }
+
+
+  recommended_vmax_init<- recommended_mm$vmax
+  recommended_km_init <-recommended_mm$km
+
+  recommended_vc2cmpt_init <-recommended.multi1$vc
+  recommended_vp2cmpt_init <-recommended.multi1$vp
+  recommended_q2cmpt_init <-recommended.multi1$q
+
+  recommended_vc3cmpt_init <-recommended.multi2$vc
+  recommended_vp3cmpt_init <-recommended.multi2$vp
+  recommended_vp23cmpt_init <-recommended.multi2$vp2
+  recommended_q3cmpt_init <-recommended.multi2$q
+  recommended_q23cmpt_init <-recommended.multi2$q2
+
 
   # Remove these temporary global variables run before.
   # List of variables to remove
@@ -909,7 +877,6 @@ message(black(
       "input.vmax",
       "input.km",
       "input.vd"
-
     )
 
   # Check if variables exist and remove them
@@ -917,7 +884,7 @@ message(black(
     vars_to_remove[vars_to_remove %in% ls(envir = .GlobalEnv)]
   rm(list = vars_to_remove, envir = .GlobalEnv)
 
-#####################Naive pooled data approach compartmental analysis #######
+#################### Naive pooled data approach compartmental analysis #######
   if (run.npdcmpt==1){
     message(black(
       paste0("Run naive pooled data compartmental analysis ",strrep(".", 20))))
@@ -925,22 +892,26 @@ message(black(
     if (npdcmpt.inits.strategy==0){
       message(red(
         paste0("Warning: there is no reference for intial estimates in current naive pooled data compartmental analysis, running maybe crashed down due to failure convergence")))
-      input.cl = 1
-      input.vd = 1
-      input.vc2cmpt=  1
-      input.vp2cmpt= 1
-      input.vc3cmpt =  1
-      input.vp3cmpt = 1
-      input.vp23cmpt = 1
-      input.q2cmpt=    1
-      input.q3cmpt =   1
-      input.q23cmpt = 1
-      input.vmax=1
-      input.km=1
+
+      # initial estimates = 1 (add a small random value to make the nls run)
+      input.ka = round(1 + runif(1, min = 0, max = 0.02),3)
+      input.cl = round(1 + runif(1, min = 0, max = 0.02),3)
+      input.vd = round(1 + runif(1, min = 0, max = 0.02),3)
+      input.vc2cmpt=  round(1 + runif(1, min = 0, max = 0.02),3)
+      input.vp2cmpt= round(1 + runif(1, min = 0, max = 0.02),3)
+      input.vc3cmpt =  round(1 + runif(1, min = 0, max = 0.02),3)
+      input.vp3cmpt = round(1 + runif(1, min = 0, max = 0.02),3)
+      input.vp23cmpt = round(1 + runif(1, min = 0, max = 0.02),3)
+      input.q2cmpt=    round(1 + runif(1, min = 0, max = 0.02),3)
+      input.q3cmpt =   round(1+ runif(1, min = 0, max = 0.02),3)
+      input.q23cmpt = round(1+ runif(1, min = 0, max = 0.02),3)
+      input.vmax= round(1+ runif(1, min = 0, max = 0.02),3)
+      input.km= round(1+ runif(1, min = 0, max = 0.02),3)
       vmax_km_threshold=F
     }
 
     if (npdcmpt.inits.strategy==1){
+    input.ka = mean(base.ka.best)
     input.cl = mean(base.cl.best)
     input.vd = mean(base.vd.best)
     input.vc2cmpt=  recommended_vc2cmpt_init
@@ -956,8 +927,7 @@ message(black(
     vmax_km_threshold=T
     }
 
-
-  if (noniv_flag==0){
+     if (noniv_flag==0){
     message(black(
       paste0("Run one-compartment model with first-order elimination", strrep(".", 20))
     ))
@@ -1021,11 +991,7 @@ message(black(
       input.q23cmpt =   input.q23cmpt)
   }
 
-
-  if (noniv_flag==1){
-
-    input.ka = mean(base.ka.best)
-
+     if (noniv_flag==1){
     message(black(
       paste0("Run one-compartment model with first-order absorption and elimination", strrep(".", 20))
     ))
@@ -1045,7 +1011,7 @@ message(black(
     if (vmax_km_threshold==T){
     npd_1cmpt_mm_out <- run_npd_1cmpt_mm_oral(
       dat = Oral_1CPT,
-      est.method = "nls",
+      est.method = est.method,
       input.ka =  input.ka,
       input.cl =  input.cl,
       input.vd = input.vd,
@@ -1092,23 +1058,36 @@ message(black(
       input.q23cmpt =  input.q23cmpt)
   }
 
-# summarise results
+############ Summarise NPD compartmental analysis result#############################
     npd.1cmpt_results <- npd_1cmpt_out$npd.1cmpt_results
     npd.1cmpt.APE <- npd_1cmpt_out$npd.1cmpt.APE
+    npd.1cmpt.MAE <- npd_1cmpt_out$npd.1cmpt.MAE
     npd.1cmpt.MAPE <- npd_1cmpt_out$npd.1cmpt.MAPE
+    npd.1cmpt.RMSE <- npd_1cmpt_out$npd.1cmpt.RMSE
+    npd.1cmpt.rRMSE <- npd_1cmpt_out$npd.1cmpt.rRMSE
+
 
     npd.1cmpt.mm_results <- npd_1cmpt_mm_out$npd.1cmpt.mm_results
     npd.1cmpt.mm.APE <- npd_1cmpt_mm_out$npd.1cmpt.mm.APE
+    npd.1cmpt.mm.MAE <- npd_1cmpt_mm_out$npd.1cmpt.mm.MAE
     npd.1cmpt.mm.MAPE <- npd_1cmpt_mm_out$npd.1cmpt.mm.MAPE
+    npd.1cmpt.mm.RMSE <- npd_1cmpt_mm_out$npd.1cmpt.mm.RMSE
+    npd.1cmpt.mm.rRMSE <- npd_1cmpt_mm_out$npd.1cmpt.mm.rRMSE
+
 
     npd.2cmpt_results <- npd_2cmpt_out$npd.2cmpt_results
     npd.2cmpt.APE <- npd_2cmpt_out$npd.2cmpt.APE
+    npd.2cmpt.MAE <- npd_2cmpt_out$npd.2cmpt.MAE
     npd.2cmpt.MAPE <- npd_2cmpt_out$npd.2cmpt.MAPE
+    npd.2cmpt.RMSE <- npd_2cmpt_out$npd.2cmpt.RMSE
+    npd.2cmpt.rRMSE <- npd_2cmpt_out$npd.2cmpt.rRMSE
 
     npd.3cmpt_results <- npd_3cmpt_out$npd.3cmpt_results
     npd.3cmpt.APE <- npd_3cmpt_out$npd.3cmpt.APE
+    npd.3cmpt.MAE <- npd_3cmpt_out$npd.3cmpt.MAE
     npd.3cmpt.MAPE <- npd_3cmpt_out$npd.3cmpt.MAPE
-
+    npd.3cmpt.RMSE <- npd_3cmpt_out$npd.3cmpt.RMSE
+    npd.3cmpt.rRMSE <- npd_3cmpt_out$npd.3cmpt.rRMSE
 
    # Output
    # Naive pooled data approach (compartmental analysis)"
@@ -1167,7 +1146,10 @@ message(black(
               npd.3cmpt_results$q2),
 
       simAPE = c(npd.1cmpt.APE, npd.1cmpt.mm.APE, npd.2cmpt.APE, npd.3cmpt.APE),
+      simMAE = c(npd.1cmpt.MAE, npd.1cmpt.mm.MAE, npd.2cmpt.MAE, npd.3cmpt.MAE),
       simMAPE = c(npd.1cmpt.MAPE, npd.1cmpt.mm.MAPE, npd.2cmpt.MAPE, npd.3cmpt.MAPE),
+      simRMSE = c(npd.1cmpt.RMSE, npd.1cmpt.mm.RMSE, npd.2cmpt.RMSE, npd.3cmpt.RMSE),
+      simrRMSE = c(npd.1cmpt.rRMSE, npd.1cmpt.mm.rRMSE, npd.2cmpt.rRMSE, npd.3cmpt.rRMSE),
 
       time.spent = c(
         npd.1cmpt_results$timespent,
@@ -1177,8 +1159,6 @@ message(black(
       )
     )
     }
-
-
     if (noniv_flag==1){
     npdcmpt.all.out <- data.frame(
 
@@ -1235,7 +1215,10 @@ message(black(
                  npd.3cmpt_results$q2),
 
         simAPE = c(npd.1cmpt.APE, npd.1cmpt.mm.APE, npd.2cmpt.APE, npd.3cmpt.APE),
+        simMAE = c(npd.1cmpt.MAE, npd.1cmpt.mm.MAE, npd.2cmpt.MAE, npd.3cmpt.MAE),
         simMAPE = c(npd.1cmpt.MAPE, npd.1cmpt.mm.MAPE, npd.2cmpt.MAPE, npd.3cmpt.MAPE),
+        simRMSE = c(npd.1cmpt.RMSE, npd.1cmpt.mm.RMSE, npd.2cmpt.RMSE, npd.3cmpt.RMSE),
+        simrRMSE = c(npd.1cmpt.rRMSE, npd.1cmpt.mm.rRMSE, npd.2cmpt.rRMSE, npd.3cmpt.rRMSE),
 
         time.spent = c(
           npd.1cmpt_results$timespent,
@@ -1244,114 +1227,32 @@ message(black(
           npd.3cmpt_results$timespent
         )
       )
-
+   }
 }
-    # colnames(all.out) <-
-    #   c(
-    #     "Method",
-    #     "Calculated Ka",
-    #     "Calculated CL",
-    #     "Calculated Vd",
-    #     "Absolute Prediction Error (APE)",
-    #     "Mean absolute prediction error (MAPE)",
-    #     "Time spent"
-    #   )
-
-  }
 
   ######################## Finally selection########################################
 
-   # ka,cl,vd.
-    f_init_ka <- base.ka.best[1]
-    f_init_cl <- base.cl.best[1]
-    f_init_vd <- base.vd.best[1]
+   # Part 1. ka,cl,vd.
+    f_init_ka <- base.best$`Calculated Ka`[1]
+    f_init_cl <- base.best$`Calculated CL`[1]
+    f_init_vd <- base.best$`Calculated Vd`[1]
 
-    if (selection.criteria=="MAPE"){
-    sel.method.ka.cl.vd <-
-      all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`,
-                                                                               na.rm = T),]$Method[1]
+    sel.method.ka.cl.vd <-base.best$Method[1]
 
-       if (length(as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                                  min(all.out$`Mean absolute prediction error (MAPE)`,
-                                      na.rm = T),]$`Calculated CL`)) > 1) {
+    if (nrow(base.best)>1){
       #check the total volume of distribution of two compartment
-      total.vd <-
-        sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$vc[1] +
-        sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE == min(sim.2cmpt.results.all$sim.2cmpt.MAPE, na.rm = T),]$vp[1]
+      total.vd <- recommended.multi1$vc+recommended.multi1$vp
 
-
-      f_init_ka <-
-        as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                             min(all.out$`Mean absolute prediction error (MAPE)` ,
-                                 na.rm = T) &
-                             round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Ka`)[1]
-
-      f_init_cl <-
-        as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                             min(all.out$`Mean absolute prediction error (MAPE)` ,
-                                 na.rm = T) &
-                             round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated CL`)[1]
-
-      f_init_vd <-
-        as.numeric(all.out[all.out$`Mean absolute prediction error (MAPE)` ==
-                             min(all.out$`Mean absolute prediction error (MAPE)` ,
-                                 na.rm = T) &
-                             round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Vd`)[1]
-
-      sel.method.ka.cl.vd <-
-        all.out[all.out$`Mean absolute prediction error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)` ,
-                                                                       na.rm = T) &
-                  round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$Method[1]
+      f_init_cl <- base.best[base.best$`Calculated Vd`== round(total.vd,1), ]$`Calculated CL`
+      f_init_vd <- base.best[base.best$`Calculated Vd`== round(total.vd,1), ]$`Calculated Ka`
+      sel.method.ka.cl.vd <-base.best[base.best$`Calculated Vd`== round(total.vd,1), ]$Method
     }
-
-    }
-
-    if (selection.criteria=="APE"){
-      sel.method.ka.cl.vd <-
-        all.out[all.out$`Absolute Prediction Error (APE)`== min(all.out$`Absolute Prediction Error (APE)`,
-                                                                       na.rm = T),]$Method[1]
-
-      if (length(as.numeric(all.out[all.out$`Absolute Prediction Error (APE)` ==
-                                    min(all.out$`Absolute Prediction Error (APE)`,
-                                        na.rm = T),]$`Calculated CL`)) > 1) {
-        #check the total volume of distribution of two compartment
-        total.vd <-
-          sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE == min(sim.2cmpt.results.all$sim.2cmpt.APE, na.rm = T),]$vc[1] +
-          sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE == min(sim.2cmpt.results.all$sim.2cmpt.APE, na.rm = T),]$vp[1]
-
-
-        f_init_ka <-
-          as.numeric(all.out[all.out$`Absolute Prediction Error (APE)` ==
-                               min(all.out$`Absolute Prediction Error (APE)` ,
-                                   na.rm = T) &
-                               round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Ka`)[1]
-
-        f_init_cl <-
-          as.numeric(all.out[all.out$`Absolute Prediction Error (APE)`==
-                               min(all.out$`Absolute Prediction Error (APE)`,
-                                   na.rm = T) &
-                               round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated CL`)[1]
-
-        f_init_vd <-
-          as.numeric(all.out[all.out$`Absolute Prediction Error (APE)` ==
-                               min(all.out$`Absolute Prediction Error (APE)` ,
-                                   na.rm = T) &
-                               round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$`Calculated Vd`)[1]
-
-        sel.method.ka.cl.vd <-
-          all.out[all.out$`Absolute Prediction Error (APE)` == min(all.out$`Absolute Prediction Error (APE)` ,
-                                                                         na.rm = T) &
-                    round(all.out$`Calculated Vd`, 1) == round(total.vd, 1),]$Method[1]
-      }
-
-    }
-
 
 
     # vmax.km
     f_init_vmax <- recommended_vmax_init
     f_init_km <- recommended_km_init
-    sel.method.vmax.km <- "Sensitivity analysis by simulation "
+    sel.method.vmax.km <- "Simulation-based analysis "
 
     # Multi-compartmental parameters
     f_init_vc2cmpt <-  recommended_vc2cmpt_init
@@ -1363,15 +1264,14 @@ message(black(
     f_init_q3cmpt <- recommended_q3cmpt_init
     f_init_q23cmpt <-recommended_q23cmpt_init
 
-    sel.method.multi <- "Sensitivity analysis by simulation "
+    sel.method.multi <- "Simulation-based analysis "
+    sel.method.ka<-"Wanger-nelson method"
 
-    sel.method.ka<-"Wanger_nelson"
-
-    if (sel.method.ka.cl.vd== "Hybrid single-point method" & sdflag==0 & fdobsflag==0 ){
-        sel.method.ka<-"Wanger_nelson (median)"
+    if (sel.method.ka.cl.vd== "Single-point method" & noniv_flag==1 ){
+      sel.method.ka<-"Single-point method"
     }
 
-    if (sel.method.ka.cl.vd== "Graphic calculation"){
+    if (sel.method.ka.cl.vd== "Graphic analysis"){
       sel.method.ka<-"Methods of residuals"
     }
 
@@ -1477,60 +1377,23 @@ message(black(
   )
 
 
-  if (exists("all.out.vmax.km")) {
-    colnames(all.out.vmax.km) <-
-      c(
-        "Method",
-        "Estimated Vmax",
-        "Estimated Km",
-        "Absolute prediction error (APE)",
-        "Mean absolute prediction error (MAPE)",
-        "Time spent"
-      )
-  }
-  if (exists("all.out.2cmpt")) {
-    colnames(all.out.2cmpt) <-
-      c(
-        "Method",
-        "Estimated CL",
-        "Estimated Vp",
-        "Estimated Q",
-        "Absolute prediction error (APE)",
-        "Mean absolute prediction error (MAPE)",
-        "Time spent"
-      )
-  }
-  if (exists("all.out.3cmpt")) {
-    colnames(all.out.3cmpt) <-
-      c(
-        "Method",
-        "Estimated CL",
-        "Estimated Vp",
-        "Estimated Vp2",
-        "Absolute prediction error (APE)",
-        "Estimated Q",
-        "Estimated Q2",
-        "Mean absolute prediction error (MAPE)",
-        "Time spent"
-      )
-  }
 
-  if (!exists("init.messages.multi")) {
-    init.messages.multi <- NULL
-  }
-  if (!exists("init.messages.vmax.km")) {
-    init.messages.vmax.km <- NULL
-  }
-
-  if (is.null(init.messages.vmax.km) &
-      is.null(init.messages.vmax.km)) {
-    init.messages <- NULL
-  }
-
-  if (is.null(init.messages.vmax.km) == F ||
-      is.null(init.messages.vmax.km) == F) {
-    init.messages <- c(init.messages.vmax.km, init.messages.multi)
-  }
+  # if (!exists("init.messages.multi")) {
+  #   init.messages.multi <- NULL
+  # }
+  # if (!exists("init.messages.vmax.km")) {
+  #   init.messages.vmax.km <- NULL
+  # }
+  #
+  # if (is.null(init.messages.vmax.km) &
+  #     is.null(init.messages.vmax.km)) {
+  #   init.messages <- NULL
+  # }
+  #
+  # if (is.null(init.messages.vmax.km) == F ||
+  #     is.null(init.messages.vmax.km) == F) {
+  #   init.messages <- c(init.messages.vmax.km, init.messages.multi)
+  # }
 
   if (!exists("npdcmpt.all.out")) {
     npdcmpt.all.out <-
@@ -1552,16 +1415,22 @@ message(black(
       "Calculated Ka",
       "Calculated CL",
       "Calculated Vd",
-      "Absolute prediction error (APE)",
-      "Mean absolute prediction error (MAPE)",
+      "Absolute Predicted Error (APE)",
+      "Mean Absolute Error (MAE)",
+      "Mean Absolute Percentage Error (MAPE)",
+      "Root Mean Squared Error (RMSE)",
+      "Relative Root Mean Squared Error (rRMSE)",
       "Time spent"
     )
   colnames(sim.vmax.km.results.all) <-
     c(
       "Simulated Vmax",
       "Simulated Km",
-      "Absolute prediction error (APE)",
-      "Mean absolute prediction error (MAPE)",
+      "Absolute Predicted Error (APE)",
+      "Mean Absolute Error (MAE)",
+      "Mean Absolute Percentage Error (MAPE)",
+      "Root Mean Squared Error (RMSE)",
+      "Relative Root Mean Squared Error (rRMSE)",
       "Time spent"
     )
   colnames(sim.2cmpt.results.all) <-
@@ -1569,8 +1438,11 @@ message(black(
       "Simulated Vc",
       "Simulated Vp",
       "Simulated Q",
-      "Absolute prediction error (APE)",
-      "Mean absolute prediction error (MAPE)",
+      "Absolute Predicted Error (APE)",
+      "Mean Absolute Error (MAE)",
+      "Mean Absolute Percentage Error (MAPE)",
+      "Root Mean Squared Error (RMSE)",
+      "Relative Root Mean Squared Error (rRMSE)",
       "Time spent"
     )
   colnames(sim.3cmpt.results.all) <-
@@ -1580,8 +1452,11 @@ message(black(
       "Simulated Vp2",
       "Simulated Q",
       "Simulated Q2",
-      "Absolute prediction error (APE)",
-      "Mean absolute prediction error (MAPE)",
+      "Absolute Predicted Error (APE)",
+      "Mean Absolute Error (MAE)",
+      "Mean Absolute Percentage Error (MAPE)",
+      "Root Mean Squared Error (RMSE)",
+      "Relative Root Mean Squared Error (rRMSE)",
       "Time spent"
     )
 
@@ -1597,6 +1472,7 @@ message(black(
   )
 
   params.descriptions <- c(
+    "Ka: absorption constant rate",
     "CL: clearance",
     "Vd: volumn of distribution",
     "Vmax: maximum metobolic rate",
