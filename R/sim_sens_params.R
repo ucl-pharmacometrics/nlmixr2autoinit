@@ -83,11 +83,11 @@ for (loopmm in 1:nrow(combs_df)) {
     )
    }
 
-    sim.APE <-  signif(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-    sim.MAE <-  signif(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-    sim.MAPE <- signif( metrics.(pred.x = sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-    sim.RMSE <-  signif(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-    sim.rRMSE <- signif( metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+    sim.APE <-  round(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],1)
+    sim.MAE <-  round(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],1)
+    sim.MAPE <- round( metrics.(pred.x = sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],1)
+    sim.RMSE <-  round(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],1)
+    sim.rRMSE <- round( metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],1)
 
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
@@ -193,11 +193,11 @@ sim_sens_2cmpt <- function(dat,
       )
     }
 
-    sim.APE <-  signif(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-    sim.MAE <-  signif(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-    sim.MAPE <- signif( metrics.(pred.x = sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-    sim.RMSE <-  signif(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-    sim.rRMSE <- signif( metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+      sim.APE <-  round(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],1)
+      sim.MAE <-  round(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],1)
+      sim.MAPE <- round( metrics.(pred.x = sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],1)
+      sim.RMSE <-  round(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],1)
+      sim.rRMSE <- round( metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],1)
 
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
@@ -244,9 +244,9 @@ sim_sens_2cmpt <- function(dat,
 #'
 
 sim_sens_3cmpt <- function(dat,
-                           sim_vc_list,
-                           sim_vp_list,
-                           sim_vp2_list,
+                           sim_vc_list=NA,
+                           sim_vp_list=NA,
+                           sim_vp2_list=NA,
                            estcl,
                            estvd,
                            sim_q_list,
@@ -328,11 +328,11 @@ sim_sens_3cmpt <- function(dat,
     )
     }
 
-     sim.APE <-  signif(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-     sim.MAE <-  signif(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-     sim.MAPE <- signif( metrics.(pred.x = sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-     sim.RMSE <-  signif(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-     sim.rRMSE <- signif( metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+     sim.APE <-  round(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],1)
+     sim.MAE <-  round(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],1)
+     sim.MAPE <- round( metrics.(pred.x = sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],1)
+     sim.RMSE <-  round(metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],1)
+     sim.rRMSE <- round( metrics.(pred.x =  sim.lst$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],1)
 
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
