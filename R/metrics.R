@@ -21,7 +21,7 @@
 #' \enumerate{
 #'   \item APE (Absolute Predicted Error)
 #'   \item MAE (Mean Absolute Error)
-#'   \item MAPE (Mean Absolute Percentage)
+#'   \item MAPE (Mean Absolute Percentage Error)
 #'   \item RMSE (Root Mean Squared Error)
 #'   \item rRMSE (Relative Root Mean Squared Error)
 #' }
