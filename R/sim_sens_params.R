@@ -105,6 +105,8 @@ for (loopmm in 1:nrow(combs_df)) {
       )
     sim.vmax.km.results.all <-
       rbind(sim.vmax.km.results.all, sim.vmax.km.results)
+
+    rm(sim.lst) # To avoid occupying memory
   }
   return(sim.vmax.km.results.all)
 }
@@ -218,6 +220,7 @@ sim_sens_2cmpt <- function(dat,
     sim.2cmpt.results.all <-
       rbind(sim.2cmpt.results.all, sim.2cmpt.results)
 
+    rm(sim.lst) # To avoid occupying memory
     }
   }
   return(sim.2cmpt.results.all)
@@ -238,7 +241,7 @@ sim_sens_2cmpt <- function(dat,
 #' @import nlmixr2
 #' @examples
 #' dat <- Bolus_2CPT
-#' sim_results<-sim_sens_3cmpt(dat, estka=1, estcl = 4, estvd = 70)
+#' sim_results<-sim_sens_3cmpt(dat, estcl = 4, estvd = 70)
 #' sim_results
 #' @export
 #'
@@ -249,7 +252,7 @@ sim_sens_3cmpt <- function(dat,
                            sim_vp2_list=NA,
                            estcl,
                            estvd,
-                           sim_q_list,
+                           sim_q_list=NA,
                            estka=NA,
                            noniv_flag=0) {
 
@@ -352,9 +355,12 @@ sim_sens_3cmpt <- function(dat,
 
       time.spent = time.spent
     )
-
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results)
+
+    rm(sim.lst) # To avoid occupying memory
+    # gc()
+
    }
   }
 
