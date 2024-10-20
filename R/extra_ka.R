@@ -171,13 +171,14 @@ ka_calculation <- function(cl,     # Clearance of the drug (L/hr)
 #' @examples
 #' # Example usage:
 #'  df<-Oral_1CPT[Oral_1CPT$SD==1 & Oral_1CPT$EVID==0,]
+#'  df<-calculate_tad(dat)
 #'  result <- run_ka_solution(df = df, cl = 4, ke = 4/70, Fbio = 1)
 #'  ka_median <- result[[1]]
 #'  data_with_ka <- result[[2]]
 #'
 #' @import dplyr
 #' @export
-run_ka_solution<-function(df,cl,ke,Fbio){
+run_ka_solution<-function(df,cl,ke,Fbio=1){
 
 # df<-Oral_1CPT[Oral_1CPT$SD==1 & Oral_1CPT$EVID==0,]
 # Step 1: Find Tmax for each individual
@@ -213,11 +214,11 @@ data_before_tmax$ka_calc <-
     t = data_before_tmax$TIME,
     Ct = data_before_tmax$DV,
     Fbio = data_before_tmax$Fbio,
-    Dose = data_before_tmax$DOSE
+    Dose = data_before_tmax$dose
   )
 
 data_before_tmax$ka_calcv<-suppressWarnings(suppressMessages(as.numeric(data_before_tmax$ka_calc)))
 
 ka_calc_median<-suppressWarnings(suppressMessages(median(data_before_tmax$ka_calcv,na.rm = T)))
-return(list(ka_calc_median, data_before_tmax))
+return(list(ka_calc_median=ka_calc_median, ka_calc_dat=data_before_tmax))
 }
