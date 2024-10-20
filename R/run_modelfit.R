@@ -63,7 +63,7 @@ run_npd_1cmpt_iv <- function(dat,
   npd.APE <-  round(metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[1],1)
   npd.MAE <-  round(metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[2],1)
   npd.MAPE <- round( metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[3],1)
-  npd.RMSE <-  round(metrics.(pred.x = npd.list$cp obs.y = npd.list$DV  )[4],1)
+  npd.RMSE <-  round(metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[4],1)
   npd.rRMSE <- round( metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[5],1)
 
   # # add penalty of rse
