@@ -10,7 +10,7 @@
 #' @details This function will stop with an error message if the length of `pred.x` and `obs.y` are not the same.
 #' It computes the following metrics:
 #' \itemize{
-#'   \item \strong{APE}: Absolute Percentage Error (Sum of absolute differences between predicted and observed values)
+#'   \item \strong{APE}: Absolute Predicted Error (Sum of absolute differences between predicted and observed values)
 #'   \item \strong{MAE}: Mean Absolute Error (Average absolute difference between predicted and observed values)
 #'   \item \strong{MAPE}: Mean Absolute Percentage Error (Sum of absolute percentage differences)
 #'   \item \strong{RMSE}: Root Mean Squared Error (Square root of the average squared differences between predicted and observed values)
@@ -19,9 +19,9 @@
 #'
 #' @return A numeric vector with the computed values of the following metrics:
 #' \enumerate{
-#'   \item APE (Absolute Percentage Error)
+#'   \item APE (Absolute Predicted Error)
 #'   \item MAE (Mean Absolute Error)
-#'   \item MAPE (Mean Absolute Percentage Error)
+#'   \item MAPE (Mean Absolute Percentage)
 #'   \item RMSE (Root Mean Squared Error)
 #'   \item rRMSE (Relative Root Mean Squared Error)
 #' }

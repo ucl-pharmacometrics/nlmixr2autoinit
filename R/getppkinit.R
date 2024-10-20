@@ -329,7 +329,7 @@ simpcal.out <- simpcal.results$simpcal.results
      nlastpoints = nlastpoints
    )
 
-################################8. Predictive performance evaluation################
+####################8. Predictive performance evaluation##########################
 # default setting
    simpcal.APE <- NA
    simpcal.MAE <- NA
