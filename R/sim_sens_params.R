@@ -144,7 +144,7 @@ sim_sens_2cmpt <- function(dat,
     stop("Error: no estimated volume of distribution for simulation was provided")
   }
 
-  if (is.na(sim_vc_list)==F || is.na(sim_vp_list)==F||is.na(sim_q_list)==F) {
+  if (is.na(sim_vc_list)==T || is.na(sim_vp_list)==T||is.na(sim_q_list)==T) {
       # Two-compartment model
       start.time <- Sys.time()
       # from linear to nonlinear
@@ -207,7 +207,11 @@ sim_sens_2cmpt <- function(dat,
       vp = input.vp,
       q= estq,
       sim.2cmpt.APE = sim.APE,
+      sim.2cmpt.MAE = sim.MAE,
       sim.2cmpt.MAPE = sim.MAPE,
+      sim.2cmpt.RMSE = sim.RMSE,
+      sim.2cmpt.rRMSE = sim.rRMSE,
+
       time.spent = time.spent
     )
 
@@ -339,8 +343,13 @@ sim_sens_3cmpt <- function(dat,
       vp2 = input.vp2,
       q =  estq,
       q2 = estq,
+
       sim.3cmpt.APE = sim.APE,
+      sim.3cmpt.MAE = sim.MAE,
       sim.3cmpt.MAPE = sim.MAPE,
+      sim.3cmpt.RMSE = sim.RMSE,
+      sim.3cmpt.rRMSE = sim.rRMSE,
+
       time.spent = time.spent
     )
 
