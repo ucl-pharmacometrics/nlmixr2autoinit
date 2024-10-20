@@ -125,6 +125,7 @@ ka_wanger_nelson<-function(dat,nlastpoints,nca.out){
 #'
 #' @export
 #
+# ka_result <- ka_calculation(cl = 3.62, ke = 0.0556, t = 0.5, Ct = 310, Dose = 60000)
 ka_calculation <- function(cl,     # Clearance of the drug (L/hr)
                            ke,     # Elimination rate constant (1/hr)
                            t,      # Time (hr) after drug administration at which concentration is measured
@@ -132,6 +133,7 @@ ka_calculation <- function(cl,     # Clearance of the drug (L/hr)
                            Fbio=1, # Bioavailability fraction, default is 1 (100% bioavailability)
                            Dose) { # Administered dose of the drug (mg)
 
+  Vd<-cl/ke
   # Define the equation to solve for the absorption rate constant (ka)
   ka.equation <- function(ka) {
 
@@ -189,7 +191,7 @@ tmax_df <- df %>%
 # Step 2: Join Tmax with the original data and filter rows where TIME <= Tmax
 data_before_tmax <- df %>%
   left_join(tmax_df, by = "ID") %>%
-  filter(TIME <= Tmax)
+  filter(TIME < Tmax)
 
 data_before_tmax$cl=cl
 data_before_tmax$ke=ke
