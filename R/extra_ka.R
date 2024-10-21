@@ -191,7 +191,7 @@ tmax_df <- df %>%
 # Step 2: Join Tmax with the original data and filter rows where TIME <= Tmax
 data_before_tmax <- df %>%
   left_join(tmax_df, by = "ID") %>%
-  filter(TIME < Tmax)
+  filter(TIME <= Tmax)
 
 data_before_tmax$cl=cl
 data_before_tmax$ke=ke
