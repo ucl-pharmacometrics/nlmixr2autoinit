@@ -45,23 +45,6 @@ initsControl<-function( half_life = NA,
                         selection.criteria="APE",
                         npdcmpt.inits.strategy= 0){
 
-  if ( trapezoidal.rule==1){
-  trapezoidal.rule.c<-"Linear trapezoidal rule "
-  }
-
-  if ( trapezoidal.rule==2){
-    trapezoidal.rule.c<-"Linear-up log-down trapezoidal rule "
-  }
-
-  if (npdcmpt.inits.strategy==0){
-   npdcmpt.inits.strategy.c<-"Set as 1"
-  }
-
-
-  if (npdcmpt.inits.strategy==1){
-    npdcmpt.inits.strategy.c<-"Set as pipeline recommended values"
-  }
-
   return(  list(half_life =  half_life ,
                 nlastpoints =   nlastpoints,
                 trapezoidal.rule = trapezoidal.rule,
