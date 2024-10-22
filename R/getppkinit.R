@@ -1,16 +1,21 @@
 #' Get initial estimates for a population pharmacokinetic modelling
 #'
-#' Computes initial pharmacokinetic parameters using multiple methods including single-point method, non-compartmental analysis, graphical methods, and parameter estimation with naive pooled data approach if specified.
+#' Computes initial values of pharmacokinetic parameters using integrated pipeline which includes single-point method, non-compartmental analysis, graphical methods, simulation-based analysis and parameter estimation with naive pooled data approach compartmental analysis if specified.
 #' @param dat A data frame containing the pharmacokinetic data.
-#' @param run.npdcmpt An integer indicating whether to run the naive pooled data approach (default is 0).
+#' @param run.option Integer value indicating which methods to use. It has three possible values:
+#' \itemize{
+#'   \item \code{0}: Default pipeline calculation, not involving parameter estimation or model fitting.
+#'   \item \code{1}: Applies both the pipeline calculation methods and naive pooled data compartmental analysis.
+#'   \item \code{2}: Uses only naive pooled data compartmental analysis.
+#' }
 #' @param getinit.settings A list or data frame containing calculation settings (optional). The following settings can be provided:
 #' \itemize{
 #'   \item \code{half_life}: Numeric value for the half-life of the drug (default is \code{NA}). If not provided, it will be estimated based on the data.
 #'   \item \code{nlastpoints}: Numeric value specifying the number of last data points used for linear regression to obtain the slope in the terminal phase. (default is \code{4}).
-#'   \item \code{trap.rule.method}: Numeric value indicating the trapezoidal rule method to use (default is \code{1}).
-#'   \code{1} refers to the linear trapezoidal method, while \code{2} refers to the linear-up/log-down trapezoidal method, which uses a linear method for the increasing phase and a logarithmic method for the decreasing phase.
-#'   \item \code{nbins}: Numeric value specifying the number of bins to use when performing naive pooling of data (default is \code{8}).
-#'   \item \code{est.method}: Character string indicating the estimation method for naive pooled data compartmental analysis to use (default is \code{"nls"}) or other methods ((e.g., "nls", "nlm", ""foce", "focei") depending on the analysis.
+#'   \item \code{trapezoidal.rule}: Numeric value indicating the trapezoidal rule method to use (default is \code{0}).
+#'   \code{1} refers to the linear trapezoidal method, while \code{2} refers to the linear-up/log-down trapezoidal method.
+#'   \item \code{nbins}: Numeric value specifying the number of time windows for quantile-based partitioning of the time variable in the dataset when performing naive pooling of data (default is \code{8}).
+#'   \item \code{est.method}: Character string indicating the estimation method for naive pooled data compartmental analysis to use (default is \code{"nls"}) or other methods ((e.g., "nls", "nlm", "nlminb","foce", "focei") depending on the analysis.
 #'   \item \code{selection.criteria}: Character string indicating the selection criteria for method comparison (default is \code{"MAPE"}). The selection method can be set to either Mean Absolute Percentage Error (\code{"MAPE"}) or Absolute Percentage Error (\code{"APE"}), depending on the user requirement.
 #'   \item \code{npdcmpt.inits.strategy}: Numeric value indicating the strategy for setting initial estimates in the model (default is \code{0}).  \code{0} means all initial estimates are set to \code{1} in this step, while \code{1} means that the initial estimates are based on parameters derived from non-model-fitting calculation methods.
 #'
@@ -21,45 +26,53 @@
 #' @import nlmixr2
 #' @importFrom tidyr fill
 #' @import crayon
+#' @importFrom knitr fill
 #' @examples
-#' inits.out<-getppkinit(dat = Bolus_1CPT)
-#' inits.out
+#' inits.out<-getPPKinits(dat = Bolus_1CPT[Bolus_1CPT$SS==99, ],run.option = 0,getinitsControl = initsControl(est.method = "focei"))
+#' print_env_output(inits.out)
 #' @export
+#'
 
-getppkinit <- function(dat,
-                       run.npdcmpt=0,
-                       getinit.settings=NULL) {
 
- # Default settings for getppkinit
-  getinit.settings0 <- list(
-    half_life = NA,
-    nlastpoints = 4,
-    trap.rule.method = 1,
-    nbins = 8,
-    est.method = "nls",
-    selection.criteria="APE",
-    npdcmpt.inits.strategy= 1
+getPPKinits<- function(dat,
+                       run.option=0,
+                       getinitsControl=initsControl()) {
+
+  # Get function settings
+  half_life <-  getinitsControl$half_life
+  nlastpoints <- getinitsControl$nlastpoints
+  trapezoidal.rule <- getinitsControl$trapezoidal.rule
+  nbins <-getinitsControl$nbins
+  est.method <-getinitsControl$ est.method
+  selection.criteria<-getinitsControl$ selection.criteria
+  npdcmpt.inits.strategy<-getinitsControl$npdcmpt.inits.strategy
+
+  function.params <- data.frame(
+    Parameter = c(
+      "Half-life (User-defined half-life used as a reference for single-point calculations)",
+      "Number of last points (Points used for linear regression during terminal elimination phase slope estimation)",
+      "Number of bins (Number of time windows derived from quantile-based partitioning of the time variable in the dataset)",
+      "Trapezoidal rule method (Calculation method for area under the curve)",
+      "PK parameter estimation method (Method used for naive pooled data compartmental analysis (NPD-NCA))",
+      "Selection criteria (used for evaluating and selecting appropriate parameter values)",
+      "NPD initial setting strategy (used for initializing the naive pooled data compartmental analysis (NPD-NCA) method for parameter estimation)"
+    ),
+    Value = c(
+      half_life,
+      nlastpoints,
+      nbins,
+      getinitsControl$trapezoidal.rule.c,
+      est.method,
+      selection.criteria,
+      getinitsControl$npdcmpt.inits.strategy.c
+    )
   )
 
-  if (!is.null(getinit.settings)) {
-    getinit.settings <- as.list(getinit.settings)
+  colnames(function.params)<-c("Settings","Values")
+  # Display the initials setting
+  message(magenta( paste(capture.output(knitr::kable(function.params, format = "simple")), collapse = "\n")))
 
-    for (name in names(getinit.settings)) {
-      getinit.settings0[[name]] <- getinit.settings[[name]]
-    }
-  }
-
-
-  # Extract the setting values
-  half_life <- as.numeric(getinit.settings0$half_life)
-  nlastpoints <- as.numeric(getinit.settings0$nlastpoints)
-  trap.rule.method <- as.numeric(getinit.settings0$trap.rule.method)
-  nbins <- as.numeric(getinit.settings0$nbins)
-  est.method <- getinit.settings0$est.method
-  selection.criteria<-getinit.settings0$selection.criteria
-  npdcmpt.inits.strategy<-getinit.settings0$npdcmpt.inits.strategy
   ################## Data preprocessing and information summary#################
-
   message(black(
     paste0("Processing data", strrep(".", 20))
   ))
@@ -249,7 +262,7 @@ if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$
  nca.results <- run_nca.normalised(
     dat = dat,
     nlastpoints = nlastpoints,
-    trap.rule.method=trap.rule.method,
+    trapezoidal.rule = trapezoidal.rule,
     nbins = nbins,
     fdobsflag = fdobsflag,
     sdflag=sdflag
@@ -889,7 +902,7 @@ cat(message_text, "\n")
   rm(list = vars_to_remove, envir = .GlobalEnv)
 
 #################### Naive pooled data approach compartmental analysis #######
-  if (run.npdcmpt==1){
+  if (run.option==1){
     message(black(
       paste0("Run naive pooled data compartmental analysis ",strrep(".", 20))))
 
@@ -1549,4 +1562,5 @@ print_env_output <- function(env) {
 
   cat("\n=============== End of Summary ===============\n")
 }
+
 
