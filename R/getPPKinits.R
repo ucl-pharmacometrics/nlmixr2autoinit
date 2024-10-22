@@ -26,7 +26,7 @@
 #' @import nlmixr2
 #' @importFrom tidyr fill
 #' @import crayon
-#' @importFrom knitr fill
+#' @importFrom knitr kable
 #' @examples
 #' inits.out<-getPPKinits(dat = Bolus_1CPT[Bolus_1CPT$SS==99, ],run.option = 0,getinitsControl = initsControl(est.method = "focei"))
 #' print_env_output(inits.out)

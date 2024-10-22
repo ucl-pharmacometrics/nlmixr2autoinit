@@ -4,12 +4,12 @@
 \alias{nca.iv.normalised}
 \title{Non-compartmental analysis for intravenous pharmacokinetic data}
 \usage{
-nca.iv.normalised(dat, trap.rule.method = 1, ss = F, nlastpoints = 3)
+nca.iv.normalised(dat, trapezoidal.rule = 1, ss = F, nlastpoints = 3)
 }
 \arguments{
 \item{dat}{A data frame with at least two columns: TIME and DV.}
 
-\item{trap.rule.method}{A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
+\item{trapezoidal.rule}{A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
 1 for the standard linear trapezoidal method.
 2 for the linear up and logarithmic down method, where the concentration increase is treated linearly,
 and the concentration decrease is treated logarithmically.}

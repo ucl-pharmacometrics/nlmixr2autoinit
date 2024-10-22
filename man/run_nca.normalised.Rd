@@ -7,7 +7,7 @@
 run_nca.normalised(
   dat,
   nlastpoints,
-  trap.rule.method,
+  trapezoidal.rule,
   nbins,
   fdobsflag,
   sdflag
@@ -18,7 +18,7 @@ run_nca.normalised(
 
 \item{nlastpoints}{The number of last points to be used for slope calculation.}
 
-\item{trap.rule.method}{A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
+\item{trapezoidal.rule}{A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
 1 for the standard linear trapezoidal method.
 2 for the linear up and logarithmic down method, where the concentration increase is treated linearly,
 and the concentration decrease is treated logarithmically.}
@@ -37,6 +37,6 @@ Perform a non-compartmental analysis (NCA) for intravenous dosing data with norm
 dat <- Bolus_1CPT
 dat <- nmpkconvert(dat)
 dat <- calculate_tad(dat)
-run_nca.normalised(dat, nlastpoints = 3, trap.rule.method=1,nbins = 8, fdobsflag = 1,sdflag=0)
-run_nca.normalised(dat, nlastpoints = 3, trap.rule.method=2,nbins = 8, fdobsflag = 1,sdflag=0)
+run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=1,nbins = 8, fdobsflag = 1,sdflag=0)
+run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=2,nbins = 8, fdobsflag = 1,sdflag=0)
 }
