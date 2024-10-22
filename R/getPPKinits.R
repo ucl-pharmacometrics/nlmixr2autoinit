@@ -29,7 +29,7 @@
 #' @importFrom knitr kable
 #' @examples
 #' inits.out<-getPPKinits(dat = Bolus_1CPT[Bolus_1CPT$SS==99, ],run.option = 0,getinitsControl = initsControl(est.method = "focei"))
-#' print_env_output(inits.out)
+#' inits.out
 #' @export
 #'
 
@@ -49,29 +49,31 @@ getPPKinits<- function(dat,
 
   function.params <- data.frame(
     Parameter = c(
-      "Half-life (User-defined half-life used as a reference for single-point calculations)",
+      "Run option (0= only run pipeline, 1= only run NPD compartmental analysis, 3= run both)",
+      "Half-life (User-defined half-life used as a reference for single-point calculation)",
       "Number of last points (Points used for linear regression during terminal elimination phase slope estimation)",
       "Number of bins (Number of time windows derived from quantile-based partitioning of the time variable in the dataset)",
-      "Trapezoidal rule method (Calculation method for area under the curve)",
-      "PK parameter estimation method (Method used for naive pooled data compartmental analysis (NPD-NCA))",
-      "Selection criteria (used for evaluating and selecting appropriate parameter values)",
-      "NPD initial setting strategy (used for initializing the naive pooled data compartmental analysis (NPD-NCA) method for parameter estimation)"
+      "Trapezoidal rule for AUC (1=linear,2=Linear-up log-down )",
+      "Method used for naive pooled data compartmental analysis",
+      "Selection criteria used for evaluating and selecting parameter values",
+      "NPD compartmental analysis initial setting strategy (0 = set as 1, 1 = set from pipeline recommended values) "
     ),
     Value = c(
+      run.option,
       half_life,
       nlastpoints,
       nbins,
-      getinitsControl$trapezoidal.rule.c,
+      trapezoidal.rule,
       est.method,
       selection.criteria,
-      getinitsControl$npdcmpt.inits.strategy.c
+      npdcmpt.inits.strategy
     )
   )
 
   colnames(function.params)<-c("Settings","Values")
   # Display the initials setting
   message(magenta( paste(capture.output(knitr::kable(function.params, format = "simple")), collapse = "\n")))
-
+  message(magenta(paste0("---------------------------------------------------------------------------------------------------------------------  -------")))
   ################## Data preprocessing and information summary#################
   message(black(
     paste0("Processing data", strrep(".", 20))
@@ -1508,27 +1510,16 @@ cat(message_text, "\n")
   output_env$Run.history <- init.history
   output_env$Parameter.descriptions <- params.descriptions
 
-  print_env_output(output_env)
+  class(output_env) <- "getPPKinits"
 
-  return(  output_env
-    # list(
-    #   Datainfo = Datainfo,
-    #   Recommended_initial_estimates = Recommended_inits_df,
-    #   Message =  init.messages.vmax.km,
-    #   Run.history = init.history,
-    #   Parameter.descriptions = params.descriptions
-    # )
-  )
-
+  return(output_env)
 
 } # end of function
 
 
 #' Print environment summary for initial parameter estimation
 #'
-#' Prints a summary of initial parameter estimation stored in an environment.
-#' It displays data information, recommended initial estimates, and parameter descriptions.
-#' The function is designed to be used with results stored in a custom environment.
+#' Prints a summary of initial parameter estimation including Data information, recommended initial estimates by pipeline, naive pooled data compartmental analysis, run history and parameter descriptions stored in an environment by S3 method.
 #'
 #' @param env An environment containing the initial parameter estimation results.
 #' The environment should include:
@@ -1546,7 +1537,8 @@ cat(message_text, "\n")
 #' }
 #' @export
 #'
-print_env_output <- function(env) {
+# Define a custom print method for the 'getPPKinits' by S3 method
+print.getPPKinits <- function(env, ...) {
   cat("===============Initial Parameter Estimation Summary ===============\n")
   cat("Data information:\n")
   print(env$Datainfo)
