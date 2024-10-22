@@ -4,7 +4,7 @@
 #'
 #' @param dat A data frame containing the intravenous pharmacokinetic data which include at least columns for ID, TIME, EVID, AMT, DV, and dose_number.
 #' @param nlastpoints The number of last points to be used for slope calculation.
-#' @param trap.rule.method A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
+#' @param trapezoidal.rule A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
 #'        1 for the standard linear trapezoidal method.
 #'        2 for the linear up and logarithmic down method, where the concentration increase is treated linearly,
 #'        and the concentration decrease is treated logarithmically.
@@ -18,13 +18,13 @@
 #' dat <- Bolus_1CPT
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
-#' run_nca.normalised(dat, nlastpoints = 3, trap.rule.method=1,nbins = 8, fdobsflag = 1,sdflag=0)
-#' run_nca.normalised(dat, nlastpoints = 3, trap.rule.method=2,nbins = 8, fdobsflag = 1,sdflag=0)
+#' run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=1,nbins = 8, fdobsflag = 1,sdflag=0)
+#' run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=2,nbins = 8, fdobsflag = 1,sdflag=0)
 #' @export
 
 run_nca.normalised <- function(dat,
                                   nlastpoints,
-                                  trap.rule.method,
+                                   trapezoidal.rule,
                                   nbins,
                                   fdobsflag,
                                   sdflag) {
@@ -86,7 +86,7 @@ run_nca.normalised <- function(dat,
 
     nca.output <-
       nca.iv.normalised(dat = datpooled_fd$test.pool.normalised,
-                        trap.rule.method=trap.rule.method,
+                        trapezoidal.rule= trapezoidal.rule,
                         nlastpoints = nlastpoints)
 
     end.time <- Sys.time()
@@ -119,7 +119,7 @@ run_nca.normalised <- function(dat,
 
       nca.output <-
         nca.iv.normalised(dat = datpooled_efd$test.pool.normalised,
-                          trap.rule.method=trap.rule.method,
+                           trapezoidal.rule= trapezoidal.rule,
                           nlastpoints = nlastpoints)
 
       end.time <- Sys.time()
@@ -152,7 +152,7 @@ run_nca.normalised <- function(dat,
   datpooled_all$test.pool.normalised
   nca.output <-
     nca.iv.normalised(dat = datpooled_all$test.pool.normalised,
-                      trap.rule.method=trap.rule.method,
+                       trapezoidal.rule= trapezoidal.rule,
                       nlastpoints = nlastpoints)
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
@@ -187,7 +187,7 @@ run_nca.normalised <- function(dat,
 #' Perform non-compartmental analysis (NCA) on intravenous data to calculate pharmacokinetic parameters (clearance and volume of distribution) from the provided data.
 #' @param dat A data frame with at least two columns: TIME and DV.
 #' @param nlastpoints Number of last points to use for the linear regression on terminal slope (default is 4).
-#' @param trap.rule.method A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
+#' @param trapezoidal.rule A numeric value indicating the method used for calculating AUC using the trapezoidal rule.
 #'        1 for the standard linear trapezoidal method.
 #'        2 for the linear up and logarithmic down method, where the concentration increase is treated linearly,
 #'        and the concentration decrease is treated logarithmically.
@@ -207,7 +207,7 @@ run_nca.normalised <- function(dat,
 #' @export
 
 nca.iv.normalised <- function(dat,
-                              trap.rule.method=1,
+                               trapezoidal.rule=1,
                               ss=F,
                               nlastpoints=3) {
 
@@ -224,10 +224,10 @@ nca.iv.normalised <- function(dat,
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
 
-  if (trap.rule.method==1){
+  if ( trapezoidal.rule==1){
     auct <- trap.rule(dat$TIME, dat$DV)
   }
-  if (trap.rule.method==2){
+  if ( trapezoidal.rule==2){
     auct <- trap.rule_linear_up_log_down(dat$TIME, dat$DV)
   }
 
