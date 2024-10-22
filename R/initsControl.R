@@ -27,8 +27,6 @@
 #'   \item \code{est.method}: The method used for PK parameter estimation.
 #'   \item \code{selection.criteria}: The selection criteria for parameter values.
 #'   \item \code{npdcmpt.inits.strategy}: The strategy for initializing the NPD compartment analysis.
-#'   \item \code{trapezoidal.rule.c}: A descriptive string for the selected trapezoidal rule.
-#'   \item \code{npdcmpt.inits.strategy.c}: A descriptive string for the selected NPD initialisation strategy.
 #' }
 #'
 #' @examples
@@ -51,9 +49,7 @@ initsControl<-function( half_life = NA,
                 nbins = nbins,
                 est.method=   est.method,
                 selection.criteria=   selection.criteria,
-                npdcmpt.inits.strategy=  npdcmpt.inits.strategy,
-                trapezoidal.rule.c = trapezoidal.rule.c,
-                npdcmpt.inits.strategy.c =  npdcmpt.inits.strategy.c))
+                npdcmpt.inits.strategy=  npdcmpt.inits.strategy))
 }
 
 
