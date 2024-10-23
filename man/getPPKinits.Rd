@@ -38,5 +38,5 @@ Computes initial values of pharmacokinetic parameters using integrated pipeline 
 }
 \examples{
 inits.out<-getPPKinits(dat = Bolus_1CPT[Bolus_1CPT$SS==99, ],run.option = 0,getinitsControl = initsControl(est.method = "focei"))
-print_env_output(inits.out)
+inits.out
 }

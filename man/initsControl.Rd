@@ -47,8 +47,6 @@ A list containing:
 \item \code{est.method}: The method used for PK parameter estimation.
 \item \code{selection.criteria}: The selection criteria for parameter values.
 \item \code{npdcmpt.inits.strategy}: The strategy for initializing the NPD compartment analysis.
-\item \code{trapezoidal.rule.c}: A descriptive string for the selected trapezoidal rule.
-\item \code{npdcmpt.inits.strategy.c}: A descriptive string for the selected NPD initialisation strategy.
 }
 }
 \description{
