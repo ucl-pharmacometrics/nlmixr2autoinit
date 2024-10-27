@@ -74,102 +74,14 @@ getPPKinits<- function(dat,
   # Display the initials setting
   message(magenta( paste(capture.output(knitr::kable(function.params, format = "simple")), collapse = "\n")))
   message(magenta(paste0("---------------------------------------------------------------------------------------------------------------------  -------")))
-  ################## Data preprocessing and information summary#################
+  ################## Data processing and information summary#################
   message(black(
     paste0("Processing data", strrep(".", 20))
   ))
 
-  # Calculate tad and dose number
-  column_names <- toupper(colnames(dat))
-  colnames(dat) <- toupper(colnames(dat))
-
-  # Convert pharmacokinetic dataset to depreciated format with additional dosing
-  if ("ADDL" %in% column_names) {
-    dat <- nmpkconvert(dat)
-  }
-
-  # Check whether infusion case, currently
-  infusion_flag <- 0
-  infusion_flag_c <- "N"
-  route<-"bolus"
-
-  if ("DUR" %in% column_names) {
-    if (!"RATE" %in% column_names) {
-      dat$RATE <- 0
-      dat[dat$DUR > 0,]$RATE <-
-        dat[dat$DUR > 0,]$AMT / dat[dat$DUR > 0,]$DUR
-    }
-  }
-
-  if ("RATE" %in% column_names) {
-    infusion_flag <- 1
-    infusion_flag_c <- "Y"
-    route="infusion"
-    message(black(
-      paste0(
-        "Infusion administration detected.",strrep(".", 20)
-      )
-    ))
-  }
-
-  if ("DOSE" %in% column_names) {
-    dat$DOSE_PRE <- dat$DOSE
-    dat$DOSE<-NULL
-  }
-
-  dat <- calculate_tad(dat, infusion_flag)
-
-  # check whether non intravenous case
-  noniv_flag <- 0
-  noniv_flag_c <- "N"
-
-  if ("CMT" %in% column_names) {
-    if (length(unique(dat$CMT)) > 1) {
-      noniv_flag <- 1
-      noniv_flag_c <- "Y"
-      route="oral"
-      message(black(
-        paste0(
-          "Administration site detected to differ from measurement site; extravascular (oral) administration assumed."
-        )
-      ))
-    }
-  }
-
-  sdflag <- 0
-  sdflag_c <- "N"
-  # check whether it is a single dose case
-  if (nrow(dat[dat$EVID %in% c(1, 4, 101),]) == length(unique(dat[dat$EVID %in% c(1, 4, 101),]$ID))) {
-    sdflag <- 1
-    sdflag_c <- "Y"
-  }
-
-  # Check points with first dose interval
-  fdobsflag <- 0
-  fdobsflag_c <-  "N"
-  if (nrow(dat[dat$dose_number == 1 & dat$EVID == 0,]) > nbins) {
-    fdobsflag <- 1
-    fdobsflag_c <- "Y"
-  }
-
-  # check characteristics of dataset
-  nids <- nrow(dat[!duplicated(dat$ID),])
-  nobs <- nrow(dat[dat$EVID == 0,])
-
-  Datainfo <-
-    paste0(
-      "No. of subjects: ",
-      nids,
-      ", No. of observations: ",
-      nobs,
-      ", Dose route: ",
-      route,
-      ", Is single dose? ",
-      sdflag_c,
-      ", Data within the first dosing interval available? ",
-      fdobsflag_c
-    )
-
+  # fdat<-processData(dat = Bolus_1CPT)
+  fdat<-processData(dat = dat)
+  dat<-fdat$dat
   ######################## Half-life estimated ##############################
 
   message(black(
@@ -179,11 +91,11 @@ getPPKinits<- function(dat,
   #   paste0("Performed linear regression on the terminal phase of pooled dose-normalized data, estimated half-life: ",
   #          half_life)))
 
-   half_life<-half_life_estimated(dat = dat,
-                                  sdflag = sdflag,
-                                  fdobsflag = fdobsflag,
+   half_life_out<-half_life_estimated(fdat = fdat,
                                   nlastpoints = nlastpoints,
                                   nbins=nbins)
+
+   half_life<-  half_life_out[1]
 
    message(black(
      paste0("Estimated half-life : ", half_life)))
@@ -1555,4 +1467,4 @@ print.getPPKinits <- function(env, ...) {
   cat("\n=============== End of Summary ===============\n")
 }
 
-
+# plot.getPPKinits
