@@ -46,7 +46,14 @@
 
 half_life_estimated<-function(fdat,
                               nlastpoints=3,
-                              nbins=8){
+                              nbins=8
+                              ){
+
+  #Preset dataset
+  datpooled_all<-NA
+  datpooled_fd<-NA
+  datpooled_md<-NA
+
   #Predefine half life obtained from three peroids of data
   half_life_fd <-NA
   half_life_md <-NA
