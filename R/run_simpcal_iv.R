@@ -13,77 +13,53 @@
 #'
 #' # Example 1 (iv case)
 #' dat <- Bolus_1CPT
-#' dat <- nmpkconvert(dat)
-#' dat <- calculate_tad(dat)
-#' run_simpcal_iv(dat)
+#' fdat <- processData(dat)
+#' half_life<-half_life_estimated(fdat = fdat)[1]
+#' run_simpcal_iv(fdat,half_life)
 #'
 #' # Example 2 (infusion case).
 #'
 #' dat <- Infusion_1CPT
-#' dat <- nmpkconvert(dat)
-#' dat <- calculate_tad(dat,infusion_flag=1)
-#' run_simpcal_iv(dat,route="infusion")
+#' fdat <- processData(dat)
+#' half_life<-half_life_estimated(fdat = fdat)[1]
+#' run_simpcal_iv(fdat,half_life)
 
 #' @export
 
-run_simpcal_iv <- function(dat,
-                           route="bolus",
-                           sdflag=0,
-                           fdobsflag=1,
+run_simpcal_iv <- function(fdat,
                            half_life=NA) {
 
   start.time <- Sys.time()
-  ##################################Calculate of clearance######################
+
+  # Default
   median.simpcal.cl <- NA
   dat.ss.obs <- NA
   median.simpcal.vd <- NA
   dat.fd.obs <- NA
 
-  if (sdflag == 0) {
-    # Calculate the most commonly used dose interval
-    dose_data <- dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0, ]
-    dose_data <- dose_data[order(dose_data$ID, dose_data$TIME), ]
-    dose_data$interval <-
-      ave(
-        dose_data$TIME,
-        dose_data$ID,
-        FUN = function(x)
-          c(NA, diff(x))
-      )
-    dose_intervals <-
-      round(dose_data$interval[!is.na(dose_data$interval)], 0)
-    most_commonly_used_dose_interval <-
-      as.numeric(names(sort(table(dose_intervals), decreasing = TRUE)[1]))
+  # Check data with the first dose interval
+  if (nrow(fdat$fd_data)>0){
+   ss_ana_flag<-1
+  }
 
+  # Check data with the first dose interval
+  if (nrow(fdat$md_data)>0){
+   fd_ana_flag<-1
+  }
 
-    if (exists("half_life")) {
-      if (is.na(half_life)) {
-        half_life = most_commonly_used_dose_interval
-        # cat(
-        #   "Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
-        # )
-        message(black(
-          paste0("No half life detected, change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered.")))
-      }
-    }
+ ##################################Calculate of clearance######################
+  dat <- is_ss(df = fdat$dat,
+                 half_life = half_life )
+  dat$duration_obs<-0
 
-    if (is.null(half_life)) {
-      half_life = most_commonly_used_dose_interval
-      cat(
-        "Warning: Half-life was not available due to some reasons. Change the condition for reaching steady state after multiple dosing to whether 5 doses have been administered."
-      )
-    }
+  if (nrow(dat[dat$rateobs!=0,]>0)){
+  dat$duration_obs <- dat[dat$rateobs!=0,]$dose / dat[dat$rateobs!=0,]$rateobs
+  }
+  dat.ss.obs <- dat[dat$SteadyState == T,]
 
-    # Identify potential points at the steady state.
-    dat <- is_ss(df = dat,
-                 half_life = half_life ,
-                 dose_interval = most_commonly_used_dose_interval)
-
-    # First selection, identify points during the steady-state phase.
-    dat.ss.obs <- dat[dat$SteadyState == T,]
-
-    if (nrow(dat.ss.obs) > 0) {
-      # If there are multiple points within the same dose interval, only the minimum and maximum values are selected as the steady-state points for calculation
+  if (nrow(dat.ss.obs) > 2) {
+      # If there are multiple points within the same dose interval,
+      # only the minimum and maximum values are selected as the steady-state points for calculation
       dat.ss.obs <- dat.ss.obs %>%
         group_by(ID, dose_number) %>%
         mutate(
@@ -129,128 +105,157 @@ run_simpcal_iv <- function(dat,
 
       # Second selection， only select the max, min points
       dat.ss.obs <- dat.ss.obs[dat.ss.obs$SteadyState == T,]
+
+      # Css type identification
+      dat.ss.obs  <-   dat.ss.obs %>%
+        mutate(
+          # Initialise 'Css_type' to "Css,avg" by default
+          Css_type = "Css_avg",
+
+          # Identify Cssmax and Cssmin based on 'tad', 'ii', and the condition max_value == min_value
+          Css_type = case_when(
+            max_value == min_value & tad <= 0.2 * recent_ii ~ "Css_max",            # tad within 20% of ii -> Css,min
+            max_value == min_value & tad >= 0.8 * recent_ii & tad <= recent_ii ~ "Css_min", # tad within 80-100% of ii -> Css,max
+            TRUE ~ Css_type                                                   # Default to Css,avg for all other cases
+          )
+        )
+
+
       dat.ss.obs$cl <- NA
-      # Calculate the individual clearance.
+
+      # Calculate the clearance by single point and Css_type
+
       for (i in 1:nrow(dat.ss.obs)) {
         # Only one points in the dose interval
-        if (dat.ss.obs[i,]$max_value == dat.ss.obs[i,]$min_value) {
+        if (dat.ss.obs[i,]$Css_type=="Css_avg") {
           dat.ss.obs[i,]$cl <-
             signif(
-              dat.ss.obs[i,]$dose / dat.ss.obs[i,]$DV / most_commonly_used_dose_interval,
+              dat.ss.obs[i,]$dose / dat.ss.obs[i,]$avg_value /dat.ss.obs[i,]$recent_ii ,
               digits = 3
             )
         }
-        # Two points
-        if (dat.ss.obs[i,]$max_value > dat.ss.obs[i,]$min_value) {
+
+
+        if (dat.ss.obs[i,]$Css_type=="Css_max" & dat.ss.obs[i,]$routeobs=="bolus") {
+
+          Css_min_i<-dat.ss.obs[i,]$max_value * exp(-((log(2)/as.numeric(half_life))*dat.ss.obs[i,]$recent_ii))
+          Css_avg_i<-(dat.ss.obs[i,]$max_value+   Css_min_i)/2
+
           dat.ss.obs[i,]$cl <-
             signif(
-              dat.ss.obs[i,]$dose / dat.ss.obs[i,]$avg_value / most_commonly_used_dose_interval,
+              dat.ss.obs[i,]$dose / Css_avg_i/ dat.ss.obs[i,]$recent_ii,
               digits = 3
             )
         }
-      }
 
-      median.simpcal.cl <- median(dat.ss.obs$cl)
-    }
-    # if no enough points for statistics, even no available points found
-    if (nrow(dat.ss.obs) < 3) {
-      median.simpcal.cl <- NA
-    }
-    if (nrow(dat.ss.obs) > 2) {
-      median.simpcal.cl <- median(dat.ss.obs$cl)
-    }
+        if (dat.ss.obs[i,]$Css_type=="Css_max" & dat.ss.obs[i,]$routeobs=="infusion") {
 
-  }
+          Css_min_i<-dat.ss.obs[i,]$max_value * exp(-((log(2)/as.numeric(half_life))*(dat.ss.obs[i,]$recent_ii-dat.ss.obs[i,]$duration_obs)))
+          Css_avg_i<-(dat.ss.obs[i,]$max_value+   Css_min_i)/2
+
+          dat.ss.obs[i,]$cl <-
+            signif(
+              dat.ss.obs[i,]$dose / Css_avg_i/ dat.ss.obs[i,]$recent_ii,
+              digits = 3
+            )
+        }
+
+        if (dat.ss.obs[i,]$Css_type=="Css_min" & dat.ss.obs[i,]$routeobs=="bolus") {
+
+          Css_max_i<-dat.ss.obs[i,]$min_value / exp(-((log(2)/as.numeric(half_life))*dat.ss.obs[i,]$recent_ii))
+          Css_avg_i<-(dat.ss.obs[i,]$min_value + Css_max_i)/2
+
+          dat.ss.obs[i,]$cl <-
+            signif(
+              dat.ss.obs[i,]$dose / Css_avg_i/ dat.ss.obs[i,]$recent_ii,
+              digits = 3
+            )
+
+        }
+
+
+        if (dat.ss.obs[i,]$Css_type=="Css_min" & dat.ss.obs[i,]$routeobs=="infusion") {
+
+          Css_max_i<-dat.ss.obs[i,]$min_value / exp(-((log(2)/as.numeric(half_life))*(dat.ss.obs[i,]$recent_ii-dat.ss.obs[i,]$duration_obs)))
+          Css_avg_i<-(dat.ss.obs[i,]$min_value + Css_max_i)/2
+
+          dat.ss.obs[i,]$cl <-
+            signif(
+              dat.ss.obs[i,]$dose / Css_avg_i/ dat.ss.obs[i,]$recent_ii,
+              digits = 3
+            )
+
+        }
+
+      } # end loop
+
+      # Calculate median cl for each individual
+      individual_mean_cl <- aggregate(cl ~ ID, data = dat.ss.obs, FUN = mean)
+
+      # Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
+      trimmed_mean_cl <- mean(individual_mean_cl$cl, trim = 0.05, na.rm = TRUE)
+
+   }
 
   ########################### Calculate the Volume of distribution###############
-  if (fdobsflag == 1 & !is.na(half_life) & route!="oral") {
 
-    # Bolus case calculation
-    if (route == "bolus") {
 
-      dat$fdflag <- 0
+  if (unique(dat[dat$EVID==1,]$route) == "bolus") {
+
+    if (nrow(dat[dat$EVID == 0 &
+                 dat$dose_number == 1 & dat$tad < half_life * 0.2,]) > 0) {
+
+      dat$C_first_flag <- 0
       dat[dat$EVID == 0 &
-            dat$dose_number == 1 & dat$tad < half_life*0.2, ]$fdflag <- 1
-      dat.fd.obs <- dat[dat$fdflag == 1,]
-      dat.fd.obs <- dat.fd.obs %>%
-        group_by(ID) %>%
-        slice_min(order_by = TIME, n = 1) %>%
-        ungroup()
+            dat$dose_number == 1 & dat$tad < half_life * 0.2,]$C_first_flag <- 1
 
 
-      # Extract rows to be marked in dat.ss.obs
-      dat <- dat %>%
-        rowwise() %>%
-        mutate(fdflag = ifelse(
-          any(
-            ID == dat.fd.obs$ID &
-              dose_number == dat.fd.obs$dose_number &
-              TIME == dat.fd.obs$TIME
-          ),
-          1,
-          0
-        )) %>%
-        ungroup()
+    dat.fd.obs <- dat[dat$C_first_flag == 1, ]
 
-      dat.fd.obs$vd <- signif(dat.fd.obs$dose / dat.fd.obs$DV, 3)
+    dat.fd.obs$vd <- signif(dat.fd.obs$dose / dat.fd.obs$DV, 3)
+
+    # Calculate median vd for each individual
+    individual_mean_vd <- aggregate(vd ~ ID, data = dat.fd.obs, FUN = mean)
+
+    # Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
+    trimmed_mean_vd <- mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE)
+
     }
+  }
 
-  # Infusion case, only collect the samples during infusion
+  # Short-term infusion assumed
+  if (unique(dat[dat$EVID==1,]$route) == "Infusion") {
 
-    if (route == "infusion") {
-      dat$duration_obs<-dat$dose/dat$rateobs
-      dat$fdflag <- 0
+    if (nrow(dat[dat$EVID == 0 &
+                 dat$dose_number == 1 &
+                 dat$tad < half_life * 0.2 & dat$TIME < dat$duration_obs,]) > 0) {
+
+      dat$C_first_flag <- 0
+
       dat[dat$EVID == 0 &
-            dat$dose_number == 1 & dat$tad < half_life*0.2 & dat$TIME<dat$duration_obs, ]$fdflag <- 1
+            dat$dose_number == 1 &
+            dat$tad < half_life * 0.2 &
+            dat$TIME < dat$duration_obs,]$C_first_flag <- 1
 
-      dat.fd.obs <- dat[dat$fdflag == 1,]
-      dat.fd.obs <- dat.fd.obs %>%
-        group_by(ID) %>%
-        slice_min(order_by = TIME, n = 1) %>%
-        ungroup()
+      dat.fd.obs <- dat[dat$C_first_flag == 1, ]
+      dat.fd.obs$vd <-
+        signif(dat.fd.obs$TIME * dat.fd.obs$rateobs / dat.fd.obs$DV, 3)
 
+      # Calculate median vd for each individual
+      individual_mean_vd <- aggregate(vd ~ ID, data = dat.fd.obs, FUN = mean)
 
-      # Extract rows to be marked in dat.ss.obs
-      dat <- dat %>%
-        rowwise() %>%
-        mutate(fdflag = ifelse(
-          any(
-            ID == dat.fd.obs$ID &
-              dose_number == dat.fd.obs$dose_number &
-              TIME == dat.fd.obs$TIME
-          ),
-          1,
-          0
-        )) %>%
-        ungroup()
-      # If less than infusion time, then it needs to multiply the time
-      dat.fd.obs <- dat.fd.obs %>%
-        group_by(ID) %>%
-        mutate(vd = if_else(
-          TIME < dose / RATE,
-          signif(dose * TIME / DV, 3),
-          signif(dose / DV, 3)
-        )) %>%
-        ungroup()
-
+      # Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
+      trimmed_mean_vd <- mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE)
 
     }
-    # if no enough points for statistics, even no available points found
-    if (nrow(dat.fd.obs) < 3) {
-      median.simpcal.vd <- NA
-    }
-    if (nrow(dat.fd.obs) > 2) {
-      median.simpcal.vd <- median(dat.fd.obs$vd)
-    }
-
   }
 
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
   # Only selected the key columns
   simpcal.results <- data.frame(
-    cl = signif(median.simpcal.cl, 3),
-    vd = signif(median.simpcal.vd, 3),
+    cl = signif( trimmed_mean_cl, 3),
+    vd = signif( trimmed_mean_vd, 3),
     starttime = Sys.time(),
     time.spent = time.spent
   )
