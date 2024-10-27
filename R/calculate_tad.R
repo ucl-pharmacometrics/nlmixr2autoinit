@@ -57,7 +57,9 @@ calculate_tad <- function(dat) {
         tad = if_else(conc_rows, TIME - last_dose_time, NA_real_),
         # if conc row, fill by last_dose_number, else, dose_number
         dose_number = if_else(conc_rows, last_dose_number, dose_number),
-        dose = if_else(conc_rows, last_dose, AMT, RATE)
+        dose = if_else(conc_rows, last_dose, AMT),
+        rateobs= if_else(conc_rows, last_rate, RATE),
+        routeobs=if_else(conc_rows, last_route, route)
       ) %>%
 
       select(-last_dose_time, -last_dose_number,-last_dose, -last_rate, - last_route  )
