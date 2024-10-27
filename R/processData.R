@@ -143,21 +143,24 @@ for (id in unique(dat$ID)) {
 dat$SSflag <- 0
 
 for (id in unique(dat$ID)) {
-  # Identify ID and only analysis within ID
+  # Identify rows for the current ID
   id_rows <- which(dat$ID == id)
 
   for (i in id_rows) {
     # Check if SS is 1 in the current row
     if (dat$SS[i] == 1) {
-      # Get the II value for the current row; all concentrations within this period are in steady state
-      hours_to_flag <- dat$II[i]
-      # Calculate the end row index to flag, max is the final row of that ID
-      end_index <- min(i + hours_to_flag - 1, max(id_rows))
+      # Define the end time by adding hours_to_flag to the current TIME
+      end_time <- dat$TIME[i] + dat$II[i]
+
+      # Find the rows within the same ID that fall within the end_time
+      rows_to_flag <- id_rows[dat$TIME[id_rows] <= end_time & dat$TIME[id_rows] >= dat$TIME[i]]
+
       # Set SSflag to 1 for the specified range within the same ID
-      dat$SSflag[i:end_index] <- 1
+      dat$SSflag[rows_to_flag] <- 1
     }
   }
 }
+
 
 
 # Identify route
@@ -169,9 +172,10 @@ dat <- dat %>%
 
     # Determine route based on CMT and RATE
     route = case_when(
-      CMT != evid0_cmt ~ "oral",  # If CMT does not match the CMT of EVID=0, set route to "oral"
-      CMT == evid0_cmt & RATE > 0 ~ "infusion",  # If CMT matches and RATE > 0, set route to "infusion"
-      CMT == evid0_cmt & RATE == 0 ~ "bolus"  # If CMT matches and RATE == 0, set route to "bolus"
+      EVID == 1 & CMT != evid0_cmt ~ "oral",  # If CMT does not match the CMT of EVID=0, set route to "oral"
+      EVID == 1 &  CMT == evid0_cmt & RATE > 0 ~ "infusion",  # If CMT matches and RATE > 0, set route to "infusion"
+      EVID == 1 &  CMT == evid0_cmt & RATE == 0 ~ "bolus",  # If CMT matches and RATE == 0, set route to "bolus"
+      EVID == 0 ~ NA # Keep existing value in `route` for other rows
     )
   ) %>%
   ungroup() %>%
@@ -188,16 +192,19 @@ if ("ADDL" %in% column_names) {
 dat <- mark_dose_number(dat)
 dat<-calculate_tad(dat)
 dat$DVnor <- dat$DV / dat$dose
+
 ############################# Group data####################################
 # First dose data (Data between the first and second doses,dose number=1)
 fd_data<-dat[dat$dose_number==1,]
 # Normalise concentration by dose
 fd_data$DVnor <- fd_data$DV / fd_data$dose
 fd_data_obs<-dat[dat$dose_number==1 & dat$EVID==0,]
+
 # Non-first dose data (Data after at least two doses have been administered,dose number>1)
 md_data <-dat[dat$dose_number>1,]
 md_data$DVnor <-md_data$DV / md_data$dose
 md_data_obs <-dat[dat$dose_number>1 & dat$EVID==0,]
+
 ####################Summary output#############################
 
 # total subjects and observations for each dataset
@@ -219,7 +226,7 @@ summary_doseinfo <- data.frame(
                   "Observations in the First-Dose Interval",
                   "Subjects with Multiple-Dose Data",
                   "Observations after Multiple Doses"),
-  Values = c(unique(dat$route),
+  Values = c(unique(dat[dat$EVID %in% c(1,4),]$route),
             nids,
             nobs,
             nids_fd,
