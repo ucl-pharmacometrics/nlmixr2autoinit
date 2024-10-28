@@ -48,6 +48,9 @@
 #' processed_data <- processData(dat)
 #' dat <- processed_data$dat
 #'
+#' dat <-theo_sd
+#' processed_data <- processData(dat)
+#' dat <- processed_data$dat
 #'
 #' @importFrom dplyr group_by mutate ungroup filter select arrange case_when
 #' @importFrom knitr kable
@@ -78,6 +81,11 @@ if (!"EVID" %in% colnames(dat)) {
 
   }
 }
+
+# Check if any row contains EVID=2 and issue a warning if found
+  if (101 %in% dat$EVID) {
+  dat[dat$EVID==101,]$EVID<-1
+  }
 
 # Check if any row contains EVID=2 and issue a warning if found
 if (2 %in% dat$EVID) {
@@ -191,7 +199,9 @@ dat <- dat %>%
 # Convert pharmacokinetic dataset to depreciated format with additional dosing
 # Must run before marking dose number
 if ("ADDL" %in% column_names) {
+  if (sum(dat$ADDL)>0){
   dat <- nmpkconvert(dat)
+  }
 }
 
 # Mark the dose number
