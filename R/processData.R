@@ -258,9 +258,7 @@ message(magenta(
   paste0("------------------------------------  ------")
 ))
 
-return(list(dat=dat,
-            fd_data=fd_data,
-            md_data=md_data))
+return(dat)
 }
 
 

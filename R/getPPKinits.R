@@ -80,18 +80,43 @@ getPPKinits<- function(dat,
   ))
 
   # fdat<-processData(dat = Bolus_1CPT)
-  fdat<-processData(dat = dat)
-  dat<-fdat$dat
+  dat<-processData(dat = dat)
+
+  # prepare flag for analysis
+    fdobsflag <-0
+    mdobsflag<-0
+    sdflag <-0
+    bolus_flag<-0
+    infusion_flag<-0
+    oral_flag<-0
+
+  if (nrow(dat[dat$dose_number==1 & dat$EVID==0,])>0){
+    fdobsflag = 1
+  }
+
+  if (nrow(dat[dat$dose_number>1 & dat$EVID==0,])>0){
+    mdobsflag  =1
+  }
+
+   if (nrow(dat[dat$dose_number>1 & dat$EVID==0,])==0){
+     sdflag <-1
+   }
+
+  if (unique(dat$routeobs)=="bolus"){
+    bolus_flag<-1
+  }
+
+  if (unique(dat$routeobs)=="infusion"){
+   infusion_flag<-1
+  }
+
+  if (unique(dat$routeobs)=="oral"){
+    oral_flag<-1
+  }
+
   ######################## Half-life estimated ##############################
 
-  message(black(
-    paste0("Estimating half-life",strrep(".", 20))))
-
-  # message(black(
-  #   paste0("Performed linear regression on the terminal phase of pooled dose-normalized data, estimated half-life: ",
-  #          half_life)))
-
-   half_life_out<-half_life_estimated(fdat = fdat,
+   half_life_out<-half_life_estimated(dat = dat,
                                   nlastpoints = nlastpoints,
                                   nbins=nbins)
 
@@ -119,12 +144,9 @@ getPPKinits<- function(dat,
 
  simpcal.results <- run_simpcal_iv(
     dat = dat,
-    route = route,
-    sdflag = sdflag,
-    fdobsflag = fdobsflag,
     half_life = half_life)
 
-simpcal.out <- simpcal.results$simpcal.results
+ simpcal.out <- simpcal.results$simpcal.results
 
 ###################### Single point method (extra)########################
 
@@ -159,7 +181,7 @@ simpcal.out <- simpcal.results$simpcal.results
 ka_simpcal_value<-NA
 ka_simpcal.out<-NA
 
-if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F ){
+if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
 
   ka_simpcal.out<-run_ka_solution(df = dat[dat$EVID==0 & dat$dose_number==1,],
                                   cl = simpcal.out$cl,
@@ -191,7 +213,7 @@ if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$
     ka_method_1_all=NA
     ka_method_1_out_all=NA
 
-  if (noniv_flag==1 & !is.null(nrow(nca.results$datpooled_fd$test.pool.normalised)) ){
+  if (oralflag==1 & !is.null(nrow(nca.results$datpooled_fd$test.pool.normalised)) ){
      if (is.na(nca.results$nca.fd.results$cl)==F & is.na(nca.results$nca.fd.results$vd)==F){
      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_fd$test.pool.normalised,
                       nlastpoints = nlastpoints,
@@ -202,7 +224,7 @@ if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$
      }
   }
 
-  if (noniv_flag==1 & !is.null(nrow(nca.results$datpooled_efd$test.pool.normalised))){
+  if (oral_flag==1 & !is.null(nrow(nca.results$datpooled_efd$test.pool.normalised))){
     if (is.na(nca.results$nca.efd.results$cl)==F & is.na(nca.results$nca.efd.results$vd)==F){
       ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_efd$test.pool.normalised,
                                                 nlastpoints = nlastpoints,
@@ -212,7 +234,7 @@ if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$
     }
     }
 
-    if (noniv_flag==1 & !is.null(nrow(nca.results$datpooled_all$test.pool.normalised))){
+    if (oral_flag==1 & !is.null(nrow(nca.results$datpooled_all$test.pool.normalised))){
       if (is.na(nca.results$nca.all.results$cl)==F & is.na(nca.results$nca.all.results$vd)==F){
       ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_all$test.pool.normalised,
                                                 nlastpoints = nlastpoints,
@@ -285,7 +307,7 @@ if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$
    graph_fd.rRMSE <- NA
 
 #============================== for iv case===================================#
-  if (noniv_flag==0){
+  if (bolus_flag==1 || infusion_flag==1){
     ka=  c(NA,NA,NA,NA,NA)
    # single-point method
     if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F) {
@@ -386,7 +408,7 @@ if (noniv_flag==1 & fdobsflag==1 & is.na(simpcal.out$cl)==F & is.na(simpcal.out$
 }
 
 #================================== for oral case================================#
-  if (noniv_flag==1){
+  if (oral_flag==1){
     ka=  c(ka_simpcal_value,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all)
     # single-point method
     if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(  ka_simpcal_value)==F) {
@@ -633,7 +655,7 @@ cat(message_text, "\n")
 
   sim.vmax.km.results.all <- NULL
 
-  if (noniv_flag==0){
+  if (bolus_flag==1 || infusion_flag==1){
   for (besti in 1:length(base.cl.best)) {
     sim.vmax.km.results.all.i <- sim_sens_vmax_km(
       dat = dat,
@@ -647,7 +669,7 @@ cat(message_text, "\n")
       seq(1, nrow(sim.vmax.km.results.all), 1)
    }
   }
-  if (noniv_flag==1){
+  if (oral_flag==1){
     for (besti in 1:length(base.cl.best)) {
       sim.vmax.km.results.all.i <- sim_sens_vmax_km(
         dat = dat,
@@ -676,7 +698,7 @@ cat(message_text, "\n")
   # Two-compartment model simulation
   sim.2cmpt.results.all <- NULL
 
-  if (noniv_flag==0){
+  if (bolus_flag==1 || infusion_flag==1){
   for (besti in 1:length(base.cl.best)) {
     sim.2cmpt.results.all.i <- sim_sens_2cmpt(dat = dat,
                                               estcl = base.cl.best[besti],
@@ -689,7 +711,7 @@ cat(message_text, "\n")
   }
 
 
-  if (noniv_flag==1){
+  if (oral_flag==1){
     for (besti in 1:length(base.cl.best)) {
       sim.2cmpt.results.all.i <- sim_sens_2cmpt(dat = dat,
                                                 estcl = base.cl.best[besti],
@@ -707,7 +729,7 @@ cat(message_text, "\n")
   # Three-compartment model simulation
   sim.3cmpt.results.all <- NULL
 
-  if (noniv_flag==0){
+  if (bolus_flag==1 || infusion_flag==1){
   for (besti in 1:length(base.cl.best)) {
     sim.3cmpt.results.all.i <- sim_sens_3cmpt(dat = dat,
                                               estcl = base.cl.best[besti],
@@ -719,7 +741,7 @@ cat(message_text, "\n")
   }
   }
 
-  if (noniv_flag==1){
+  if (oral_flag==1){
   for (besti in 1:length(base.cl.best)) {
     sim.3cmpt.results.all.i <- sim_sens_3cmpt(dat = dat,
                                               estcl = base.cl.best[besti],
@@ -858,7 +880,7 @@ cat(message_text, "\n")
     vmax_km_threshold=T
     }
 
-     if (noniv_flag==0){
+     if (bolus_flag==1 || infusion_flag==1){
     message(black(
       paste0("Run one-compartment model with first-order elimination", strrep(".", 20))
     ))
@@ -922,7 +944,7 @@ cat(message_text, "\n")
       input.q23cmpt =   input.q23cmpt)
   }
 
-     if (noniv_flag==1){
+     if (oral_flag==1){
     message(black(
       paste0("Run one-compartment model with first-order absorption and elimination", strrep(".", 20))
     ))
@@ -1022,7 +1044,7 @@ cat(message_text, "\n")
 
    # Output
    # Naive pooled data approach (compartmental analysis)"
-    if (noniv_flag==0){
+    if (bolus_flag==1 || infusion_flag==1){
     npdcmpt.all.out <- data.frame(
 
       Model = c("One-compartment & first-order (absorption) and elimination",
@@ -1090,7 +1112,7 @@ cat(message_text, "\n")
       )
     )
     }
-    if (noniv_flag==1){
+    if (oral_flag==1){
     npdcmpt.all.out <- data.frame(
 
         Model = c("One-compartment & first-order (absorption) and elimination",
@@ -1198,7 +1220,7 @@ cat(message_text, "\n")
     sel.method.multi <- "Simulation-based analysis "
     sel.method.ka<-"Wanger-nelson method"
 
-    if (sel.method.ka.cl.vd== "Single-point method" & noniv_flag==1 ){
+    if (sel.method.ka.cl.vd== "Single-point method" & oral_flag==1 ){
       sel.method.ka<-"Single-point method"
     }
 

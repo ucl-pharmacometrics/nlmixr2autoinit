@@ -44,10 +44,13 @@
 #'
 
 
-half_life_estimated<-function(fdat,
+half_life_estimated<-function(dat,
                               nlastpoints=3,
                               nbins=8
                               ){
+
+  message(black(
+    paste0("Estimating half-life",strrep(".", 20))))
 
   #Preset dataset
   datpooled_all<-NA
@@ -59,24 +62,27 @@ half_life_estimated<-function(fdat,
   half_life_md <-NA
   half_life_all <-NA
 
-  datpooled_all <- pk.time.binning(testdat = fdat$dat,
+  datpooled_all <- pk.time.binning(testdat = dat,
                                    nbins = nbins)
 
   half_life_all<-get_hf(datpooled_all$test.pool.normalised)
 
-  if (nrow(fdat$fd_data)>0){
-    datpooled_fd <- pk.time.binning(testdat = fdat$fd_data,
+
+  if (nrow(dat[dat$dose_number==1 & dat$EVID==0,])>0){
+    datpooled_fd <- pk.time.binning(testdat = fd_data,
                                     nbins = nbins)
 
     half_life_fd<-get_hf(datpooled_fd$test.pool.normalised)
-
   }
-  if (nrow(fdat$md_data)>0){
-    datpooled_md <- pk.time.binning(testdat = fdat$md_data,
+
+
+  if (nrow(dat[dat$dose_number>1 & dat$EVID==0,])>0){
+    datpooled_md <- pk.time.binning(testdat = md_data,
                                     nbins = nbins)
 
     half_life_md<-get_hf(datpooled_md$test.pool.normalised)
-  }
+
+    }
 
 half_life_values<-c( half_life_fd ,half_life_md , half_life_all)
 

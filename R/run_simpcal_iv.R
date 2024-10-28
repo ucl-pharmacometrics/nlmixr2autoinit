@@ -26,7 +26,7 @@
 
 #' @export
 
-run_simpcal_iv <- function(fdat,
+run_simpcal_iv <- function(dat,
                            half_life=NA) {
 
   start.time <- Sys.time()
@@ -37,24 +37,16 @@ run_simpcal_iv <- function(fdat,
   median.simpcal.vd <- NA
   dat.fd.obs <- NA
 
-  # Check data with the first dose interval
-  if (nrow(fdat$fd_data)>0){
-   ss_ana_flag<-1
-  }
-
-  # Check data with the first dose interval
-  if (nrow(fdat$md_data)>0){
-   fd_ana_flag<-1
-  }
-
  ##################################Calculate of clearance######################
-  dat <- is_ss(df = fdat$dat,
+
+  dat <- is_ss(df = dat,
                  half_life = half_life )
   dat$duration_obs<-0
 
   if (nrow(dat[dat$rateobs!=0,]>0)){
   dat$duration_obs <- dat[dat$rateobs!=0,]$dose / dat[dat$rateobs!=0,]$rateobs
   }
+
   dat.ss.obs <- dat[dat$SteadyState == T,]
 
   if (nrow(dat.ss.obs) > 2) {
@@ -198,7 +190,6 @@ run_simpcal_iv <- function(fdat,
    }
 
   ########################### Calculate the Volume of distribution###############
-
 
   if (unique(dat[dat$EVID==1,]$route) == "bolus") {
 

@@ -23,11 +23,11 @@
 #' @export
 
 run_nca.normalised <- function(dat,
-                                  nlastpoints,
-                                   trapezoidal.rule,
-                                  nbins,
-                                  fdobsflag,
-                                  sdflag) {
+                               nlastpoints,
+                               trapezoidal.rule,
+                               nbins,
+                               fdobsflag,
+                               sdflag) {
   # default settings
   nca.fd.results <- data.frame(
     cl = NA,
@@ -76,7 +76,8 @@ run_nca.normalised <- function(dat,
   datpooled_all<-NA
 
   # Analyse data after the first dose
-  if (fdobsflag == 1) {
+  if (fdobsflag==1){
+
     start.time <- Sys.time()
     dat$DVnor <- dat$DV / dat$dose
 
@@ -105,7 +106,8 @@ run_nca.normalised <- function(dat,
       start.time = start.time,
       time.spent = time.spent
     )
-  }
+    }
+
 
   # Analyse data after the repeated dose
 
