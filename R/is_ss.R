@@ -117,13 +117,12 @@ is_ss <- function(df,
     # Determine steady state by evaluating each sampling point individually.
     for (obsi in obs_times) {
       # if SSflag=1
-      if (df[df$ID == id &  df$TIME == obsi, ]$SSflag == 1) {
-        df[df$ID == id &  df$TIME == obsi, ]$SteadyState = T
-        df[df$ID == id &
-             df$TIME == obsi, ]$recent_ii =  tail(dose_ii[dose_ii <= obsi] , 1) # last one
+      if (df[df$ID == id &  df$TIME == obsi & df$EVID==0, ]$SSflag == 1) {
+        df[df$ID == id &  df$TIME == obsi & df$EVID==0, ]$SteadyState = T
+        df[df$ID == id & df$TIME == obsi & df$EVID==0, ]$recent_ii =  tail(dose_ii[dose_ii <= obsi] , 1) # last one
       }
 
-      if (df[df$ID == id &  df$TIME == obsi, ]$SSflag == 0) {
+      if (df[df$ID == id &  df$TIME == obsi & df$EVID==0, ]$SSflag == 0) {
         # Find the doses before the current observation time
         previous_doses <- dose_times[dose_times <= obsi]
         previous_amts <- dose_amts[dose_times <= obsi]
