@@ -28,7 +28,7 @@
 #' @import crayon
 #' @importFrom knitr kable
 #' @examples
-#' inits.out<-getPPKinits(dat = Infusion_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
+#' inits.out<-getPPKinits(dat = Infusion_1CPT,run.option = 0,getinitsControl = initsControl(est.method = "nls"))
 #' inits.out
 #' @export
 #'
@@ -93,7 +93,7 @@ getPPKinits<- function(dat,
     infusion_flag<-0
     oral_flag<-0
 
-  if (nrow(dat[dat$dose_number==1 & dat$EVID==0,])>0){
+  if (nrow(dat[dat$dose_number==1 & dat$EVID==0 & dat$iiobs==0,])>0){
     fdobsflag = 1
   }
 
@@ -190,7 +190,7 @@ ka_simpcal.out<-NA
 
 if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
 
-  ka_simpcal.out<-run_ka_solution(df = dat[dat$EVID==0 & dat$dose_number==1,],
+  ka_simpcal.out<-run_ka_solution(df = dat[dat$EVID==0 & dat$dose_number==1 & dat$iiobs==0,],
                                   cl = simpcal.out$cl,
                                   ke = simpcal.out$cl/simpcal.out$vd )
 

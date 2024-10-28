@@ -38,20 +38,29 @@ Fit_1cmpt_iv <- function(data,
       cp ~ add(add.err)
     })
   }
+      # Temporary setting
+      maxSSv=100
 
-  if (est.method=="nls"){
+      if (est.method=="rxSolve"){
+        fit.1cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv, data =  data,est= "rxSolve",control = rxControl(maxSS=maxSSv))))
+      }
 
-    fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(object = iv,
-                                                               data =  data,
-                                                               est = est.method
-                                                               )))
-  }
+      if (est.method=="nls"){
+       fit.1cmpt.lst <- suppressMessages(suppressWarnings( nlmixr2( object = iv, data =  data,est= "nls",control = nlsControl(rxControl = rxControl(maxSS=maxSSv)))))
+      }
 
-  if (est.method!="nls"){
-  fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(object = iv,
-                                                             data =  data,
-                                                             est = est.method)))
-  }
+      if (est.method=="nlm"){
+        fit.1cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv, data =  data,est= "nlm",control = nlmControl(rxControl = rxControl(maxSS=maxSSv)))))
+      }
+
+       if (est.method=="nlminb"){
+        fit.1cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv, data =  data,est= "nlminb",control = nlminbControl(rxControl = rxControl(maxSS=maxSSv)))))
+       }
+
+      if (est.method=="focei"){
+        fit.1cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv, data =  data,est= "focei",control = foceiControl(rxControl = rxControl(maxSS=maxSSv)))))
+      }
+
   return(fit.1cmpt.lst)
 }
 
@@ -101,10 +110,27 @@ Fit_1cmpt_mm_iv <- function(data,
     })
   }
 
+  maxSSv=100
 
-  fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2(object = iv.mm,
-                              data =  data,
-                              est = est.method)))
+  if (est.method=="rxSolve"){
+    fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv.mm, data =  data,est= "rxSolve",control = rxControl(maxSS=maxSSv))))
+  }
+
+  if (est.method=="nls"){
+    fit.1cmpt.mm.lst <- suppressMessages(suppressWarnings( nlmixr2( object = iv.mm, data =  data,est= "nls",control = nlsControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlm"){
+    fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv.mm, data =  data,est= "nlm",control = nlmControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlminb"){
+    fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv.mm, data =  data,est= "nlminb",control = nlminbControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="focei"){
+    fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv.mm, data =  data,est= "focei",control = foceiControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
 
   return(fit.1cmpt.mm.lst)
 }
@@ -134,11 +160,11 @@ Fit_2cmpt_iv<-function(data,
                         input.vp2cmpt,
                         input.q2cmpt,
                         input.add){
-  input.cl<<-input.cl
-  input.vc2cmpt <<- input.vc2cmpt
-  input.vp2cmpt<<- input.vp2cmpt
-  input.q2cmpt<<-  input.q2cmpt
-  input.add <<- input.add
+  input.cl<<-1.01
+  input.vc2cmpt <<- 1
+  input.vp2cmpt<<- 1
+  input.q2cmpt<<- 1
+  input.add <<- 1
 
 
   iv2 <- function() {
@@ -166,10 +192,27 @@ Fit_2cmpt_iv<-function(data,
     })
   }
 
-  fit.2cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv2,
-                            data =  data,
-                            est= est.method)))
+  maxSSv=100
 
+  if (est.method=="rxSolve"){
+     fit.2cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = iv2, data =  data,est= "rxSolve",control = rxControl(maxSS=maxSSv))))
+  }
+
+  if (est.method=="nls"){
+     fit.2cmpt.lst  <- suppressMessages(suppressWarnings( nlmixr2( object = iv2, data =  data,est= "nls",control = nlsControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlm"){
+     fit.2cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = iv2, data =  data,est= "nlm",control = nlmControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlminb"){
+     fit.2cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = iv2, data =  data,est= "nlminb",control = nlminbControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="focei"){
+     fit.2cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = iv2, data =  data,est= "focei",control = foceiControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
   return(fit.2cmpt.lst)
 }
 
@@ -241,9 +284,28 @@ Fit_3cmpt_iv<-function(data,
     })
   }
 
-  fit.3cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = iv3,
-                            data =  data,
-                            est= est.method)))
+
+  maxSSv=100
+
+  if (est.method=="rxSolve"){
+    fit.3cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = iv3, data =  data,est= "rxSolve",control = rxControl(maxSS=maxSSv))))
+  }
+
+  if (est.method=="nls"){
+    fit.3cmpt.lst  <- suppressMessages(suppressWarnings( nlmixr2( object = iv3, data =  data,est= "nls",control = nlsControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlm"){
+    fit.3cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = iv3, data =  data,est= "nlm",control = nlmControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlminb"){
+    fit.3cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = iv3, data =  data,est= "nlminb",control = nlminbControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="focei"){
+    fit.3cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = iv3, data =  data,est= "focei",control = foceiControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
 
   return(fit.3cmpt.lst)
 }
@@ -262,7 +324,7 @@ Fit_3cmpt_iv<-function(data,
 #' @import nlmixr2
 #' @examples
 #' dat <- Oral_1CPT
-#' Fit_1cmpt_iv(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vd=70,input.add=1)
+#' Fit_1cmpt_oral(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vd=70,input.add=1)
 #' @export
 
 Fit_1cmpt_oral <- function(data,
@@ -299,9 +361,28 @@ Fit_1cmpt_oral <- function(data,
     })
   }
 
-  fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(object = oral,
-                                                             data =  data,
-                                                             est = est.method)))
+  # Temporary setting
+  maxSSv=100
+
+  if (est.method=="rxSolve"){
+    fit.1cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral, data =  data,est= "rxSolve",control = rxControl(maxSS=maxSSv))))
+  }
+
+  if (est.method=="nls"){
+    fit.1cmpt.lst <- suppressMessages(suppressWarnings( nlmixr2( object = oral, data =  data,est= "nls",control = nlsControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlm"){
+    fit.1cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral, data =  data,est= "nlm",control = nlmControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlminb"){
+    fit.1cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral, data =  data,est= "nlminb",control = nlminbControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="focei"){
+    fit.1cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral, data =  data,est= "focei",control = foceiControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
   return(fit.1cmpt.lst)
 }
 
@@ -358,9 +439,27 @@ Fit_1cmpt_mm_oral <- function(data,
   }
 
 
-  fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2(object = oral.mm,
-                                                                 data =  data,
-                                                                 est = est.method)))
+  maxSSv=100
+
+  if (est.method=="rxSolve"){
+    fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral.mm, data =  data,est= "rxSolve",control = rxControl(maxSS=maxSSv))))
+  }
+
+  if (est.method=="nls"){
+    fit.1cmpt.mm.lst <- suppressMessages(suppressWarnings( nlmixr2( object = oral.mm, data =  data,est= "nls",control = nlsControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlm"){
+    fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral.mm, data =  data,est= "nlm",control = nlmControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlminb"){
+    fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral.mm, data =  data,est= "nlminb",control = nlminbControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="focei"){
+    fit.1cmpt.mm.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral.mm, data =  data,est= "focei",control = foceiControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
 
   return(fit.1cmpt.mm.lst)
 }
@@ -429,9 +528,27 @@ Fit_2cmpt_oral<-function(data,
     })
   }
 
-  fit.2cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral2,
-                                                               data =  data,
-                                                               est= est.method)))
+  maxSSv=100
+
+  if (est.method=="rxSolve"){
+    fit.2cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = oral2, data =  data,est= "rxSolve",control = rxControl(maxSS=maxSSv))))
+  }
+
+  if (est.method=="nls"){
+    fit.2cmpt.lst  <- suppressMessages(suppressWarnings( nlmixr2( object = oral2, data =  data,est= "nls",control = nlsControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlm"){
+    fit.2cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = oral2, data =  data,est= "nlm",control = nlmControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlminb"){
+    fit.2cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = oral2, data =  data,est= "nlminb",control = nlminbControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="focei"){
+    fit.2cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = oral2, data =  data,est= "focei",control = foceiControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
 
   return(fit.2cmpt.lst)
 }
@@ -454,7 +571,7 @@ Fit_2cmpt_oral<-function(data,
 #' @import nlmixr2
 #' @examples
 #' dat <- Oral_2CPT
-#' Fit_3cmpt_iv(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vc3cmpt=70,input.vp3cmpt=35,input.vp23cmpt=35,input.q3cmpt=10,input.q23cmpt=10,input.add=1)
+#' Fit_3cmpt_oral(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vc3cmpt=70,input.vp3cmpt=35,input.vp23cmpt=35,input.q3cmpt=10,input.q23cmpt=10,input.add=1)
 #' @export
 
 Fit_3cmpt_oral<-function(data,
@@ -510,9 +627,28 @@ Fit_3cmpt_oral<-function(data,
     })
   }
 
-  fit.3cmpt.lst <-  suppressMessages(suppressWarnings(nlmixr2( object = oral3,
-                                                               data =  data,
-                                                               est= est.method)))
+  maxSSv=100
+
+  if (est.method=="rxSolve"){
+    fit.3cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = oral3, data =  data,est= "rxSolve",control = rxControl(maxSS=maxSSv))))
+  }
+
+  if (est.method=="nls"){
+    fit.3cmpt.lst  <- suppressMessages(suppressWarnings( nlmixr2( object = oral3, data =  data,est= "nls",control = nlsControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlm"){
+    fit.3cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = oral3, data =  data,est= "nlm",control = nlmControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="nlminb"){
+    fit.3cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = oral3, data =  data,est= "nlminb",control = nlminbControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
+  if (est.method=="focei"){
+    fit.3cmpt.lst  <-  suppressMessages(suppressWarnings(nlmixr2( object = oral3, data =  data,est= "focei",control = foceiControl(rxControl = rxControl(maxSS=maxSSv)))))
+  }
+
 
   return(fit.3cmpt.lst)
 }

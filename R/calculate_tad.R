@@ -26,9 +26,11 @@ calculate_tad <- function(dat) {
   }
 
   if (!"RATE" %in% colnames(dat)){
-    dat$RATE<-NA
+    dat$RATE<-0
   }
-
+  if (!"II" %in% colnames(dat)){
+    dat$II<-0
+  }
   if (!"route" %in% colnames(dat)){
      dat$route = NA
   }
@@ -44,11 +46,12 @@ calculate_tad <- function(dat) {
       last_dose_time = if_else(EVID %in% c(1, 101, 4), TIME, NA_real_),
       last_dose_number = if_else(EVID %in% c(1, 101, 4), dose_number, NA_integer_),
       last_dose = if_else(EVID %in% c(1, 101, 4), AMT, NA_integer_),
+      last_ii = if_else(EVID %in% c(1, 101, 4), II, NA_real_),  # Collecting rate information
       last_rate = if_else(EVID %in% c(1, 101, 4), RATE, NA_real_),  # Collecting rate information
       last_route = if_else(EVID %in% c(1, 101, 4), route, NA_character_)  # Collecting route information
     ) %>%
 
-    fill(last_dose_time, last_dose_number, last_dose, last_rate,  last_route , .direction = "down") %>%
+    fill(last_dose_time, last_dose_number, last_dose, last_ii, last_rate,last_route, .direction = "down") %>%
     ungroup()
 
   # Calculate TAD for each concentration
@@ -58,11 +61,12 @@ calculate_tad <- function(dat) {
         # if conc row, fill by last_dose_number, else, dose_number
         dose_number = if_else(conc_rows, last_dose_number, dose_number),
         dose = if_else(conc_rows, last_dose, AMT),
+        iiobs= if_else(conc_rows, last_ii, II),
         rateobs= if_else(conc_rows, last_rate, RATE),
         routeobs=if_else(conc_rows, last_route, route)
       ) %>%
 
-      select(-last_dose_time, -last_dose_number,-last_dose, -last_rate, - last_route  )
+      select(-last_dose_time, -last_dose_number,-last_dose, -last_ii, -last_rate, - last_route  )
 
   return(dat)
 }

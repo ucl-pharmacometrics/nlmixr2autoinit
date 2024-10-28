@@ -31,7 +31,7 @@
 #' @examples
 #' # Example usage:
 #' dat <- Bolus_1CPT
-#' fdat<- processData(dat)
+#' fdat<- processData(dat)$dat
 #' half_life_estimated(fdat)
 #'
 #' @importFrom stats lm
@@ -64,7 +64,7 @@ half_life_estimated<-function(dat,
 
 
   if (nrow(dat[dat$dose_number==1 & dat$EVID==0,])>0){
-    datpooled_fd <- pk.time.binning(testdat = dat[dat$dose_number==1,],
+    datpooled_fd <- pk.time.binning(testdat = dat[dat$dose_number==1 & dat$iiobs==0,],
                                     nbins = nbins)
 
     half_life_fd<-get_hf(datpooled_fd$test.pool.normalised)
@@ -72,7 +72,14 @@ half_life_estimated<-function(dat,
 
 
   if (nrow(dat[dat$dose_number>1 & dat$EVID==0,])>0){
-    datpooled_md <- pk.time.binning(testdat = dat[dat$dose_number>1,],
+
+    datpart1<- dat[dat$dose_number>1,]
+    datpart2<- dat[dat$dose_number==1 & dat$iiobs>0,]
+
+    testdat<-rbind(datpart1,datpart2)
+    testdat<- testdat[with(testdat, order(ID, resetflag, TIME, -AMT)), ]
+
+    datpooled_md <- pk.time.binning(testdat = testdat,
                                     nbins = nbins)
 
     half_life_md<-get_hf(datpooled_md$test.pool.normalised)

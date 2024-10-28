@@ -10,15 +10,15 @@
 #'
 #' # Example 1 (iv case)
 #' dat <- Bolus_1CPT
-#' fdat <- processData(dat)
-#' half_life<-half_life_estimated(fdat = fdat)[1]
+#' fdat <- processData(dat)$dat
+#' half_life<-half_life_estimated(dat = fdat)[1]
 #' run_simpcal_iv(fdat,half_life)
 #'
 #' # Example 2 (infusion case).
 #'
 #' dat <- Infusion_1CPT
-#' fdat <- processData(dat)
-#' half_life<-half_life_estimated(fdat = fdat)[1]
+#' fdat <- processData(dat)$dat
+#' half_life<-half_life_estimated(dat = fdat)[1]
 #' run_simpcal_iv(fdat,half_life)
 
 #' @export
@@ -190,12 +190,13 @@ run_simpcal_iv <- function(dat,
 
   if (unique(dat[dat$EVID==1,]$route) == "bolus") {
 
+    # remove ssflag=1 case
     if (nrow(dat[dat$EVID == 0 &
-                 dat$dose_number == 1 & dat$tad < half_life * 0.2,]) > 0) {
+                 dat$dose_number == 1 & dat$tad < half_life * 0.2 & dat$iiobs==0,]) > 0) {
 
       dat$C_first_flag <- 0
       dat[dat$EVID == 0 &
-            dat$dose_number == 1 & dat$tad < half_life * 0.2,]$C_first_flag <- 1
+            dat$dose_number == 1 & dat$tad < half_life * 0.2 & dat$iiobs==0,]$C_first_flag <- 1
 
 
     dat.fd.obs <- dat[dat$C_first_flag == 1, ]
@@ -212,18 +213,21 @@ run_simpcal_iv <- function(dat,
   }
 
   # Short-term infusion assumed
-  if (unique(dat[dat$EVID==1,]$route) == "Infusion") {
-
+  if (unique(dat[dat$EVID==1,]$route) == "infusion") {
+    # remove ssflag=1 case
     if (nrow(dat[dat$EVID == 0 &
                  dat$dose_number == 1 &
-                 dat$tad < half_life * 0.2 & dat$TIME < dat$duration_obs,]) > 0) {
+                 dat$tad < half_life * 0.2 &
+                 dat$TIME < dat$duration_obs &
+                 dat$iiobs==0,]) > 0) {
 
       dat$C_first_flag <- 0
 
       dat[dat$EVID == 0 &
             dat$dose_number == 1 &
             dat$tad < half_life * 0.2 &
-            dat$TIME < dat$duration_obs,]$C_first_flag <- 1
+            dat$TIME < dat$duration_obs  &
+            dat$iiobs==0,]$C_first_flag <- 1
 
       dat.fd.obs <- dat[dat$C_first_flag == 1, ]
       dat.fd.obs$vd <-

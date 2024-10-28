@@ -8,11 +8,13 @@ Depends:
     R (>= 3.5.0),
     dplyr,
     nlmixr2,
+    nlmixr2est,
     tidyr,
     crayon
 Imports:
     dplyr,
     nlmixr2,
+    nlmixr2est,
     tidyr,
     crayon
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a

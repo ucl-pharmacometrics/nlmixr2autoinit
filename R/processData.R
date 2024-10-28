@@ -42,6 +42,13 @@
 #' dat <- processed_data$dat
 #' Datainfo<-processed_data$Datainfo
 #'
+#' dat <- Bolus_1CPT
+#' dat[1,]$SS=1
+#' dat[1,]$II=24
+#' processed_data <- processData(dat)
+#' dat <- processed_data$dat
+#'
+#'
 #' @importFrom dplyr group_by mutate ungroup filter select arrange case_when
 #' @importFrom knitr kable
 #' @importFrom crayon magenta red black
@@ -194,13 +201,17 @@ dat$DVnor <- dat$DV / dat$dose
 
 ############################# Group data####################################
 # First dose data (Data between the first and second doses,dose number=1)
-fd_data<-dat[dat$dose_number==1,]
+fd_data<-dat[dat$dose_number==1 & dat$iiobs==0,]
 # Normalise concentration by dose
 fd_data$DVnor <- fd_data$DV / fd_data$dose
-fd_data_obs<-dat[dat$dose_number==1 & dat$EVID==0,]
+fd_data_obs<-dat[dat$dose_number==1 & dat$EVID==0& dat$iiobs==0,]
 
 # Non-first dose data (Data after at least two doses have been administered,dose number>1)
-md_data <-dat[dat$dose_number>1,]
+md_data1 <-dat[dat$dose_number>1,]
+md_data2 <-dat[dat$dose_number==1 & dat$iiobs>0,]
+md_data<-rbind(md_data1,md_data2)
+md_data<-md_data[with(md_data, order(ID, resetflag, TIME, -AMT)), ]
+
 md_data$DVnor <-md_data$DV / md_data$dose
 md_data_obs <-dat[dat$dose_number>1 & dat$EVID==0,]
 

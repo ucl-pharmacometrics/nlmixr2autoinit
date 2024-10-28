@@ -81,7 +81,7 @@ run_nca.normalised <- function(dat,
     start.time <- Sys.time()
     dat$DVnor <- dat$DV / dat$dose
 
-    dat_fd <- dat[dat$dose_number == 1, ]
+    dat_fd <- dat[dat$dose_number == 1 & dat$iiobs==0, ]
     datpooled_fd <- pk.time.binning(testdat = dat_fd,
                                     nbins = nbins)
 
@@ -115,7 +115,12 @@ run_nca.normalised <- function(dat,
       start.time <- Sys.time()
       dat$DVnor <- dat$DV / dat$dose
 
-      dat_efd <- dat[dat$dose_number != 1, ]
+      dat_efd1 <- dat[dat$dose_number != 1, ]
+      dat_efd2 <- dat[dat$dose_number==1 & dat$iiobs>0,]
+
+      dat_efd<-rbind(dat_efd1,dat_efd2)
+      dat_efd<- dat_efd[with(dat_efd, order(ID, resetflag, TIME, -AMT)), ]
+
       datpooled_efd <- pk.time.binning(testdat = dat_efd,
                                        nbins = nbins)
 
