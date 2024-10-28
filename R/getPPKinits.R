@@ -1486,6 +1486,8 @@ cat(message_text, "\n")
 
   class(output_env) <- "getPPKinits"
 
+  gc()
+
   return(output_env)
 
 } # end of function

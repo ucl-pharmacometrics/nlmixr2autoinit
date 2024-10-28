@@ -4,24 +4,22 @@
 \alias{half_life_estimated}
 \title{Estimate half-life from given pharmacokinetic Data}
 \usage{
-half_life_estimated(dat, sdflag, fdobsflag, nlastpoints, nbins)
+half_life_estimated(dat, nlastpoints = 3, nbins = 8)
 }
 \arguments{
-\item{dat}{A data frame containing the pharmacokinetic data. It should include columns
-for \code{DV} (dependent variable), \code{dose}, and \code{dose_number}.}
-
-\item{sdflag}{A numeric flag indicating if the data includes repeated dose samples.
-\code{0} means repeated dose data is included, \code{1} otherwise.}
-
-\item{fdobsflag}{A numeric flag indicating if the data includes only the first dose samples.
-\code{1} means only first dose data is included, \code{0} otherwise.}
-
 \item{nlastpoints}{An integer specifying the number of last data points to be used for
 linear regression in the estimation.}
+
+\item{fdat}{A data frame containing the pharmacokinetic data.}
 }
 \value{
-A numeric value representing the geometric mean of the estimated half-life
-values from the different data subsets (first dose, repeated doses, and all data).
+A named vector with the estimated half-life values from each data subset, including:
+\itemize{
+\item \code{half_life_median}: The median of all positive half-life estimates from the subsets.
+\item \code{half_life_fd}: The half-life estimate from first dose data, if available.
+\item \code{half_life_md}: The half-life estimate from repeated dose data, if available.
+\item \code{half_life_all}: The half-life estimate from the complete dataset.
+}
 }
 \description{
 Estimates the half-life based on pharmacokinetic data by linear regression on terminal phase,
@@ -29,24 +27,25 @@ considering different scenarios: data after the first dose, data after repeated 
 and data including both first and repeated doses.
 }
 \details{
-The function splits the input data into subsets based on the dose number,
-performs time binning, and estimates the half-life using the slope of the log-linear
-regression on the last points of the normalized concentration-time data.
-
-The half-life is estimated separately for:
+The function performs the following steps:
+\enumerate{
+\item Splits the input data into subsets based on dosing intervals.
+\item Applies time binning to normalize the concentration-time data in each subset.
+\item Performs linear regression on the log-transformed concentration of the last \code{nlastpoints}
+to calculate the elimination rate constant (\code{ke}) and the half-life (\code{half_life}).
+\item Estimates the half-life separately for:
 \itemize{
-\item Only first dose data
-\item Only repeated dose data
+\item First dose interval data
+\item Repeated dose interval data
 \item All data combined
 }
-The final result is the geometric mean of the positive half-life estimates from these
-subsets.
+\item Returns the median of the positive half-life estimates as \code{half_life_median}.
+}
 }
 \examples{
 # Example usage:
 dat <- Bolus_1CPT
-dat <- nmpkconvert(dat)
-dat <- calculate_tad(dat)
-half_life_estimated(dat, sdflag = 0, fdobsflag = 1, nlastpoints = 4,nbins=8)
+fdat<- processData(dat)
+half_life_estimated(fdat)
 
 }

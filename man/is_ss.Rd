@@ -2,24 +2,77 @@
 % Please edit documentation in R/is_ss.R
 \name{is_ss}
 \alias{is_ss}
-\title{Identify steady-state observations}
+\title{Determine steady state for pharmacokinetic observations}
 \usage{
-is_ss(df, half_life, dose_interval)
+is_ss(df, ss_option = 1, no.doses = 5, no.half_life = 3, half_life = NA)
 }
 \arguments{
-\item{df}{A data frame containing the pharmacokinetic data. The data frame must include columns for ID, TIME, EVID, AMT, and tad (time after dose).}
+\item{df}{A data frame containing pharmacokinetic data. It should include columns:
+\itemize{
+\item \code{ID}: Unique identifier for each subject.
+\item \code{EVID}: Event ID, where 1 indicates a dose and 0 indicates an observation.
+\item \code{SSflag}: Steady-state flag, set to 1 if steady state is manually indicated.
+\item \code{TIME}: Observation or dosing time.
+\item \code{AMT}: Dose amount.
+\item \code{tad}: Time after dose.
+}}
 
-\item{half_life}{The half-life of the drug.}
+\item{ss_option}{Integer, either 1 or 2, indicating the method to determine steady state:
+\itemize{
+\item \code{1}: Use a fixed number of doses specified by \code{no.doses}.
+\item \code{2}: Use a fixed number of half-lives specified by \code{no.half_life} and \code{half_life}.
+}}
 
-\item{dose_interval}{The dosing interval.}
+\item{no.doses}{Integer. Number of doses required to reach steady state when \code{ss_option = 1}. Default is 5.}
+
+\item{no.half_life}{Integer. Number of half-lives required to reach steady state when \code{ss_option = 2}. Default is 3.}
+
+\item{half_life}{Numeric. The half-life of the drug, required if \code{ss_option = 2}.}
 }
 \value{
-A data frame with an additional column \code{SteadyState} indicating whether each observation is at steady state.
+A data frame similar to \code{df} with two additional columns:
+\itemize{
+\item \code{SteadyState}: Logical, indicating whether each observation has reached steady state.
+\item \code{recent_ii}: Numeric, indicating the recent dosing interval for each observation that has achieved steady state.
+}
 }
 \description{
-Checks if a sufficient number of doses have been administered before each observation point to determine if the observation point has reached a steady state, and calculates the time required to reach steady state based on the provided half-life and dose interval, and marks observations as steady state if they meet the criteria.
+Evaluates whether observations in a pharmacokinetic dataset have reached steady state,
+based on user-defined criteria. It supports two options: using a fixed number of doses or using a
+fixed number of half-lives to determine the required dose count for steady state.
+}
+\details{
+The function evaluates steady state for each subject (\code{ID}) individually. It provides two options:
+\itemize{
+\item If \code{ss_option = 1}, steady state is determined by a fixed number of doses (\code{no.doses}).
+\item If \code{ss_option = 2}, steady state is determined based on a fixed number of half-lives (\code{no.half_life})
+multiplied by \code{half_life} to estimate the required dosing duration.
+}
+
+For each observation, the following criteria are used to assess steady state:
+\enumerate{
+\item If \code{SSflag = 1}, the observation is immediately marked as steady state.
+\item If \code{SSflag = 0}, the function checks that:
+\itemize{
+\item The required number of doses has been administered before the observation.
+\item The dosing intervals are consistent, within 50\% of the median dose interval.
+\item The dose amounts are consistent, within 25\% of the median dose.
+\item The observation falls within the last dosing interval, allowing a 25\% variance.
+}
+}
 }
 \examples{
-df <- data.frame(ID = rep(1, 10), EVID = c(1, 0, 0, 1, 0, 0, 1, 0, 0, 1), TIME = 1:10, AMT = c(100, 0, 0, 100, 0, 0, 100, 0, 0, 100), tad = runif(10))
-is_ss(df, half_life = 4, dose_interval = 8)
+# Example usage
+df <- data.frame(
+ ID = rep(1, 14),
+ EVID = c(1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0),
+ SSflag = rep(0, 14),  # Initialize SSflag as 0
+ TIME = 1:14,
+ AMT = c(100, 0, 0, 100, 0, 0, 100, 100, 100, 100, 100, 0, 0, 0),
+ tad = runif(14)
+ )
+
+is_ss(df,ss_option=1)
+is_ss(df,ss_option=2)
+
 }

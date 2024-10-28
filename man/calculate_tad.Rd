@@ -4,12 +4,10 @@
 \alias{calculate_tad}
 \title{Calculate time after dose (TAD) for a pharmacokinetic data}
 \usage{
-calculate_tad(dat, infusion_flag = 0)
+calculate_tad(dat)
 }
 \arguments{
 \item{dat}{A data frame containing the pharmacokinetic data.}
-
-\item{infusion_flag}{A flag indicating whether it is an infusion case}
 }
 \value{
 A data frame with the calculated tad (time after the last dose).
@@ -25,6 +23,6 @@ calculate_tad(dat)
 
 Example 2:
 dat <- Infusion_1CPT
-dat<-calculate_tad(dat,infusion_flag=1)
+dat<-calculate_tad(dat)
 dat
 }

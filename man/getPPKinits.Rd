@@ -37,6 +37,6 @@ A list containing data information, initial parameter estimates, messages, and r
 Computes initial values of pharmacokinetic parameters using integrated pipeline which includes single-point method, non-compartmental analysis, graphical methods, simulation-based analysis and parameter estimation with naive pooled data approach compartmental analysis if specified.
 }
 \examples{
-inits.out<-getPPKinits(dat = Bolus_1CPT[Bolus_1CPT$SS==99, ],run.option = 0,getinitsControl = initsControl(est.method = "focei"))
+inits.out<-getPPKinits(dat = Infusion_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
 inits.out
 }

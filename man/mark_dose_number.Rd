@@ -13,7 +13,7 @@ mark_dose_number(dat)
 A data frame with an additional column \code{dose_number} indicating the sequential number of each dose event for each subject.
 }
 \description{
-Mark the dose number in the dataset by assigning a sequential dose number identified by EVID to each dose event.
+Mark the dose number in the dataset by assigning a sequential dose number identified by EVID to each dose event, process dose number within the same resetflag and ID group.
 }
 \examples{
 dat <-Bolus_1CPT
