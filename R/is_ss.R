@@ -39,22 +39,6 @@
 #' @examples
 #' # Example usage
 #' df <- data.frame(
-#'   ID = rep(1, 10),
-#'   EVID = c(1, 0, 0, 1, 0, 0, 1, 0, 0, 1),
-#'   SSflag = rep(0, 10),
-#'   TIME = 1:10,
-#'   AMT = c(100, 0, 0, 100, 0, 0, 100, 0, 0, 100),
-#'   tad = runif(10)
-#' )
-#' result <- is_ss(df, ss_option = 1, no.doses = 5)
-#'
-#' @importFrom dplyr filter mutate group_by summarise ungroup
-#' @importFrom crayon black
-#' @export
-#'
-#'# Create a data frame with 7 dosing events
-#'
-#' df <- data.frame(
 #'  ID = rep(1, 14),
 #'  EVID = c(1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0),
 #'  SSflag = rep(0, 14),  # Initialize SSflag as 0
@@ -65,7 +49,11 @@
 #'
 #' is_ss(df,ss_option=1)
 #' is_ss(df,ss_option=2)
+#'
+#' @importFrom dplyr filter mutate group_by summarise ungroup
+#' @importFrom crayon black
 #' @export
+
 
 
 
