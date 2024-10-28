@@ -40,8 +40,7 @@
 #' processed_data <- processData(dat)
 #' # Access processed full data, first-dose interval, and multiple-dose data
 #' dat <- processed_data$dat
-#' fd_data <- processed_data$fd_data
-#' md_data <- processed_data$md_data
+#' Datainfo<-processed_data$Datainfo
 #'
 #' @importFrom dplyr group_by mutate ungroup filter select arrange case_when
 #' @importFrom knitr kable
@@ -258,7 +257,7 @@ message(magenta(
   paste0("------------------------------------  ------")
 ))
 
-return(dat)
+return(list(dat=dat,Datainfo =complete_output ))
 }
 
 

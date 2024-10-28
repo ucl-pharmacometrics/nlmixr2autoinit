@@ -4,12 +4,7 @@
 #' considering different scenarios: data after the first dose, data after repeated doses,
 #' and data including both first and repeated doses.
 #'
-#' @param fdat A list containing three data frames:
-#'   \itemize{
-#'     \item **Only first dose data**: Data collected between the first and second doses.
-#'     \item **Only repeated dose data**: Data collected after at least two doses have been administered.
-#'     \item **All data combined**: The complete dataset, containing all dosing intervals.
-#'   }
+#' @param fdat A data frame containing the pharmacokinetic data.
 #' @param nlastpoints An integer specifying the number of last data points to be used for
 #'   linear regression in the estimation.
 #'
@@ -69,7 +64,7 @@ half_life_estimated<-function(dat,
 
 
   if (nrow(dat[dat$dose_number==1 & dat$EVID==0,])>0){
-    datpooled_fd <- pk.time.binning(testdat = fd_data,
+    datpooled_fd <- pk.time.binning(testdat = dat[dat$dose_number==1,],
                                     nbins = nbins)
 
     half_life_fd<-get_hf(datpooled_fd$test.pool.normalised)
@@ -77,7 +72,7 @@ half_life_estimated<-function(dat,
 
 
   if (nrow(dat[dat$dose_number>1 & dat$EVID==0,])>0){
-    datpooled_md <- pk.time.binning(testdat = md_data,
+    datpooled_md <- pk.time.binning(testdat = dat[dat$dose_number>1,],
                                     nbins = nbins)
 
     half_life_md<-get_hf(datpooled_md$test.pool.normalised)

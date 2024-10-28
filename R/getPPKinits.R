@@ -28,7 +28,7 @@
 #' @import crayon
 #' @importFrom knitr kable
 #' @examples
-#' inits.out<-getPPKinits(dat = Bolus_1CPT[Bolus_1CPT$SS==99, ],run.option = 0,getinitsControl = initsControl(est.method = "focei"))
+#' inits.out<-getPPKinits(dat = Infusion_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
 #' inits.out
 #' @export
 #'
@@ -80,7 +80,10 @@ getPPKinits<- function(dat,
   ))
 
   # fdat<-processData(dat = Bolus_1CPT)
-  dat<-processData(dat = dat)
+  processData.out<-processData(dat = dat)
+  dat<-  processData.out$dat
+  Datainfo<-  processData.out$Datainfo
+
 
   # prepare flag for analysis
     fdobsflag <-0
@@ -104,16 +107,20 @@ getPPKinits<- function(dat,
 
   if (unique(dat$routeobs)=="bolus"){
     bolus_flag<-1
+    route<-"bolus"
   }
 
   if (unique(dat$routeobs)=="infusion"){
    infusion_flag<-1
+   route<-"infusion"
   }
 
   if (unique(dat$routeobs)=="oral"){
     oral_flag<-1
+    route<-"oral"
   }
 
+   if (run.option<2){
   ######################## Half-life estimated ##############################
 
    half_life_out<-half_life_estimated(dat = dat,
@@ -213,13 +220,13 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
     ka_method_1_all=NA
     ka_method_1_out_all=NA
 
-  if (oralflag==1 & !is.null(nrow(nca.results$datpooled_fd$test.pool.normalised)) ){
+  if (oral_flag==1 & !is.null(nrow(nca.results$datpooled_fd$test.pool.normalised)) ){
      if (is.na(nca.results$nca.fd.results$cl)==F & is.na(nca.results$nca.fd.results$vd)==F){
      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_fd$test.pool.normalised,
                       nlastpoints = nlastpoints,
                       nca.out = unlist(nca.results$nca.fd.results, use.names = FALSE))
 
-     ka_method_1_fd <-ka_wanger_nelson_result$ka
+     ka_method_1_fd <-signif(ka_wanger_nelson_result$ka,3)
      ka_method_1_out_fd<-ka_wanger_nelson_result$dat_out_wanger_nelson
      }
   }
@@ -229,7 +236,7 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
       ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_efd$test.pool.normalised,
                                                 nlastpoints = nlastpoints,
                                                 nca.out = unlist(nca.results$nca.efd.results, use.names = FALSE))
-      ka_method_1_efd <-ka_wanger_nelson_result$ka
+      ka_method_1_efd <-signif(ka_wanger_nelson_result$ka,3)
       ka_method_1_out_efd<-ka_wanger_nelson_result$dat_out_wanger_nelson
     }
     }
@@ -239,7 +246,7 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
       ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_all$test.pool.normalised,
                                                 nlastpoints = nlastpoints,
                                                 nca.out = unlist(nca.results$nca.all.results, use.names = FALSE))
-      ka_method_1_all <-ka_wanger_nelson_result$ka
+      ka_method_1_all <-signif(ka_wanger_nelson_result$ka,3)
       ka_method_1_out_all<-ka_wanger_nelson_result$dat_out_wanger_nelson
       }
    }
@@ -836,9 +843,11 @@ cat(message_text, "\n")
   vars_to_remove <-
     vars_to_remove[vars_to_remove %in% ls(envir = .GlobalEnv)]
   rm(list = vars_to_remove, envir = .GlobalEnv)
+  }
 
 #################### Naive pooled data approach compartmental analysis #######
-  if (run.option==1){
+  if (run.option>0){
+
     message(black(
       paste0("Run naive pooled data compartmental analysis ",strrep(".", 20))))
 
@@ -1185,6 +1194,7 @@ cat(message_text, "\n")
 
   ######################## Finally selection########################################
 
+  if (run.option<2){
    # Part 1. ka,cl,vd.
     f_init_ka <- base.best$`Calculated Ka`[1]
     f_init_cl <- base.best$`Calculated CL`[1]
@@ -1443,6 +1453,36 @@ cat(message_text, "\n")
   output_env$npdcmpt.all.out<-npdcmpt.all.out
   output_env$Run.history <- init.history
   output_env$Parameter.descriptions <- params.descriptions
+  }
+
+  if (run.option==2){
+
+    init.history <- list(
+      npd_1cmpt_out =npd_1cmpt_out,
+      npd_1cmpt_mm_out = npd_1cmpt_mm_out ,
+      npd_2cmpt_out=npd_2cmpt_out,
+      npd_3cmpt_out= npd_3cmpt_out
+    )
+
+    params.descriptions <- c(
+      "Ka: absorption constant rate",
+      "CL: clearance",
+      "Vd: volumn of distribution",
+      "Vmax: maximum metobolic rate",
+      "Km: Michaelis constant",
+      "Vc: volume of distribution of the central compartment",
+      "Vp: volume of distribution of the peripheral compartment",
+      "Vp: volume of distribution of the second peripheral compartment",
+      "Q: inter-compartmental clearance",
+      "Q2: inter-compartmental clearance between central and second peripheral compartment"
+    )
+
+    output_env <- new.env()
+    output_env$Datainfo <- Datainfo
+    output_env$npdcmpt.all.out<-npdcmpt.all.out
+    output_env$Run.history <- init.history
+    output_env$Parameter.descriptions <- params.descriptions
+  }
 
   class(output_env) <- "getPPKinits"
 
@@ -1475,7 +1515,7 @@ cat(message_text, "\n")
 print.getPPKinits <- function(env, ...) {
   cat("===============Initial Parameter Estimation Summary ===============\n")
   cat("Data information:\n")
-  print(env$Datainfo)
+  message(black(env$Datainfo))
 
   cat("\nRecommended initial estimates by using non-model fitting methods:\n")
   print(head(env$Recommended_initial_estimates, 13))

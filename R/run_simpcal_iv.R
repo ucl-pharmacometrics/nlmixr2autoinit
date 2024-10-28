@@ -2,9 +2,6 @@
 #'
 #' Perform a simplified calculation for clearance and volume of distribution in intravenous cases.
 #' @param dat A data frame containing the intravenous pharmacokinetic data.
-#' @param route A character string specifying the route of administration (e.g, "bolus" and "infusion"). The default value is "bolus".
-#' @param sdflag A flag indicating whether this is only single-dose data.
-#' @param fdobsflag A flag indicating whether first dose observations are available.
 #' @param half_life The half-life of the drug.
 #' @return A list containing the results of the simplified calculation, including clearance, volume of distribution, and the processed dataset.
 #' @importFrom dplyr %>% mutate if_else arrange group_by ungroup slice_min filter select
@@ -32,9 +29,9 @@ run_simpcal_iv <- function(dat,
   start.time <- Sys.time()
 
   # Default
-  median.simpcal.cl <- NA
+  trimmed_mean_cl <- NA
   dat.ss.obs <- NA
-  median.simpcal.vd <- NA
+  trimmed_mean_vd <- NA
   dat.fd.obs <- NA
 
  ##################################Calculate of clearance######################

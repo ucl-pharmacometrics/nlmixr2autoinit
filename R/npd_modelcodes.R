@@ -43,9 +43,7 @@ Fit_1cmpt_iv <- function(data,
 
     fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(object = iv,
                                                                data =  data,
-                                                               est = est.method,
-                                                               control=nlsControl(warnOnly = T,
-                                                                                  algorithm="default")
+                                                               est = est.method
                                                                )))
   }
 
