@@ -93,12 +93,12 @@ mark_dose_number <- function(dat) {
   # dat <- dat[with(dat, order(ID, resetflag,TIME, -AMT)), ]
   dat <- dat %>%
     group_by(ID, resetflag) %>%
-    arrange(TIME) %>%
+    arrange(TIME,CMT) %>%
     mutate(dose_number = if_else(EVID %in% c(1, 101, 4),
                                  cumsum(EVID %in% c(1, 101, 4)),
                                  NA_integer_)) %>%
     ungroup()
 
-  dat <- dat[with(dat, order(ID, resetflag,TIME, -AMT)), ]
+  dat <- dat[with(dat, order(ID, resetflag,TIME, CMT,-AMT)), ]
   return(dat)
 }
