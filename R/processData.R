@@ -82,7 +82,7 @@ if (!"EVID" %in% colnames(dat)) {
   }
 }
 
-# Check if any row contains EVID=2 and issue a warning if found
+# Check if other format of EVID
   if (101 %in% dat$EVID) {
   dat[dat$EVID==101,]$EVID<-1
   }
