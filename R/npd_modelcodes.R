@@ -160,11 +160,11 @@ Fit_2cmpt_iv<-function(data,
                         input.vp2cmpt,
                         input.q2cmpt,
                         input.add){
-  input.cl<<-1.01
-  input.vc2cmpt <<- 1
-  input.vp2cmpt<<- 1
-  input.q2cmpt<<- 1
-  input.add <<- 1
+  input.cl<<- input.cl
+  input.vc2cmpt <<-input.vc2cmpt
+  input.vp2cmpt<<- input.vp2cmpt
+  input.q2cmpt<<-  input.q2cmpt
+  input.add <<- input.add
 
 
   iv2 <- function() {
