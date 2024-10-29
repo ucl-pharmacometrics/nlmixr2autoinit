@@ -15,19 +15,18 @@
 #' @importFrom tidyr fill
 #' @import nlmixr2
 #' @examples
-#' dat <- Bolus_1CPT
-#' dat <- nmpkconvert(dat)
-#' dat <- calculate_tad(dat)
+#' dat <- theo_sd
+#' dat <- processData(dat)$dat
 #' run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=1,nbins = 8, fdobsflag = 1,sdflag=0)
 #' run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=2,nbins = 8, fdobsflag = 1,sdflag=0)
 #' @export
 
 run_nca.normalised <- function(dat,
-                               nlastpoints,
-                               trapezoidal.rule,
-                               nbins,
-                               fdobsflag,
-                               sdflag) {
+                               nlastpoints=3,
+                               trapezoidal.rule=1,
+                               nbins=8,
+                               fdobsflag=1,
+                               sdflag=1) {
   # default settings
   nca.fd.results <- data.frame(
     cl = NA,
