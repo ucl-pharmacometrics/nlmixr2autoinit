@@ -186,9 +186,9 @@ dat <- dat %>%
 
     # Determine route based on CMT and RATE
     route = case_when(
-      EVID == 1 & CMT != evid0_cmt ~ "oral",  # If CMT does not match the CMT of EVID=0, set route to "oral"
-      EVID == 1 &  CMT == evid0_cmt & RATE > 0 ~ "infusion",  # If CMT matches and RATE > 0, set route to "infusion"
-      EVID == 1 &  CMT == evid0_cmt & RATE == 0 ~ "bolus",  # If CMT matches and RATE == 0, set route to "bolus"
+      EVID %in% c(1,4) & CMT != evid0_cmt ~ "oral",  # If CMT does not match the CMT of EVID=0, set route to "oral"
+      EVID %in% c(1,4) &  CMT == evid0_cmt & RATE > 0 ~ "infusion",  # If CMT matches and RATE > 0, set route to "infusion"
+      EVID %in% c(1,4) &  CMT == evid0_cmt & RATE == 0 ~ "bolus",  # If CMT matches and RATE == 0, set route to "bolus"
       EVID == 0 ~ NA # Keep existing value in `route` for other rows
     )
   ) %>%
