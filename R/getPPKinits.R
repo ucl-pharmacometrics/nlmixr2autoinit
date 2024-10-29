@@ -88,6 +88,8 @@ getPPKinits<- function(dat,
   dat<-  processData.out$dat
   Datainfo<-  processData.out$Datainfo
 
+  # Reset ID
+  dat$ID<-dat$ID+(dat$resetflag-1)*max(dat$ID)
 
   # prepare flag for analysis
     fdobsflag <-0
@@ -224,7 +226,7 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
     ka_method_1_all=NA
     ka_method_1_out_all=NA
 
-  if (oral_flag==1 & !is.null(nrow(nca.results$datpooled_fd$test.pool.normalised)) ){
+  if (oral_flag==1 & length(nca.results$datpooled_fd)==2 ){
      if (is.na(nca.results$nca.fd.results$cl)==F & is.na(nca.results$nca.fd.results$vd)==F){
      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_fd$test.pool.normalised,
                       nlastpoints = nlastpoints,
@@ -235,7 +237,7 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
      }
   }
 
-  if (oral_flag==1 & !is.null(nrow(nca.results$datpooled_efd$test.pool.normalised))){
+  if (oral_flag==1 & length(nca.results$datpooled_efd)==2){
     if (is.na(nca.results$nca.efd.results$cl)==F & is.na(nca.results$nca.efd.results$vd)==F){
       ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_efd$test.pool.normalised,
                                                 nlastpoints = nlastpoints,
@@ -245,7 +247,7 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
     }
     }
 
-    if (oral_flag==1 & !is.null(nrow(nca.results$datpooled_all$test.pool.normalised))){
+    if (oral_flag==1 & length(nca.results$datpooled_all)==2){
       if (is.na(nca.results$nca.all.results$cl)==F & is.na(nca.results$nca.all.results$vd)==F){
       ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_all$test.pool.normalised,
                                                 nlastpoints = nlastpoints,
