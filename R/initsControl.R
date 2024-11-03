@@ -38,7 +38,7 @@
 initsControl<-function( half_life = NA,
                         nlastpoints = 4,
                         trapezoidal.rule = 1,
-                        nbins = 8,
+                        nbins = 10,
                         est.method = "nls",
                         selection.criteria="APE",
                         npdcmpt.inits.strategy= 0){
