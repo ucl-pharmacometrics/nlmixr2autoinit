@@ -305,6 +305,7 @@ nca.iv.normalised <- function(dat,
 
   if (ss==0){
    clnormalised <- 1 / auc0_inf
+   cl<-clnormalised
   }
   vdnormalised <- clnormalised / ke
 
