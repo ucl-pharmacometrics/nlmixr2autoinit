@@ -121,6 +121,16 @@ if ("DUR" %in% colnames(dat)) {
     dat[dat$DUR > 0,]$RATE <-
       dat[dat$DUR > 0,]$AMT / dat[dat$DUR > 0,]$DUR
   }
+
+  else{
+    if (min(dat$RATE)==-2){
+      dat$RATE <- 0
+      dat[dat$DUR > 0,]$RATE <-
+        dat[dat$DUR > 0,]$AMT / dat[dat$DUR > 0,]$DUR
+      dat <- dat %>%
+        select(-DUR)
+    }
+  }
 }
 
 if (!"DUR" %in% colnames(dat)) {
@@ -142,7 +152,7 @@ if (!"CMT" %in% colnames(dat)) {
 if ("CMT" %in% column_names) {
   if (length(unique(dat$CMT)) == 1) {
       if (is.character(dat$CMT)){
-        dat$CMT=1
+        dat$CMT= 1
         message(black(
           paste0(
             "CMT value is a number and has been set to 1 by default."
