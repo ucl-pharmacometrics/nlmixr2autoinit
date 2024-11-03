@@ -63,6 +63,15 @@ processData<-function(dat){
 column_names <- toupper(colnames(dat))
 colnames(dat) <- toupper(colnames(dat))
 
+# Convert the values in key columns of input data frame to numeric format
+column.list<-c("TIME","DV","MDV","EVID","RATE","DUR", "AMT","ADDL","II")
+
+for (testcolumn in colnames(dat)) {
+  if (testcolumn %in% column.list) {
+    dat[[testcolumn]] <- as.numeric(dat[[testcolumn]])
+  }
+}
+
 evid_message1<-NULL
 evid_message2<-NULL
 
@@ -81,6 +90,7 @@ if (!"EVID" %in% colnames(dat)) {
 
   }
 }
+
 
 # Check if other format of EVID
   if (101 %in% dat$EVID) {
@@ -142,8 +152,16 @@ if ("CMT" %in% column_names) {
     ))
 
     if (is.character(dat$CMT)){
-      dat[dat$EVID==1,]$CMT=1
+
+      cpcmptname<-dat[dat$EVID==0,]$CMT[1]
       dat[dat$EVID==0,]$CMT=2
+      # iv case
+      if (nrow( dat[dat$EVID==1 & dat$CMT== cpcmptname,])>0){
+      dat[dat$EVID==1 & dat$CMT== cpcmptname,]$CMT=2
+      }
+
+      dat[dat$EVID==1 & dat$CMT!= cpcmptname,]$CMT=1
+
       message(black(
         paste0(
           "CMT value is NOT a number and has been set to 1 (depot) 2 (centre) by default."
@@ -151,7 +169,6 @@ if ("CMT" %in% column_names) {
       ))
     }
   }
-
 
   if (length(unique(dat$CMT)) > 2) {
     message(black(
@@ -210,7 +227,14 @@ for (id in unique(dat$ID)) {
   }
 }
 
+# Convert the values in key columns of input data frame to numeric format
+column.list<-c("TIME","DV","MDV","EVID","RATE","DUR","AMT","CMT", "ADDL","II")
 
+for (testcolumn in colnames(dat)) {
+  if (testcolumn %in% column.list) {
+    dat[[testcolumn]] <- as.numeric(dat[[testcolumn]])
+  }
+}
 
 # Identify route
 dat <- dat %>%
