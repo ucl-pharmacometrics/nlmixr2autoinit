@@ -964,6 +964,9 @@ cat(message_text, "\n")
   }
 
      if (oral_flag==1){
+
+    # change the input compartmental name consistent with model code.
+    dat[dat$cmt==1,]$cmt="depot"
     message(black(
       paste0("Run one-compartment model with first-order absorption and elimination", strrep(".", 20))
     ))
