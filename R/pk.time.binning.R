@@ -15,8 +15,10 @@
 #'
 pk.time.binning <- function(testdat,
                             nbins) {
+
   test.pool <- testdat[testdat$EVID == 0, ]
   test.pool <- subset(test.pool, select = c(tad, DVnor))
+
   colnames(test.pool) <- c("Time", "Conc")
   test.pool <- test.pool[order(test.pool$Time), ]
 
