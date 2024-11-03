@@ -116,18 +116,53 @@ if (!"SS" %in% colnames(dat)) {
     dat$SS<- 0
 }
 
+# CMT
+
 if (!"CMT" %in% colnames(dat)) {
   dat$CMT<- 1
 }
 
-
 if ("CMT" %in% column_names) {
-  if (length(unique(dat$CMT)) > 1) {
+  if (length(unique(dat$CMT)) == 1) {
+      if (is.character(dat$CMT)){
+        dat$CMT=1
+        message(black(
+          paste0(
+            "CMT value is a number and has been set to 1 by default."
+          )
+        ))
+      }
+  }
+
+  if (length(unique(dat$CMT)) == 2) {
     message(black(
       paste0(
         "Administration site detected to differ from measurement site; extravascular (oral) administration assumed."
       )
     ))
+
+    if (is.character(dat$CMT)){
+      dat[dat$EVID==1,]$CMT=1
+      dat[dat$EVID==0,]$CMT=2
+      message(black(
+        paste0(
+          "CMT value is NOT a number and has been set to 1 (depot) 2 (centre) by default."
+        )
+      ))
+    }
+  }
+
+
+  if (length(unique(dat$CMT)) > 2) {
+    message(black(
+      paste0(
+        "Administration site detected to differ from measurement site; extravascular (oral) administration assumed."
+      )
+    ))
+
+    if (is.character(dat$CMT)){
+       stop("Error: Only cases with CMT values of up to two are supported currently")
+    }
   }
 }
 
