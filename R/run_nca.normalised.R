@@ -111,6 +111,23 @@ run_nca.normalised <- function(dat,
   # Analyse data after the repeated dose
 
   if (sdflag == 0) {
+
+    # Needs to introduce most commonly used dose-interval
+    # Calculate the most commonly used dose interval
+    dose_data <- dat[dat$EVID %in% c(1, 4) & dat$AMT > 0, ]
+    dose_data <- dose_data[order(dose_data$ID, dose_data$TIME), ]
+    dose_data$interval <-
+      ave(
+        dose_data$TIME,
+        dose_data$ID,
+        FUN = function(x)
+          c(NA, diff(x))
+      )
+    dose_intervals <-
+      round(dose_data$interval[!is.na(dose_data$interval)], 0)
+     most_commonly_used_dose_interval <-
+      as.numeric(names(sort(table(dose_intervals), decreasing = TRUE)[1]))
+
       start.time <- Sys.time()
       dat$DVnor <- dat$DV / dat$dose
 
@@ -119,6 +136,7 @@ run_nca.normalised <- function(dat,
 
       dat_efd<-rbind(dat_efd1,dat_efd2)
       dat_efd<- dat_efd[with(dat_efd, order(ID, resetflag, TIME, -AMT)), ]
+      dat_efd<-dat_efd[dat_efd$tad<=most_commonly_used_dose_interval*0.2, ]
 
       datpooled_efd <- pk.time.binning(testdat = dat_efd,
                                        nbins = nbins)
@@ -126,7 +144,8 @@ run_nca.normalised <- function(dat,
       nca.output <-
         nca.iv.normalised(dat = datpooled_efd$test.pool.normalised,
                            trapezoidal.rule= trapezoidal.rule,
-                          nlastpoints = nlastpoints)
+                          nlastpoints = nlastpoints,
+                          ss = 1)
 
       end.time <- Sys.time()
       time.spent <- round(difftime(end.time, start.time), 4)
