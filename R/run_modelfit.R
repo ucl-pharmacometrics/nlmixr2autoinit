@@ -43,6 +43,11 @@ run_npd_1cmpt_iv <- function(dat,
                              input.vd=1,
                              input.add=1) {
   start.time <- Sys.time()
+  npd.list <-NA
+  npd_results<-data.frame(cl = NA,
+                          vd = NA,
+                          timespent = NA)
+
   npd.list <-  Fit_1cmpt_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
@@ -153,6 +158,12 @@ run_npd_1cmpt_mm_iv <- function(dat,
   start.time <- Sys.time()
   estvmax<-npdmm_inputvmax
   estkm<-npdmm_inputkm
+
+  npdmm.list <-NA
+  npdmm_results<-data.frame(  vmax = NA,
+                              km =  NA,
+                              vd =  NA,
+                              timespent = NA)
 
   # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=T
   # Determine the maximum concentration
@@ -278,6 +289,17 @@ run_npd_2cmpt_iv <- function(dat,
                              input.q2cmpt=1,
                              input.add=1) {
   start.time <- Sys.time()
+
+  npd.list.2cmpt <-NA
+  npd_results_2cmpt <-
+    data.frame(
+      cl = NA,
+      vc = NA,
+      vp = NA,
+      q = NA,
+      timespent = NA
+    )
+
   npd.list.2cmpt <-  Fit_2cmpt_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
@@ -390,6 +412,18 @@ run_npd_3cmpt_iv <- function(dat,
                              input.q23cmpt = 1,
                              input.add=1) {
   start.time <- Sys.time()
+  npd.list.3cmpt<-NA
+  npd_results_3cmpt <-
+    data.frame(
+      cl = NA,
+      vc = NA,
+      vp = NA,
+      vp2 = NA,
+      q = NA,
+      q2 = NA,
+      timespent = NA
+    )
+
   npd.list.3cmpt <-  Fit_3cmpt_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
@@ -493,6 +527,15 @@ run_npd_1cmpt_oral <- function(dat,
                              input.vd=1,
                              input.add=1) {
   start.time <- Sys.time()
+  npd.list <-NA
+  npd_results <-
+    data.frame(
+      ka= NA,
+      cl = NA,
+      vd = NA,
+      timespent = NA
+    )
+
   npd.list <-  Fit_1cmpt_oral(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
@@ -617,6 +660,16 @@ run_npd_1cmpt_mm_oral <- function(dat,
   start.time <- Sys.time()
   estvmax<-input.vmax
   estkm<-input.km
+
+  npdmm.list <- NA
+  npdmm_results <-
+    data.frame(
+      ka = NA,
+      vmax =  NA,
+      km =  NA,
+      vd =  NA,
+      timespent = NA
+    )
 
   # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=T
   # Determine the maximum concentration
@@ -743,6 +796,17 @@ run_npd_2cmpt_oral <- function(dat,
                              input.q2cmpt=1,
                              input.add=1) {
   start.time <- Sys.time()
+  npd.list.2cmpt<-NA
+  npd_results_2cmpt <-
+    data.frame(
+      ka = NA,
+      cl = NA,
+      vc = NA,
+      vp = NA,
+      q = NA,
+      timespent = NA
+    )
+
   npd.list.2cmpt <-  Fit_2cmpt_oral(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
@@ -859,6 +923,19 @@ run_npd_3cmpt_oral <- function(dat,
                              input.q23cmpt = 1,
                              input.add=1) {
   start.time <- Sys.time()
+  npd.list.3cmpt <-NA
+  npd_results_3cmpt <-
+    data.frame(
+      ka = NA,
+      cl = NA,
+      vc = NA,
+      vp =  NA,
+      vp2 = NA,
+      q = NA,
+      q2 = NA,
+      timespent = NA
+    )
+
   npd.list.3cmpt <-  Fit_3cmpt_oral(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
