@@ -33,8 +33,8 @@ Fit_1cmpt_iv <- function(data,
       cl <- exp(tcl)
       v  <- exp(tv)
       k  <- cl / v
-      d / dt(A1) = -k * A1
-      cp = A1 / v
+      d / dt(centre) = -k * centre
+      cp = centre / v
       cp ~ add(add.err)
     })
   }
@@ -104,8 +104,8 @@ Fit_1cmpt_mm_iv <- function(data,
       vmax = exp(lvmax)
       km = exp(lkm)
       v  <- exp(tv)
-      d / dt(centr) <- -(vmax / (km + centr / v)) / v * centr
-      cp <- centr / v
+      d / dt(centre) <- -(vmax / (km + centre / v)) / v * centre
+      cp <- centre / v
       cp ~ add(add.err)
     })
   }
@@ -185,9 +185,9 @@ Fit_2cmpt_iv<-function(data,
       k12<-q/v1
       k21<-q/v2
 
-      d/dt(A1) = - k * A1   - k12 * A1 + k21*A2
-      d/dt(A2) =   k12 * A1 -  k21 * A2
-      cp = A1 / v1
+      d/dt(centre) = - k * centre   - k12 * centre + k21*A2
+      d/dt(A2) =   k12 * centre -  k21 * A2
+      cp = centre / v1
       cp ~ add(add.err)
     })
   }
@@ -276,10 +276,10 @@ Fit_3cmpt_iv<-function(data,
       k21<-q/v2
       k13<-q2/v1
       k31<-q2/v3
-      d/dt(A1) = - k * A1   - k12 * A1 + k21*A2
-      d/dt(A2) =   k12 * A1 -  k21 * A2
-      d/dt(A3) =   k13 * A1 -  k31 * A3
-      cp = A1 / v1
+      d/dt(centre) = - k * centre   - k12 * centre + k21*A2
+      d/dt(A2) =   k12 * centre -  k21 * A2
+      d/dt(A3) =   k13 * centre -  k31 * A3
+      cp = centre / v1
       cp ~ add(add.err)
     })
   }
