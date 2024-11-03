@@ -126,8 +126,12 @@ getPPKinits<- function(dat,
     route<-"oral"
   }
 
-   if (run.option<2){
-  ######################## Half-life estimated ##############################
+
+########################### Pipeline part ##################################
+
+  if (run.option<2){
+
+######################## Half-life estimated ################################
 
    half_life_out<-half_life_estimated(dat = dat,
                                   nlastpoints = nlastpoints,
@@ -772,7 +776,7 @@ cat(message_text, "\n")
 ################## Parameter Selection Selection############################
   if (selection.criteria=="APE"){
     recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.APE == min(sim.vmax.km.results.all$sim.mm.APE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.APE)==F,]
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.APE == min(sim.vmax.km.results.all$sim.mm.APE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.APE)==F,][1,]
 
     recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE== min(sim.2cmpt.results.all$sim.2cmpt.APE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.APE)==F,][1,]
     recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE== min(sim.3cmpt.results.all$sim.3cmpt.APE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.APE)==F,][1,]
@@ -780,7 +784,7 @@ cat(message_text, "\n")
 
   if (selection.criteria=="MAE"){
     recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAE == min(sim.vmax.km.results.all$sim.mm.MAE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.MAE)==F,]
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAE == min(sim.vmax.km.results.all$sim.mm.MAE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.MAE)==F,][1,]
 
     recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAE== min(sim.2cmpt.results.all$sim.2cmpt.MAE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.MAE)==F,][1,]
     recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAE== min(sim.3cmpt.results.all$sim.3cmpt.MAE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.MAE)==F,][1,]
@@ -788,7 +792,7 @@ cat(message_text, "\n")
 
   if (selection.criteria=="MAPE"){
     recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == min(sim.vmax.km.results.all$sim.mm.MAPE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.MAPE)==F,]
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == min(sim.vmax.km.results.all$sim.mm.MAPE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.MAPE)==F,][1,]
 
     recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE== min(sim.2cmpt.results.all$sim.2cmpt.MAPE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.MAPE)==F,][1,]
     recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE== min(sim.3cmpt.results.all$sim.3cmpt.MAPE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.MAPE)==F,][1,]
@@ -796,7 +800,7 @@ cat(message_text, "\n")
 
   if (selection.criteria=="RMSE"){
     recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.RMSE == min(sim.vmax.km.results.all$sim.mm.RMSE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.RMSE)==F,]
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.RMSE == min(sim.vmax.km.results.all$sim.mm.RMSE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.RMSE)==F,][1,]
 
     recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.RMSE== min(sim.2cmpt.results.all$sim.2cmpt.RMSE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.RMSE)==F,][1,]
     recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.RMSE== min(sim.3cmpt.results.all$sim.3cmpt.RMSE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.RMSE)==F,][1,]
@@ -804,7 +808,7 @@ cat(message_text, "\n")
 
   if (selection.criteria=="rRMSE"){
     recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.rRMSE == min(sim.vmax.km.results.all$sim.mm.rRMSE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.rRMSE)==F,]
+      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.rRMSE == min(sim.vmax.km.results.all$sim.mm.rRMSE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.rRMSE)==F,][1,]
 
     recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.rRMSE== min(sim.2cmpt.results.all$sim.2cmpt.rRMSE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.rRMSE)==F,][1,]
     recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.rRMSE== min(sim.3cmpt.results.all$sim.3cmpt.rRMSE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.rRMSE)==F,][1,]
