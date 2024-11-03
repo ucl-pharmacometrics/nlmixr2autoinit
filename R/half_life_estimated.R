@@ -41,7 +41,7 @@
 
 half_life_estimated<-function(dat,
                               nlastpoints=3,
-                              nbins=8
+                              nbins=10
                               ){
 
   message(black(
