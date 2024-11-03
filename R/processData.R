@@ -75,6 +75,14 @@ for (testcolumn in colnames(dat)) {
 evid_message1<-NULL
 evid_message2<-NULL
 
+
+if ("CENS" %in% colnames(dat)) {
+  if (max(dat$CENS)==1){
+  message(black(paste(" 'nlm' does not work with censored data, cens column has been removed, insteadly DV=0 after Tmax was set as NA (EVID=2) ")))
+   dat$CENS<-0
+  }
+}
+
 if (!"EVID" %in% colnames(dat)) {
 
   if (!"MDV" %in% colnames(dat)) {
@@ -90,7 +98,6 @@ if (!"EVID" %in% colnames(dat)) {
 
   }
 }
-
 
 # Check if other format of EVID
   if (101 %in% dat$EVID) {
@@ -266,6 +273,34 @@ if ("ADDL" %in% column_names) {
 # Mark the dose number
 dat <- mark_dose_number(dat)
 dat<-calculate_tad(dat)
+
+
+dat <- dat %>%
+  mutate(original_EVID = EVID) %>%  # Create a backup column for EVID
+  group_by(ID, dose_number) %>%  # Group by ID and dose_number to work within each dose cycle
+  mutate(
+    # Calculate Tmax within each ID and dose_number group where EVID == 0
+    Tmax = ifelse(any(EVID == 0), TIME[which.max(DV[EVID == 0])], NA_real_),
+    # Set EVID to 2 for rows where EVID == 0, TIME > Tmax, and DV == 0 within each ID and dose_number group
+    # Only set if Tmax is not NA
+    EVID = if_else(EVID == 0 & !is.na(Tmax) & TIME > Tmax & DV == 0, 2, EVID),
+    # Set DV to NA for rows where EVID is set to 2
+    DV = if_else(EVID == 2, 0, DV)
+  ) %>%
+  ungroup()
+
+dat <- select(dat, -Tmax)
+dat<-as.data.frame(dat)
+
+# Check if any EVID was changed from 0 to 2
+if (any(dat$original_EVID == 0 & dat$EVID == 2)) {
+  message(black("Some rows have been updated: EVID set to 2 for DV=0 after Tmax, and they will be removed for the entire analysis."))
+  # Check if any row contains EVID=2 and issue a warning if found
+  if (2 %in% dat$EVID) {
+    dat <- dat %>% filter(EVID != 2)
+  }
+}
+
 dat$DVnor <- dat$DV / dat$dose
 
 ############################# Group data####################################
