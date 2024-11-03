@@ -866,19 +866,19 @@ cat(message_text, "\n")
         paste0("Warning: there is no reference for intial estimates in current naive pooled data compartmental analysis, running maybe crashed down due to failure convergence")))
 
       # initial estimates = 1 (add a small random value to make the nls run)
-      input.ka = round(1 + runif(1, min = 0, max = 0.02),3)
-      input.cl = round(1 + runif(1, min = 0, max = 0.02),3)
-      input.vd = round(1 + runif(1, min = 0, max = 0.02),3)
-      input.vc2cmpt=  round(1 + runif(1, min = 0, max = 0.02),3)
-      input.vp2cmpt= round(1 + runif(1, min = 0, max = 0.02),3)
-      input.vc3cmpt =  round(1 + runif(1, min = 0, max = 0.02),3)
-      input.vp3cmpt = round(1 + runif(1, min = 0, max = 0.02),3)
-      input.vp23cmpt = round(1 + runif(1, min = 0, max = 0.02),3)
-      input.q2cmpt=    round(1 + runif(1, min = 0, max = 0.02),3)
-      input.q3cmpt =   round(1+ runif(1, min = 0, max = 0.02),3)
-      input.q23cmpt = round(1+ runif(1, min = 0, max = 0.02),3)
-      input.vmax= round(1+ runif(1, min = 0, max = 0.02),3)
-      input.km= round(1+ runif(1, min = 0, max = 0.02),3)
+      input.ka = round(1 + runif(1, min = 0.01, max = 0.02),3)
+      input.cl = round(1 + runif(1, min = 0.01, max = 0.02),3)
+      input.vd = round(1 + runif(1, min = 0.01, max = 0.02),3)
+      input.vc2cmpt=  round(1 + runif(1, min = 0.01, max = 0.02),3)
+      input.vp2cmpt= round(1 + runif(1, min = 0.01, max = 0.02),3)
+      input.vc3cmpt =  round(1 + runif(1, min = 0.01, max = 0.02),3)
+      input.vp3cmpt = round(1 + runif(1, min = 0.01, max = 0.02),3)
+      input.vp23cmpt = round(1 + runif(1, min = 0.01, max = 0.02),3)
+      input.q2cmpt=    round(1 + runif(1, min = 0.01, max = 0.02),3)
+      input.q3cmpt =   round(1+ runif(1, min = 0.01, max = 0.02),3)
+      input.q23cmpt = round(1+ runif(1, min = 0.01, max = 0.02),3)
+      input.vmax= round(1+ runif(1, min = 0.01, max = 0.02),3)
+      input.km= round(1+ runif(1, min = 0.01, max = 0.02),3)
       vmax_km_threshold=F
     }
 
@@ -900,6 +900,8 @@ cat(message_text, "\n")
     }
 
      if (bolus_flag==1 || infusion_flag==1){
+
+    dat[dat$CMT==1,]$CMT<-"centre"
     message(black(
       paste0("Run one-compartment model with first-order elimination", strrep(".", 20))
     ))
@@ -966,7 +968,7 @@ cat(message_text, "\n")
      if (oral_flag==1){
 
     # change the input compartmental name consistent with model code.
-    dat[dat$cmt==1,]$cmt="depot"
+    dat[dat$CMT==1,]$CMT="depot"
     message(black(
       paste0("Run one-compartment model with first-order absorption and elimination", strrep(".", 20))
     ))
