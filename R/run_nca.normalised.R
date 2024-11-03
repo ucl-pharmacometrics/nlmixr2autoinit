@@ -83,7 +83,8 @@ run_nca.normalised <- function(dat,
     dat_fd <- dat[dat$dose_number == 1 & dat$iiobs==0, ]
     datpooled_fd <- pk.time.binning(testdat = dat_fd,
                                     nbins = nbins)
-
+    # clear nca.output
+    nca.output<-NA
     nca.output <-
       nca.iv.normalised(dat = datpooled_fd$test.pool.normalised,
                         trapezoidal.rule= trapezoidal.rule,
@@ -131,16 +132,17 @@ run_nca.normalised <- function(dat,
       start.time <- Sys.time()
       dat$DVnor <- dat$DV / dat$dose
 
-      dat_efd1 <- dat[dat$dose_number != 1, ]
+      dat_efd1.obs <- dat[dat$dose_number != 1 & dat$EVID==0, ]
+      dat_efd1.dose <- dat[dat$dose_number != 1 & dat$EVID==1, ]
+      dat_efd1.obs <-dat_efd1.obs[ dat_efd1.obs$tad<=most_commonly_used_dose_interval*1.2, ]
       dat_efd2 <- dat[dat$dose_number==1 & dat$iiobs>0,]
 
-      dat_efd<-rbind(dat_efd1,dat_efd2)
+      dat_efd<-rbind( dat_efd1.obs, dat_efd1.dose, dat_efd2)
       dat_efd<- dat_efd[with(dat_efd, order(ID, resetflag, TIME, -AMT)), ]
-      dat_efd<-dat_efd[dat_efd$tad<=most_commonly_used_dose_interval*0.2, ]
 
       datpooled_efd <- pk.time.binning(testdat = dat_efd,
                                        nbins = nbins)
-
+      nca.output<-NA
       nca.output <-
         nca.iv.normalised(dat = datpooled_efd$test.pool.normalised,
                            trapezoidal.rule= trapezoidal.rule,
@@ -171,14 +173,24 @@ run_nca.normalised <- function(dat,
 
   start.time <- Sys.time()
   dat$DVnor <- dat$DV / dat$dose
-  datpooled_all <- pk.time.binning(testdat = dat,
+
+  dat_all.obs <- dat[dat$EVID==0, ]
+  dat_all.dose <- dat[dat$EVID==1, ]
+  dat_all.obs <-dat_all.obs[ dat_all.obs$tad<=most_commonly_used_dose_interval*1.2, ]
+
+  dat_all<-rbind( dat_all.obs, dat_all.dose)
+  dat_all<- dat_all[with(dat_efd, order(ID, resetflag, TIME, -AMT)), ]
+
+  datpooled_all <- pk.time.binning(testdat = dat_all,
                                    nbins = nbins)
 
-  datpooled_all$test.pool.normalised
+  nca.output<-NA
   nca.output <-
     nca.iv.normalised(dat = datpooled_all$test.pool.normalised,
                        trapezoidal.rule= trapezoidal.rule,
-                      nlastpoints = nlastpoints)
+                      nlastpoints = nlastpoints,
+                      ss=1)
+
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
   nca.all.results  <- data.frame(
@@ -233,7 +245,7 @@ run_nca.normalised <- function(dat,
 
 nca.iv.normalised <- function(dat,
                                trapezoidal.rule=1,
-                              ss=F,
+                              ss=0,
                               nlastpoints=3) {
 
   cl=NA
@@ -245,6 +257,7 @@ nca.iv.normalised <- function(dat,
   C_last=NA
   ke=NA
   aumc_0_inf=NA
+  clnormalised=NA
 
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
@@ -278,6 +291,11 @@ nca.iv.normalised <- function(dat,
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
   slope <- summary(abc)[[4]][[2]]
 
+  if (ss==1){
+   clnormalised <- 1 / auct
+   cl <- clnormalised
+  }
+
   if (slope<0){
   ke <- -slope
   lambda_z<- ke
@@ -288,12 +306,8 @@ nca.iv.normalised <- function(dat,
   if (ss==0){
    clnormalised <- 1 / auc0_inf
   }
-  if (ss==1){
-   clnormalised <- 1 / auct
-  }
-
   vdnormalised <- clnormalised / ke
-  cl <- clnormalised
+
   vd <- vdnormalised
   # AUMC calculation
   time<-dat$TIME
