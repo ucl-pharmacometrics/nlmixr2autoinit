@@ -353,10 +353,10 @@ Fit_1cmpt_oral <- function(data,
       v  <- exp(tv)
       k  <- cl / v
 
-      d / dt(A1) = - ka*A1
-      d / dt(A2) = -k * A2 + ka*A1
+      d / dt(depot) = - ka*depot
+      d / dt(centre) = -k * centre + ka*depot
 
-      cp = A2 / v
+      cp = centre / v
       cp ~ add(add.err)
     })
   }
@@ -432,8 +432,8 @@ Fit_1cmpt_mm_oral <- function(data,
       km = exp(lkm)
       v  <- exp(tv)
       d / dt(depot) = - ka*depot
-      d / dt(centr) <- -(vmax / (km + centr / v)) / v * centr + ka*depot
-      cp <- centr / v
+      d / dt(centre) <- -(vmax / (km + centre / v)) / v * centre + ka*depot
+      cp <- centre / v
       cp ~ add(add.err)
     })
   }
