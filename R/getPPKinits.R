@@ -37,7 +37,6 @@
 #' @export
 #'
 
-
 getPPKinits<- function(dat,
                        run.option=0,
                        getinitsControl=initsControl()) {
@@ -128,9 +127,7 @@ getPPKinits<- function(dat,
 
 
 ########################### Pipeline part ##################################
-
   if (run.option<2){
-
 ######################## Half-life estimated ################################
 
    half_life_out<-half_life_estimated(dat = dat,
