@@ -60,14 +60,14 @@ half_life_estimated<-function(dat,
   datpooled_all <- pk.time.binning(testdat = dat,
                                    nbins = nbins)
 
-  half_life_all<-get_hf(datpooled_all$test.pool.normalised)
+  half_life_all<-get_hf(datpooled_all$test.pool.normalised,nlastpoints = nlastpoints)
 
 
   if (nrow(dat[dat$dose_number==1 & dat$EVID==0 & dat$iiobs==0,])>0){
     datpooled_fd <- pk.time.binning(testdat = dat[dat$dose_number==1 & dat$iiobs==0,],
                                     nbins = nbins)
 
-    half_life_fd<-get_hf(datpooled_fd$test.pool.normalised)
+    half_life_fd<-get_hf(datpooled_fd$test.pool.normalised,nlastpoints = nlastpoints)
   }
 
 
@@ -82,7 +82,7 @@ half_life_estimated<-function(dat,
     datpooled_md <- pk.time.binning(testdat = testdat,
                                     nbins = nbins)
 
-    half_life_md<-get_hf(datpooled_md$test.pool.normalised)
+    half_life_md<-get_hf(datpooled_md$test.pool.normalised,nlastpoints = nlastpoints)
 
     }
 
@@ -136,7 +136,7 @@ return(c(half_life_median=half_life_median,
 #' @export
 
 get_hf<-function(testdat,
-                 nlastpoints=4){
+                 nlastpoints=3){
 
   half_life_<-NA
  temp1 <- tail( testdat,
