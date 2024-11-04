@@ -48,6 +48,12 @@ run_npd_1cmpt_iv <- function(dat,
                           vd = NA,
                           timespent = NA)
 
+  npd.APE<-NA
+  npd.MAE <-NA
+  npd.MAPE<-NA
+  npd.RMSE <-NA
+  npd.rRMSE<-NA
+
   npd.list <-  Fit_1cmpt_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
@@ -69,7 +75,7 @@ run_npd_1cmpt_iv <- function(dat,
   npd.MAE <-  round(metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[2],1)
   npd.MAPE <- round( metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[3],1)
   npd.RMSE <-  round(metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[4],1)
-  npd.rRMSE <- round( metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[5],1)
+  npd.rRMSE  <- round( metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[5],1)
 
   # # add penalty of rse
   # if (max(npd.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
@@ -164,6 +170,12 @@ run_npd_1cmpt_mm_iv <- function(dat,
                               km =  NA,
                               vd =  NA,
                               timespent = NA)
+
+  npd.APE<-NA
+  npd.MAE <-NA
+  npd.MAPE<-NA
+  npd.RMSE <-NA
+  npd.rRMSE<-NA
 
   # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=T
   # Determine the maximum concentration
@@ -300,6 +312,12 @@ run_npd_2cmpt_iv <- function(dat,
       timespent = NA
     )
 
+  npd.APE<-NA
+  npd.MAE <-NA
+  npd.MAPE<-NA
+  npd.RMSE <-NA
+  npd.rRMSE<-NA
+
   npd.list.2cmpt <-  Fit_2cmpt_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
@@ -424,6 +442,12 @@ run_npd_3cmpt_iv <- function(dat,
       timespent = NA
     )
 
+  npd.APE<-NA
+  npd.MAE <-NA
+  npd.MAPE<-NA
+  npd.RMSE <-NA
+  npd.rRMSE<-NA
+
   npd.list.3cmpt <-  Fit_3cmpt_iv(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
@@ -535,6 +559,12 @@ run_npd_1cmpt_oral <- function(dat,
       vd = NA,
       timespent = NA
     )
+
+  npd.APE<-NA
+  npd.MAE <-NA
+  npd.MAPE<-NA
+  npd.RMSE <-NA
+  npd.rRMSE<-NA
 
   npd.list <-  Fit_1cmpt_oral(
     data = dat[dat$EVID != 2, ],
@@ -670,6 +700,12 @@ run_npd_1cmpt_mm_oral <- function(dat,
       vd =  NA,
       timespent = NA
     )
+
+  npd.APE<-NA
+  npd.MAE <-NA
+  npd.MAPE<-NA
+  npd.RMSE <-NA
+  npd.rRMSE<-NA
 
   # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=T
   # Determine the maximum concentration
@@ -807,6 +843,12 @@ run_npd_2cmpt_oral <- function(dat,
       timespent = NA
     )
 
+  npd.APE<-NA
+  npd.MAE <-NA
+  npd.MAPE<-NA
+  npd.RMSE <-NA
+  npd.rRMSE<-NA
+
   npd.list.2cmpt <-  Fit_2cmpt_oral(
     data = dat[dat$EVID != 2, ],
     est.method = est.method,
@@ -935,6 +977,12 @@ run_npd_3cmpt_oral <- function(dat,
       q2 = NA,
       timespent = NA
     )
+
+  npd.APE<-NA
+  npd.MAE <-NA
+  npd.MAPE<-NA
+  npd.RMSE <-NA
+  npd.rRMSE<-NA
 
   npd.list.3cmpt <-  Fit_3cmpt_oral(
     data = dat[dat$EVID != 2, ],
