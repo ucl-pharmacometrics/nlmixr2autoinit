@@ -340,11 +340,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
           input.add = 0
         )
 
-      simpcal.APE <-  signif(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-      simpcal.MAE <-  signif(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-      simpcal.MAPE <- signif( metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-      simpcal.RMSE <-  signif(metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-      simpcal.rRMSE <- signif( metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+      simpcal.APE <-  round(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+      simpcal.MAE <-  round(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+      simpcal.MAPE <- round( metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+      simpcal.RMSE <-  round(metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+      simpcal.rRMSE <- round( metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
     }
 
 
@@ -362,11 +362,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
       input.vd = nca.results_all$vd,
       input.add = 0
     )
-    nca.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-    nca.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-    nca.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-    nca.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-    nca.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+    nca.APE <-  round(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+    nca.MAE <-  round(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+    nca.MAPE <- round( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+    nca.RMSE <-  round(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+    nca.rRMSE <- round( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
 
   }
   }
@@ -381,11 +381,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
         input.add = 0
       )
 
-      nca_fd.APE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-      nca_fd.MAE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-      nca_fd.MAPE <- signif( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-      nca_fd.RMSE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-      nca_fd.rRMSE <- signif( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+      nca_fd.APE <-  round(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+      nca_fd.MAE <-  round(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+      nca_fd.MAPE <- round( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+      nca_fd.RMSE <-  round(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+      nca_fd.rRMSE <- round( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
     }
   }
 
@@ -399,11 +399,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
         input.add = 0
       )
 
-      nca_efd.APE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-      nca_efd.MAE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-      nca_efd.MAPE <- signif( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-      nca_efd.RMSE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-      nca_efd.rRMSE <- signif( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+      nca_efd.APE <-  round(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+      nca_efd.MAE <-  round(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+      nca_efd.MAPE <- round( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+      nca_efd.RMSE <-  round(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+      nca_efd.rRMSE <- round( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
     }
   }
 
@@ -418,11 +418,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
         input.add = 0
       )
 
-      graph_fd.APE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-      graph_fd.MAE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-      graph_fd.MAPE <- signif( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-      graph_fd.RMSE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-      graph_fd.rRMSE <- signif( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+      graph_fd.APE <-  round(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+      graph_fd.MAE <-  round(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+      graph_fd.MAPE <- round( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+      graph_fd.RMSE <-  round(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+      graph_fd.rRMSE <- round( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
     }
   }
 }
@@ -442,11 +442,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
           input.add = 0
         )
 
-        simpcal.APE <-  signif(metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-        simpcal.MAE <-  signif(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-        simpcal.MAPE <- signif( metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-        simpcal.RMSE <-  signif(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-        simpcal.rRMSE <- signif( metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+        simpcal.APE <-  round(metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+        simpcal.MAE <-  round(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+        simpcal.MAPE <- round( metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+        simpcal.RMSE <-  round(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+        simpcal.rRMSE <- round( metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
 
       }
     }
@@ -466,11 +466,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
         input.add = 0
       )
 
-      nca.APE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-      nca.MAE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-      nca.MAPE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-      nca.RMSE <-  signif(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-      nca.rRMSE <- signif( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+      nca.APE <-  round(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+      nca.MAE <-  round(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+      nca.MAPE <- round( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+      nca.RMSE <-  round(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+      nca.rRMSE <- round( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
 
     }
     }
@@ -485,11 +485,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
           input.vd = nca.results_fd$vd,
           input.add = 0
         )
-        nca_fd.APE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-        nca_fd.MAE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-        nca_fd.MAPE <- signif( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-        nca_fd.RMSE <-  signif(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-        nca_fd.rRMSE <- signif( metrics.(pred.x =nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+        nca_fd.APE <-  round(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+        nca_fd.MAE <-  round(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+        nca_fd.MAPE <- round( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+        nca_fd.RMSE <-  round(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+        nca_fd.rRMSE <- round( metrics.(pred.x =nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
       }
     }
 
@@ -503,11 +503,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
           input.vd = nca.results_efd$vd,
           input.add = 0
         )
-        nca_efd.APE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-        nca_efd.MAE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-        nca_efd.MAPE <- signif( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-        nca_efd.RMSE <-  signif(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-        nca_efd.rRMSE <- signif( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+        nca_efd.APE <-  round(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+        nca_efd.MAE <-  round(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+        nca_efd.MAPE <- round( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+        nca_efd.RMSE <-  round(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+        nca_efd.rRMSE <- round( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
       }
     }
 
@@ -522,11 +522,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
           input.vd = graph.results_fd$vd,
           input.add = 0
         )
-        graph_fd.APE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
-        graph_fd.MAE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
-        graph_fd.MAPE <- signif( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
-        graph_fd.RMSE <-  signif(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
-        graph_fd.rRMSE <- signif( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+        graph_fd.APE <-  round(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
+        graph_fd.MAE <-  round(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[2],3)
+        graph_fd.MAPE <- round( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
+        graph_fd.RMSE <-  round(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
+        graph_fd.rRMSE <- round( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
 
       }
     }
