@@ -281,6 +281,7 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
    graph_fd.RMSE <- NA
    graph_fd.rRMSE <- NA
 
+   graph.results_fd <-NA
 
   if( fdobsflag ==1){
    graph.results_fd <- run_graphcal(
