@@ -37,7 +37,7 @@
 run_graphcal <- function(dat,
                          route,
                          nbins=8,
-                         nlastpoints=3) {
+                         nlastpoints=3 ) {
 
   if (missing(route)){
     stop("Error, no dosing route was specified, please set it using the route option.")
