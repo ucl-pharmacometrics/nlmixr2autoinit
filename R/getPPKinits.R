@@ -197,11 +197,13 @@ ka_simpcal.out<-NA
 
 if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
 
+  if (nrow(dat[dat$EVID==0 & dat$dose_number==1 & dat$iiobs==0,])>0){
   ka_simpcal.out<-run_ka_solution(df = dat[dat$EVID==0 & dat$dose_number==1 & dat$iiobs==0,],
                                   cl = simpcal.out$cl,
                                   ke = simpcal.out$cl/simpcal.out$vd )
 
   ka_simpcal_value<-  signif(ka_simpcal.out$ka_calc_median,3)
+  }
 }
 
 ################# Naive pooled Non-compartmental analysis ##################################
