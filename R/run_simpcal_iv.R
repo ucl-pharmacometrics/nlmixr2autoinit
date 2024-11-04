@@ -178,11 +178,12 @@ run_simpcal_iv <- function(dat,
 
       } # end loop
 
+
       # Calculate median cl for each individual
-      individual_mean_cl <- aggregate(cl ~ ID, data = dat.ss.obs, FUN = mean)
+      individual_mean_cl <- tryCatch(aggregate(cl ~ ID, data = dat.ss.obs, FUN = mean),error=function(e) {NA})
 
       # Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
-      trimmed_mean_cl <- mean(individual_mean_cl$cl, trim = 0.05, na.rm = TRUE)
+      trimmed_mean_cl <- tryCatch(mean(individual_mean_cl$cl, trim = 0.05, na.rm = TRUE),error=function(e) {NA})
 
    }
 
@@ -234,10 +235,10 @@ run_simpcal_iv <- function(dat,
         signif(dat.fd.obs$TIME * dat.fd.obs$rateobs / dat.fd.obs$DV, 3)
 
       # Calculate median vd for each individual
-      individual_mean_vd <- aggregate(vd ~ ID, data = dat.fd.obs, FUN = mean)
+      individual_mean_vd <- tryCatch( aggregate(vd ~ ID, data = dat.fd.obs, FUN = mean),error=function(e) {NA})
 
       # Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
-      trimmed_mean_vd <- mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE)
+      trimmed_mean_vd <-tryCatch(mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE),error=function(e) {NA})
 
     }
   }
