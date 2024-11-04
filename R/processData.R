@@ -79,6 +79,7 @@ evid_message2<-NULL
 if ("CENS" %in% colnames(dat)) {
   if (max(dat$CENS)==1){
   message(black(paste(" 'nlm' does not work with censored data, cens column has been removed, insteadly DV=0 after Tmax was set as NA (EVID=2) ")))
+    dat[dat$CENS==1,]$EVID=2
    dat$CENS<-0
   }
 }
@@ -173,11 +174,11 @@ if ("CMT" %in% column_names) {
       cpcmptname<-dat[dat$EVID==0,]$CMT[1]
       dat[dat$EVID==0,]$CMT=2
       # iv case
-      if (nrow( dat[dat$EVID==1 & dat$CMT== cpcmptname,])>0){
-      dat[dat$EVID==1 & dat$CMT== cpcmptname,]$CMT=2
+      if (nrow( dat[dat$EVID %in% c(1,4) & dat$CMT== cpcmptname,])>0){
+      dat[dat$EVID %in% c(1,4) & dat$CMT== cpcmptname,]$CMT=2
       }
 
-      dat[dat$EVID==1 & dat$CMT!= cpcmptname,]$CMT=1
+      dat[dat$EVID %in% c(1,4) & dat$CMT!= cpcmptname,]$CMT=1
 
       message(black(
         paste0(
