@@ -37,7 +37,8 @@
 run_graphcal <- function(dat,
                          route,
                          nbins=8,
-                         nlastpoints=3 ) {
+                         nlastpoints=3,
+                         fdobsflag=0) {
 
   if (missing(route)){
     stop("Error, no dosing route was specified, please set it using the route option.")
@@ -58,6 +59,7 @@ run_graphcal <- function(dat,
       time.spent = 0
     )
 
+    if (fdobsflag==1){
     dat$DVnor <- dat$DV / dat$dose
     dat_fd <- dat[dat$dose_number == 1,]
     datpooled_fd <- pk.time.binning(testdat = dat_fd,
@@ -76,6 +78,7 @@ run_graphcal <- function(dat,
       slope = signif(graph.fd.output[3], 3),
       time.spent = time.spent
     )
+    }
   }
 
   if (route=="oral"){
@@ -87,7 +90,9 @@ run_graphcal <- function(dat,
       slope = NA,
       time.spent = 0
     )
+       if (fdobsflag==1){
       start.time <- Sys.time()
+
       dat$DVnor <- dat$DV / dat$dose
 
       dat_fd <- dat[dat$dose_number == 1,]
@@ -108,6 +113,7 @@ run_graphcal <- function(dat,
         slope = signif(graph.fd.output[4], 3),
         time.spent = time.spent
       )
+      }
   }
 
   return(graph.fd.results)
