@@ -26,7 +26,8 @@ run_nca.normalised <- function(dat,
                                trapezoidal.rule=1,
                                nbins=8,
                                fdobsflag=1,
-                               sdflag=1) {
+                               sdflag=1,
+                               route="bolus") {
   # default settings
   nca.fd.results <- data.frame(
     cl = NA,
