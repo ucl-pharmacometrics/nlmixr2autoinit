@@ -218,7 +218,8 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
     trapezoidal.rule = trapezoidal.rule,
     nbins = nbins,
     fdobsflag = fdobsflag,
-    sdflag=sdflag
+    sdflag=sdflag,
+    route=route
   )
 
  # Determine absorption rate of constant
