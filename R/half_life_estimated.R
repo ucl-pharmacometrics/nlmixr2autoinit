@@ -41,7 +41,8 @@
 
 half_life_estimated<-function(dat,
                               nlastpoints=3,
-                              nbins=10
+                              nbins=10,
+                              route="bolus"
                               ){
 
   message(black(
@@ -60,14 +61,16 @@ half_life_estimated<-function(dat,
   datpooled_all <- pk.time.binning(testdat = dat,
                                    nbins = nbins)
 
-  half_life_all<-get_hf(datpooled_all$test.pool.normalised,nlastpoints = nlastpoints)
+  half_life_all<-get_hf(datpooled_all$test.pool.normalised,
+                        nlastpoints = nlastpoints,
+                        route=route)
 
 
   if (nrow(dat[dat$dose_number==1 & dat$EVID==0 & dat$iiobs==0,])>0){
     datpooled_fd <- pk.time.binning(testdat = dat[dat$dose_number==1 & dat$iiobs==0,],
                                     nbins = nbins)
 
-    half_life_fd<-get_hf(datpooled_fd$test.pool.normalised,nlastpoints = nlastpoints)
+    half_life_fd<-get_hf(datpooled_fd$test.pool.normalised,nlastpoints = nlastpoints,route = route)
   }
 
 
@@ -82,11 +85,13 @@ half_life_estimated<-function(dat,
     datpooled_md <- pk.time.binning(testdat = testdat,
                                     nbins = nbins)
 
-    half_life_md<-get_hf(datpooled_md$test.pool.normalised,nlastpoints = nlastpoints)
-
+    half_life_md<-get_hf(datpooled_md$test.pool.normalised,
+                         nlastpoints = nlastpoints,
+                         route=route)
     }
 
-half_life_values<-c( half_life_fd ,half_life_md , half_life_all)
+
+half_life_values<-c( half_life_fd[1] ,half_life_md[1] , half_life_all[1])
 
 # Remove negative numbers
 positive_values <-  half_life_values[ half_life_values > 0 &  !is.na( half_life_values)]
@@ -94,7 +99,7 @@ positive_values <-  half_life_values[ half_life_values > 0 &  !is.na( half_life_
 # half_life_geom_mean <- round(exp(mean(log(positive_values))),2)
 half_life_median <- round(median(positive_values),2)
 
-return(c(half_life_median=half_life_median,
+return(list(half_life_median=half_life_median,
          half_life_fd=  half_life_fd,
          half_life_md=  half_life_md,
          half_life_all=  half_life_all))
@@ -119,42 +124,75 @@ return(c(half_life_median=half_life_median,
 #'
 #' @details
 #' The function performs the following steps:
-#'   1. Extracts the last `nlastpoints` rows from `testdat`.
-#'   2. Performs a linear regression on `log(Conc)` against `Time`.
-#'   3. Calculates the elimination rate constant (`ke`) if the slope is negative,
-#'      and then calculates the half-life as `log(2) / ke`.
+#'   1. Identifies Tmax as the time point with the maximum concentration (`Conc`).
+#'   2. For "bolus" and "infusion" routes, includes all points from Tmax onwards.
+#'      For the "oral" route, only points after Tmax are included.
+#'   3. Adjusts `nlastpoints` if there are fewer data points than specified. There are at least two points for linear regression.
+#'   4. Performs a linear regression on `log(Conc)` against `Time`.
+#'   5. If the slope from the regression is negative, calculates the elimination rate
+#'      constant (`ke`) as the negative slope and the half-life as `log(2) / ke`.
 #'
 #' @examples
 #' # Example usage:
 #'
 #'  # Test first ID in the case of Bolus_1CPT
-#'  testdat= Bolus_1CPT[Bolus_1CPT$SD==1 & Bolus_1CPT$ID==1,]
+#'  testdat= Bolus_1CPT[Bolus_1CPT$SD==1 & Bolus_1CPT$ID==1 & Bolus_1CPT$EVID==0,]
 #'  testdat=subset(testdat,select=c(TIME,DV))
 #'  colnames(testdat)<-c("Time","Conc")
 #'  get_hf(testdat = testdat, nlastpoints = 3)
 #'
+#'  # Test first ID in the case of Oral_1CPT (sparse data)
+#'  dat<-Oral_1CPT[Oral_1CPT$ID==1  &Oral_1CPT$EVID==0,]
+#'  datobs.sparse<-datobs[datobs$TIME %in% c(146,164,167.99),]
+#'  testdat=subset(datobs.sparse,select=c(TIME,DV))
+#'  colnames(testdat)<-c("Time","Conc")
+#'  get_hf(testdat = testdat, nlastpoints = 3,route="oral")
+#'
+#'
 #' @export
 
-get_hf<-function(testdat,
-                 nlastpoints=3){
+get_hf <- function(testdat,
+                   nlastpoints = 3,
+                   route = "bolus") {
+  half_life_ <- NA
+  # Identify the index of Tmax
+  max_index <- which.max(testdat$Conc)
 
-  half_life_<-NA
- temp1 <- tail( testdat,
-                n = nlastpoints)
+  if (route == "bolus" || route == "infusion") {
+    temp1 <-
+      testdat[max_index:nrow(testdat),] # Subset data points after Tmax
+  }
 
-  if (nrow(temp1)>=nlastpoints){
+  if (route == "oral") {
+    temp1 <-
+      testdat[(max_index + 1):nrow(testdat),] # Subset data points after Tmax
+  }
+
+  nlastpoints<-nlastpoints
+  # Loop to adjust nlastpoints if there are insufficient points
+  while (nlastpoints > 1 && nrow(temp1) < nlastpoints) {
+    nlastpoints <- nlastpoints - 1
+  }
+
+  # If fewer than 2 points are available after the loop, exit as calculation is invalid
+  if (nlastpointsf < 2) {
+    # message("Insufficient data points for valid regression.")
+    return(half_life_)
+  }
+
+  # Select the required last nlastpoints data points
+  temp1 <- tail(temp1, n = nlastpoints)
+
   # linear regression for slope of log of DVs
   funcslope <- lm(log(temp1$Conc) ~ temp1$Time)
   slope_ <- summary(funcslope)[[4]][[2]]
-  if (slope_<0){
-    ke_ <-  - slope_
-    half_life_<- log(2) / ke_ # change to log(2)
+
+  if (slope_ < 0) {
+    ke_ <-  -slope_
+    half_life_ <- log(2) / ke_ # change to log(2)
   }
-  }
 
- return(half_life_)
-
-
+  return(c(half_life_=half_life_,nlastpoints=nlastpoints))
 }
 
 
