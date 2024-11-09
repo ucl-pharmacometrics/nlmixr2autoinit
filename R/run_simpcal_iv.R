@@ -35,7 +35,6 @@ run_simpcal_iv <- function(dat,
   dat.fd.obs <- NA
 
  ##################################Calculate of clearance######################
-
   dat <- is_ss(df = dat,
                  half_life = half_life )
   dat$duration_obs<-0
