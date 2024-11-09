@@ -162,7 +162,7 @@ getPPKinits<- function(dat,
     half_life = half_life)
 
  simpcal.out <- simpcal.results$simpcal.results
-
+ dat<-simpcal.results$dat
 ###################### Single point method (extra)########################
 
   if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(half_life)==F) {
