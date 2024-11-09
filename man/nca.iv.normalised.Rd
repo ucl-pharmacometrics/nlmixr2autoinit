@@ -4,7 +4,13 @@
 \alias{nca.iv.normalised}
 \title{Non-compartmental analysis for intravenous pharmacokinetic data}
 \usage{
-nca.iv.normalised(dat, trapezoidal.rule = 1, ss = F, nlastpoints = 3)
+nca.iv.normalised(
+  dat,
+  trapezoidal.rule = 1,
+  ss = 0,
+  nlastpoints = 3,
+  route = route
+)
 }
 \arguments{
 \item{dat}{A data frame with at least two columns: TIME and DV.}

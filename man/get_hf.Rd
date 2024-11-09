@@ -4,7 +4,7 @@
 \alias{get_hf}
 \title{Calculate half-life from the slope of log-transformed concentration data}
 \usage{
-get_hf(testdat, nlastpoints = 3)
+get_hf(testdat, nlastpoints = 3, route = "bolus")
 }
 \arguments{
 \item{testdat}{A data frame containing at least two columns:
@@ -28,19 +28,30 @@ constant (\code{ke}) and half-life (\code{half_life}).
 \details{
 The function performs the following steps:
 \enumerate{
-\item Extracts the last \code{nlastpoints} rows from \code{testdat}.
+\item Identifies Tmax as the time point with the maximum concentration (\code{Conc}).
+\item For "bolus" and "infusion" routes, includes all points from Tmax onwards.
+For the "oral" route, only points after Tmax are included.
+\item Adjusts \code{nlastpoints} if there are fewer data points than specified. There are at least two points for linear regression.
 \item Performs a linear regression on \code{log(Conc)} against \code{Time}.
-\item Calculates the elimination rate constant (\code{ke}) if the slope is negative,
-and then calculates the half-life as \code{log(2) / ke}.
+\item If the slope from the regression is negative, calculates the elimination rate
+constant (\code{ke}) as the negative slope and the half-life as \code{log(2) / ke}.
 }
 }
 \examples{
 # Example usage:
 
  # Test first ID in the case of Bolus_1CPT
- testdat= Bolus_1CPT[Bolus_1CPT$SD==1 & Bolus_1CPT$ID==1,]
+ testdat= Bolus_1CPT[Bolus_1CPT$SD==1 & Bolus_1CPT$ID==1 & Bolus_1CPT$EVID==0,]
  testdat=subset(testdat,select=c(TIME,DV))
  colnames(testdat)<-c("Time","Conc")
  get_hf(testdat = testdat, nlastpoints = 3)
+
+ # Test first ID in the case of Oral_1CPT (sparse data)
+ dat<-Oral_1CPT[Oral_1CPT$ID==1  &Oral_1CPT$EVID==0,]
+ datobs.sparse<-datobs[datobs$TIME \%in\% c(146,164,167.99),]
+ testdat=subset(datobs.sparse,select=c(TIME,DV))
+ colnames(testdat)<-c("Time","Conc")
+ get_hf(testdat = testdat, nlastpoints = 3,route="oral")
+
 
 }

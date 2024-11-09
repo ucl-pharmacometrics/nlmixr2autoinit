@@ -46,5 +46,5 @@ Perform parameter estimation using the naive pooled data approach with a one-com
 }
 \examples{
 dat <- Oral_2CPT
-Fit_3cmpt_iv(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vc3cmpt=70,input.vp3cmpt=35,input.vp23cmpt=35,input.q3cmpt=10,input.q23cmpt=10,input.add=1)
+Fit_3cmpt_oral(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vc3cmpt=70,input.vp3cmpt=35,input.vp23cmpt=35,input.q3cmpt=10,input.q23cmpt=10,input.add=1)
 }

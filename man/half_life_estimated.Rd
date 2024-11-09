@@ -4,7 +4,7 @@
 \alias{half_life_estimated}
 \title{Estimate half-life from given pharmacokinetic Data}
 \usage{
-half_life_estimated(dat, nlastpoints = 3, nbins = 8)
+half_life_estimated(dat, nlastpoints = 3, nbins = 10, route = "bolus")
 }
 \arguments{
 \item{nlastpoints}{An integer specifying the number of last data points to be used for
@@ -45,7 +45,7 @@ to calculate the elimination rate constant (\code{ke}) and the half-life (\code{
 \examples{
 # Example usage:
 dat <- Bolus_1CPT
-fdat<- processData(dat)
+dat<- processData(dat)$dat
 half_life_estimated(fdat)
 
 }

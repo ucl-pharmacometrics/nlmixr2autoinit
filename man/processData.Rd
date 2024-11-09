@@ -55,4 +55,14 @@ processed_data <- processData(dat)
 dat <- processed_data$dat
 Datainfo<-processed_data$Datainfo
 
+dat <- Bolus_1CPT
+dat[1,]$SS=1
+dat[1,]$II=24
+processed_data <- processData(dat)
+dat <- processed_data$dat
+
+dat <-theo_sd
+processed_data <- processData(dat)
+dat <- processed_data$dat
+
 }

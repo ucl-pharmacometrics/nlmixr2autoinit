@@ -27,5 +27,5 @@ Perform parameter estimation using the naive pooled data approach with a one-com
 }
 \examples{
 dat <- Oral_1CPT
-Fit_1cmpt_iv(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vd=70,input.add=1)
+Fit_1cmpt_oral(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vd=70,input.add=1)
 }

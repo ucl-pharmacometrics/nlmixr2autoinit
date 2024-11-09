@@ -4,7 +4,7 @@
 \alias{run_graphcal}
 \title{Graphical calculation of pharmacokinetic parameters}
 \usage{
-run_graphcal(dat, route, nbins = 8, nlastpoints = 3)
+run_graphcal(dat, route, nbins = 8, nlastpoints = 3, fdobsflag = 0)
 }
 \arguments{
 \item{dat}{A data frame containing the pharmacokinetic data.}

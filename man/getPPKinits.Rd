@@ -39,4 +39,8 @@ Computes initial values of pharmacokinetic parameters using integrated pipeline 
 \examples{
 inits.out<-getPPKinits(dat = Infusion_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
 inits.out
+
+
+
+
 }

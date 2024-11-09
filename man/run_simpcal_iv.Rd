@@ -21,14 +21,14 @@ Perform a simplified calculation for clearance and volume of distribution in int
 
 # Example 1 (iv case)
 dat <- Bolus_1CPT
-fdat <- processData(dat)
-half_life<-half_life_estimated(fdat = fdat)[1]
+fdat <- processData(dat)$dat
+half_life<-half_life_estimated(dat = fdat)[1]
 run_simpcal_iv(fdat,half_life)
 
 # Example 2 (infusion case).
 
 dat <- Infusion_1CPT
-fdat <- processData(dat)
-half_life<-half_life_estimated(fdat = fdat)[1]
+fdat <- processData(dat)$dat
+half_life<-half_life_estimated(dat = fdat)[1]
 run_simpcal_iv(fdat,half_life)
 }

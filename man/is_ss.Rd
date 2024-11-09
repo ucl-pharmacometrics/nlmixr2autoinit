@@ -17,10 +17,13 @@ is_ss(df, ss_option = 1, no.doses = 5, no.half_life = 3, half_life = NA)
 \item \code{tad}: Time after dose.
 }}
 
-\item{ss_option}{Integer, either 1 or 2, indicating the method to determine steady state:
+\item{ss_option}{Integer, either 1, 2, or 3, indicating the method to determine steady state:
 \itemize{
-\item \code{1}: Use a fixed number of doses specified by \code{no.doses}.
-\item \code{2}: Use a fixed number of half-lives specified by \code{no.half_life} and \code{half_life}.
+\item \code{1}: Steady state is determined based on the smaller value between the fixed number of doses (\code{no.doses})
+and the estimated number of doses based on half-life.
+\item \code{2}: Steady state is determined solely based on a fixed number of doses (\code{no.doses}).
+\item \code{3}: Steady state is determined by calculating the number of doses as the dosing duration
+(a fixed number of half-lives, \code{no.half_life}, multiplied by \code{half_life}) divided by the dose interval.
 }}
 
 \item{no.doses}{Integer. Number of doses required to reach steady state when \code{ss_option = 1}. Default is 5.}
@@ -44,9 +47,11 @@ fixed number of half-lives to determine the required dose count for steady state
 \details{
 The function evaluates steady state for each subject (\code{ID}) individually. It provides two options:
 \itemize{
-\item If \code{ss_option = 1}, steady state is determined by a fixed number of doses (\code{no.doses}).
-\item If \code{ss_option = 2}, steady state is determined based on a fixed number of half-lives (\code{no.half_life})
-multiplied by \code{half_life} to estimate the required dosing duration.
+\item If \code{ss_option = 1}, steady state is determined based on the smaller value between the number of fixed doses (\code{no.doses})
+and the estimated number of doses required based on half-life.
+\item If \code{ss_option = 2}, steady state is determined solely based on a fixed number of doses (\code{no.doses}).
+\item If \code{ss_option = 3}, steady state is determined by calculating the number of doses required as the dosing duration
+(a fixed number of half-lives, \code{no.half_life}, multiplied by \code{half_life}) divided by the dose interval.
 }
 
 For each observation, the following criteria are used to assess steady state:
