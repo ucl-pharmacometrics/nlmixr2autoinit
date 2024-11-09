@@ -59,8 +59,6 @@
 #' @importFrom crayon black
 #' @export
 
-
-
 is_ss <- function(df,
                   ss_option = 1,
                   no.doses = 5,
