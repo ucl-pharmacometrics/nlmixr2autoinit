@@ -132,9 +132,10 @@ getPPKinits<- function(dat,
 
    half_life_out<-half_life_estimated(dat = dat,
                                   nlastpoints = nlastpoints,
-                                  nbins=nbins)
+                                  nbins=nbins,
+                                  route=route)
 
-   half_life<-  half_life_out[1]
+   half_life<-  half_life_out$half_life_median
 
    message(black(
      paste0("Estimated half-life : ", half_life)))
@@ -145,16 +146,16 @@ getPPKinits<- function(dat,
   message(black(
      paste0("Run single-point method to calculate PK parameters",strrep(".", 20))))
 
-  if (!is.na(half_life)){
-      message(black(
-      paste0("Estimated half-life as reference to identify steady state: ",half_life,strrep(".", 20))))
-  }
-
-   if (is.na(half_life)){
-   # use most commonly used dose-interval to replace half life
-     message(black(
-      paste0("No estimated half life found. half life: ",half_life, strrep(".", 20))))
-   }
+  # if (!is.na(half_life)){
+  #     message(black(
+  #     paste0("Estimated half-life as reference to identify steady state: ",half_life,strrep(".", 20))))
+  # }
+  #
+  #  if (is.na(half_life)){
+  #  # use most commonly used dose-interval to replace half life
+  #    message(black(
+  #     paste0("No estimated half life found. half life: ",half_life, strrep(".", 20))))
+  #  }
 
  simpcal.results <- run_simpcal_iv(
     dat = dat,
@@ -197,8 +198,8 @@ ka_simpcal.out<-NA
 
 if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
 
-  if (nrow(dat[dat$EVID==0 & dat$dose_number==1 & dat$iiobs==0,])>0){
-  ka_simpcal.out<-run_ka_solution(df = dat[dat$EVID==0 & dat$dose_number==1 & dat$iiobs==0,],
+  if (nrow(dat[dat$EVID==0  & dat$iiobs==0,])>0){
+  ka_simpcal.out<-run_ka_solution(df = dat,
                                   cl = simpcal.out$cl,
                                   ke = simpcal.out$cl/simpcal.out$vd )
 
