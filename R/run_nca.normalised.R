@@ -39,7 +39,8 @@ run_nca.normalised <- function(dat,
     ke=NA,
     aumc_0_inf=NA,
     start.time = NA,
-    time.spent = 0
+    time.spent = 0,
+    nlastpoints=nlastpoints
   )
 
   nca.efd.results <- data.frame(
@@ -53,7 +54,8 @@ run_nca.normalised <- function(dat,
     ke=NA,
     aumc_0_inf=NA,
     start.time = NA,
-    time.spent = 0
+    time.spent = 0,
+    nlastpoints=nlastpoints
   )
 
   nca.all.results <- data.frame(
@@ -67,7 +69,8 @@ run_nca.normalised <- function(dat,
     ke=NA,
     aumc_0_inf=NA,
     start.time = NA,
-    time.spent = 0
+    time.spent = 0,
+    nlastpoints=nlastpoints
   )
 
   datpooled_fd<-NA
@@ -88,7 +91,8 @@ run_nca.normalised <- function(dat,
     nca.output <-
       nca.iv.normalised(dat = datpooled_fd$test.pool.normalised,
                         trapezoidal.rule= trapezoidal.rule,
-                        nlastpoints = nlastpoints)
+                        nlastpoints = nlastpoints,
+                        route=route)
 
     end.time <- Sys.time()
     time.spent <- round(difftime(end.time, start.time), 4)
@@ -104,7 +108,8 @@ run_nca.normalised <- function(dat,
       ke = signif(nca.output[8], 3),
       aumc_0_inf = signif(nca.output[9], 3),
       start.time = start.time,
-      time.spent = time.spent
+      time.spent = time.spent,
+      nlastpoints=nca.output[10]
     )
     }
 
@@ -147,7 +152,7 @@ run_nca.normalised <- function(dat,
         nca.iv.normalised(dat = datpooled_efd$test.pool.normalised,
                            trapezoidal.rule= trapezoidal.rule,
                           nlastpoints = nlastpoints,
-                          ss = 1)
+                          ss = 1,route=route)
 
       end.time <- Sys.time()
       time.spent <- round(difftime(end.time, start.time), 4)
@@ -163,7 +168,8 @@ run_nca.normalised <- function(dat,
         ke = signif(nca.output[8], 3),
         aumc_0_inf = signif(nca.output[9], 3),
         start.time = start.time,
-        time.spent = time.spent
+        time.spent = time.spent,
+        nlastpoints=nca.output[10]
       )
     }
 
@@ -189,7 +195,7 @@ run_nca.normalised <- function(dat,
     nca.iv.normalised(dat = datpooled_all$test.pool.normalised,
                        trapezoidal.rule= trapezoidal.rule,
                       nlastpoints = nlastpoints,
-                      ss=1)
+                      ss=1,route=route)
 
   end.time <- Sys.time()
   time.spent <- round(difftime(end.time, start.time), 4)
@@ -204,7 +210,8 @@ run_nca.normalised <- function(dat,
     ke = signif(nca.output[8], 3),
     aumc_0_inf = signif(nca.output[9], 3),
     start.time = start.time,
-    time.spent = time.spent
+    time.spent = time.spent,
+    nlastpoints=nca.output[10]
   )
   }
 
@@ -246,7 +253,8 @@ run_nca.normalised <- function(dat,
 nca.iv.normalised <- function(dat,
                                trapezoidal.rule=1,
                               ss=0,
-                              nlastpoints=3) {
+                              nlastpoints=3,
+                              route=route) {
 
   cl=NA
   vd=NA
@@ -269,13 +277,26 @@ nca.iv.normalised <- function(dat,
     auct <- trap.rule_linear_up_log_down(dat$TIME, dat$DV)
   }
 
-  # Select last 4/specified number for slope calculation
-  temp1 <- tail(dat, n = nlastpoints)
-  C_last <- tail(temp1$DV, 1)
-  t_last <- tail(temp1$TIME, 1)
+  # Identify the index of Tmax
+  max_index <- which.max(dat$DV)
+
+  if (route == "bolus" || route == "infusion") {
+    temp1 <-
+      dat[max_index:nrow(dat),] # Subset data points after Tmax
+  }
+
+  if (route == "oral") {
+    temp1 <-
+      dat[(max_index + 1):nrow(dat),] # Subset data points after Tmax
+  }
+
+  # Loop to adjust nlastpoints if there are insufficient points
+  while (nlastpoints > 1 && nrow(temp1) < nlastpoints) {
+    nlastpoints <- nlastpoints - 1
+  }
 
   # check number of points available for slope linear regression
-  if (nrow(temp1)<nlastpoints){
+  if (nlastpoints<2){
     return(c(cl=cl,
              vd=vd,
              slope=slope,
@@ -284,8 +305,14 @@ nca.iv.normalised <- function(dat,
              auc0_inf=auc0_inf,
              C_last=C_last,
              ke=ke,
-             aumc_0_inf= aumc_0_inf))
+             aumc_0_inf= aumc_0_inf,
+             nlastpoints=nlastpoints))
   }
+
+  # Select last 4/specified number for slope calculation
+  temp1 <- tail(dat, n = nlastpoints)
+  C_last <- tail(temp1$DV, 1)
+  t_last <- tail(temp1$TIME, 1)
 
   # linear regression for slope of log of DVs
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
@@ -330,7 +357,8 @@ nca.iv.normalised <- function(dat,
            auc0_inf=auc0_inf,
            C_last=C_last,
            ke=ke,
-           aumc_0_inf= aumc_0_inf))
+           aumc_0_inf= aumc_0_inf,
+           nlastpoints=nlastpoints))
 }
 
 
