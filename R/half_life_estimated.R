@@ -168,14 +168,13 @@ get_hf <- function(testdat,
       testdat[(max_index + 1):nrow(testdat),] # Subset data points after Tmax
   }
 
-  nlastpoints<-nlastpoints
   # Loop to adjust nlastpoints if there are insufficient points
   while (nlastpoints > 1 && nrow(temp1) < nlastpoints) {
     nlastpoints <- nlastpoints - 1
   }
 
   # If fewer than 2 points are available after the loop, exit as calculation is invalid
-  if (nlastpointsf < 2) {
+  if (nlastpoints < 2) {
     # message("Insufficient data points for valid regression.")
     return(half_life_)
   }
