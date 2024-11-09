@@ -21,9 +21,9 @@
 #' @return A list containing:
 #' \itemize{
 #'   \item \code{half_life}: The user-defined half-life value.
-#'   \item \code{nlastpoints}: The number of last points for regression.
+#'   \item \code{nlastpoints}: The specific number of data points at the end of the terminal phase chosen for linear regression to estimate the elimination rate constant (Lambda Z), with a default value of 3.
 #'   \item \code{trapezoidal.rule}: The selected trapezoidal rule method (1 for linear, 2 for linear-up log-down).
-#'   \item \code{nbins}: The number of time windows.
+#'   \item \code{nbins}: The number of time windows as specific intervals used for naive pooling of data, where observations from multiple subjects are combined within each time window to create an median concentration-time profile.
 #'   \item \code{est.method}: The method used for PK parameter estimation.
 #'   \item \code{selection.criteria}: The selection criteria for parameter values.
 #'   \item \code{npdcmpt.inits.strategy}: The strategy for initializing the NPD compartment analysis.
@@ -36,7 +36,7 @@
 #' @export
 #'
 initsControl<-function( half_life = NA,
-                        nlastpoints = 4,
+                        nlastpoints = 3,
                         trapezoidal.rule = 1,
                         nbins = 10,
                         est.method = "nls",
