@@ -84,6 +84,7 @@ is_ss <- function(df,
   # df[df$SSflag == 1 & df$EVID == 0, ]$SteadyState = TRUE
 
   for (id in unique(df$ID)) {
+
     id_df <- df[df$ID == id, ]
     id_obs_df <- df[df$ID == id & df$EVID == 0, ]
 
@@ -94,6 +95,7 @@ is_ss <- function(df,
 
     # Determine steady state by evaluating each sampling point individually.
     for (obsi in obs_times) {
+
       # if SSflag=1, identify steady state directly
       if (df[df$ID == id &
              df$TIME == obsi & df$EVID == 0,]$SSflag == 1) {
@@ -139,6 +141,9 @@ is_ss <- function(df,
               doses_required <-  doses_required_2
             }
           }
+
+          # There are at least two doses for multiple doses
+          doses_required<-pmax(doses_required,2)
 
           # Check if there are enough doses before observation
           if (length(previous_doses) >= doses_required) {
