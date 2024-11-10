@@ -125,6 +125,7 @@ getPPKinits<- function(dat,
     route<-"oral"
   }
 
+  rawdat<-dat # keep raw dat for naive pooled data compartmental analysis
 
 ########################### Pipeline part ##################################
   if (run.option<2){
@@ -162,6 +163,7 @@ getPPKinits<- function(dat,
     half_life = half_life)
 
  simpcal.out <- simpcal.results$simpcal.results
+
  dat<-simpcal.results$dat
 ###################### Single point method (extra)########################
 
@@ -860,6 +862,8 @@ cat(message_text, "\n")
 
 #################### Naive pooled data approach compartmental analysis #######
   if (run.option>0){
+
+   dat<-rawdat  # recover raw data for compartmental analysis
 
     message(black(
       paste0("Run naive pooled data compartmental analysis ",strrep(".", 20))))
