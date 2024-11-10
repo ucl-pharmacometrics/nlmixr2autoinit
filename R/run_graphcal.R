@@ -90,7 +90,8 @@ run_graphcal <- function(dat,
       slope = NA,
       time.spent = 0
     )
-       if (fdobsflag==1){
+
+    if (fdobsflag==1){
       start.time <- Sys.time()
 
       dat$DVnor <- dat$DV / dat$dose
@@ -134,7 +135,7 @@ run_graphcal <- function(dat,
 #'
 
 graphcal_iv <- function(dat,
-                     nlastpoints) {
+                        nlastpoints=3) {
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
 
@@ -143,9 +144,18 @@ graphcal_iv <- function(dat,
   slope = NA
   C0 = NA
 
- temp1 <- tail(dat, n = nlastpoints)
+  # Identify the index of Tmax
+  max_index <- which.max(dat$DV)
 
-  if (nrow(temp1)<nlastpoints){
+  temp1 <-testdat[max_index:nrow(testdat),] # Subset data points after Tmax
+
+  # Loop to adjust nlastpoints if there are insufficient points
+  while (nlastpoints > 1 && nrow(temp1) < nlastpoints) {
+    nlastpoints <- nlastpoints - 1
+  }
+
+  # If fewer than 2 points are available after the loop, exit as calculation is invalid
+  if (nlastpoints < 2) {
     return(c(
       cl = cl,
       vd = vd,
@@ -154,6 +164,7 @@ graphcal_iv <- function(dat,
     ))
   }
 
+  temp1 <- tail(dat, n = nlastpoints)
 
   # linear regression for slope of log of DVs
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
@@ -199,9 +210,17 @@ graphcal_oral <- function(dat,
   slope = NA
   C0 = NA
 
-  temp1 <- tail(dat, n = nlastpoints)
+  # Identify the index of Tmax
+  max_index <- which.max(dat$DV)
+  temp1 <-dat[(max_index+1) :nrow(dat),] # Subset data points after Tmax (not include Tmax)
 
-  if (nrow(temp1)<nlastpoints){
+  # Loop to adjust nlastpoints if there are insufficient points
+  while (nlastpoints > 1 && nrow(temp1) < nlastpoints) {
+    nlastpoints <- nlastpoints - 1
+  }
+
+  # If fewer than 2 points are available after the loop, exit as calculation is invalid
+  if (nlastpoints < 2) {
     return(c(
       ka = ka,
       cl = cl,
@@ -211,7 +230,7 @@ graphcal_oral <- function(dat,
     ))
   }
 
-
+  temp1 <- tail(dat, n = nlastpoints)
   # linear regression for slope of log of DVs
   abc <- lm(log(temp1$DV) ~ temp1$TIME)
   slope <- summary(abc)[[4]][[2]]
@@ -228,18 +247,19 @@ graphcal_oral <- function(dat,
   absorb_phase <- dat[1:Cmax_point, ]
   absorb_phase <- absorb_phase[absorb_phase$TIME > 0, ]
 
-  # At least 2 points for ka slope regression
-  # Cmax, and C0 are also accepted
-  if (nrow(absorb_phase) < 2) {
+  # At least 1 points for ka slope regression (Intercept is considered in the residual line)
+
+  if (nrow(absorb_phase) < 1) {
     ka = NA
   }
 
-  if (nrow(absorb_phase) > 1) {
-    absorb_phase$IVconc <- -kel * absorb_phase$TIME + Intercept
-    absorb_phase$residuals <-
-      absorb_phase$IVconc - log(absorb_phase$DV)
+  if (nrow(absorb_phase) > 0) {
+    absorb_phase$IVconc <- exp( -kel * absorb_phase$TIME + Intercept)
+     absorb_phase$residuals <-
+      absorb_phase$IVconc - absorb_phase$DV
 
-    abslinear <- lm(absorb_phase$residuals ~ absorb_phase$TIME)
+    absorb_phase<-rbind(data.frame(TIME=0,DV=0,IVconc=exp(Intercept),residuals=exp(Intercept)),absorb_phase)
+    abslinear <- lm(log(absorb_phase$residuals) ~ absorb_phase$TIME)
     slope_ka <- summary(abslinear)[[4]][[2]]
     ka =  -slope_ka
 
