@@ -147,7 +147,7 @@ graphcal_iv <- function(dat,
   # Identify the index of Tmax
   max_index <- which.max(dat$DV)
 
-  temp1 <-testdat[max_index:nrow(testdat),] # Subset data points after Tmax
+  temp1 <-dat[max_index:nrow(dat),] # Subset data points after Tmax
 
   # Loop to adjust nlastpoints if there are insufficient points
   while (nlastpoints > 1 && nrow(temp1) < nlastpoints) {
