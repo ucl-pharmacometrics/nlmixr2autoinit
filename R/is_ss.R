@@ -57,6 +57,7 @@
 #'
 #' @importFrom dplyr filter mutate group_by summarise ungroup
 #' @importFrom crayon black
+#' @importFrom purrr
 #' @export
 
 is_ss <- function(df,
@@ -81,131 +82,103 @@ is_ss <- function(df,
   df$recent_ii <- 0
   df$SS.method <- NA
 
-  # df[df$SSflag == 1 & df$EVID == 0, ]$SteadyState = TRUE
 
-  for (id in unique(df$ID)) {
+  # Calculate `previous_doses` and `previous_amts` for each observation time
+  df <- df %>%
+    group_by(ID) %>%
+    mutate(
+      # Filter `TIME` and `AMT` for dosing events where `EVID` indicates a dose (e.g., EVID in c(4, 101, 1))
+      previous_doses = map(TIME, ~ TIME[EVID %in% c(4, 101, 1) & TIME <= .]),
+      previous_amts = map(TIME, ~ AMT[EVID %in% c(4, 101, 1) & TIME <= .])
+    )
 
-    id_df <- df[df$ID == id, ]
-    id_obs_df <- df[df$ID == id & df$EVID == 0, ]
+  # Step 2: Calculate required number of doses based on fixed number of half-lives
+  df <- df %>%
+    mutate(
+      # Define doses_required_1 as a fixed number of doses based on `no.doses`
+      doses_required_1 = no.doses
+    ) %>%
+    mutate(
+      #  Calculate last_two_doses_interval for each observation
+      last_two_doses_interval = map2_dbl(previous_doses, TIME, ~ {
+        last_two_doses <- tail(.x, 2)
+        if (length(last_two_doses) == 2) {
+          # Calculate and return the interval between the last two doses
+          diff(last_two_doses)
+        } else {
+          NA_real_ # Return NA if there are not enough doses
+        }
+      })
+    ) %>% # Calculate doses_required_2 (half-lives)
+    mutate(
+      doses_required_2 = ifelse(
+        !is.na(last_two_doses_interval) & !is.na(time_to_ss),
+        ceiling(time_to_ss / last_two_doses_interval),  # Calculate doses needed to reach steady state
+        NA_real_  # Assign NA if conditions are not met
+      )
+    )
 
-    obs_times <- id_obs_df$TIME
-    dose_times <- id_df[id_df$EVID %in% c(4, 101, 1), ]$TIME
-    dose_ii <- id_df[id_df$EVID %in% c(4, 101, 1), ]$II
-    dose_amts <- id_df[id_df$EVID %in% c(4, 101, 1), ]$AMT
+  # Calculate Final doses_required Based on ss_option
+  df <- df %>%
+    mutate(
+      doses_required = case_when(
+        ss_option == 1 ~ pmin(doses_required_1, doses_required_2, na.rm = TRUE), # Take minimum of two options
+        ss_option == 2 ~ doses_required_1, # Use fixed doses if `ss_option` is 2
+        ss_option == 3 ~ ifelse(!is.na(doses_required_2), doses_required_2, doses_required_1) # Based on half-lives if available
+      ),
+      doses_required = pmax(doses_required, 2)  # Ensure minimum of 2 doses
+    )
 
-    # Determine steady state by evaluating each sampling point individually.
-    for (obsi in obs_times) {
 
-      # if SSflag=1, identify steady state directly
-      if (df[df$ID == id &
-             df$TIME == obsi & df$EVID == 0,]$SSflag == 1) {
+  df <- df %>%
+    mutate(
+      doses_to_check = map2(previous_doses, doses_required, ~ tail(.x, .y)),
+      amts_to_check = map2(previous_amts, doses_required, ~ tail(.x, .y)),
+      intervals = map(doses_to_check, diff),
+      dose_interval = map_dbl(intervals, median, na.rm = TRUE),
+      is_continuous = map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
+      is_same_dose = map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25))
+    )
 
-        df[df$ID == id &  df$TIME == obsi & df$EVID == 0,]$SteadyState = T
-        df[df$ID == id &  df$TIME == obsi & df$EVID == 0,]$SS.method = "Steady state flag"
-        df[df$ID == id &
-             df$TIME == obsi &
-             df$EVID == 0,]$recent_ii =  tail(dose_ii[dose_ii <= obsi] , 1) # last one
 
-      }
+ # Check the observation
 
-      if (df[df$ID == id &
-             df$TIME == obsi & df$EVID == 0,]$SSflag == 0) {
-        # Find the doses before the current observation time
-        previous_doses <- dose_times[dose_times <= obsi]
-        previous_amts <- dose_amts[dose_times <= obsi]
+  df <- df %>%
+    mutate(
+      # Extract the last `doses_required` doses and amounts
+      doses_to_check = map2(previous_doses, doses_required, ~ tail(.x, .y)),
+      amts_to_check = map2(previous_amts, doses_required, ~ tail(.x, .y)),
 
-        # check the last interval
-        last_doses_to_check <- tail(previous_doses, 2)
+      # Calculate intervals between doses and the median interval
+      intervals = map(doses_to_check, diff),
+      dose_interval = map_dbl(intervals, median, na.rm = TRUE),
 
-        # At least there were at least two doses before this observation for identifying steady state
-        if (length(last_doses_to_check) > 1) {
-          doses_required_1 <- no.doses
-          doses_required_2  <- NA
-          doses_required <-  doses_required_1
+      # Check if all intervals are within 1.5 times the median interval
+      is_continuous = map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
 
-          if (!is.na(time_to_ss)) {
-            doses_required_2 <-
-              ceiling(time_to_ss / diff(last_doses_to_check)) #  rounded up to the next whole number.
-          }
+      # Check if all dose amounts are within 1.25 times the median dose amount
+      is_same_dose = map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25)),
 
-          if (ss_option == 1) {
-            doses_required <- min(c(doses_required_1, doses_required_2), na.rm = T)
-          }
+      # Check if each observation occurs within dose_interval * 1.25
+      is_within_last_dose_interval = tad < dose_interval * 1.25
+    )
 
-          if (ss_option == 2) {
-            doses_required <-  doses_required_1
-          }
+  # Determine steady state and recent_ii
+  df <- df %>%
+    mutate(
+      SteadyState = ifelse(
+        SSflag == 1 | (is_continuous & is_same_dose & is_within_last_dose_interval),
+        TRUE, FALSE
+      ),
+      SS.method = case_when(
+        SteadyState & doses_required == doses_required_1 ~ "A fixed number of doses",
+        SteadyState & doses_required == doses_required_2 ~ "A fixed number of half-lives",
+        TRUE ~ NA_character_
+      ),
+      recent_ii = ifelse(SteadyState, dose_interval, NA)
+    ) %>%
+    ungroup()
 
-          if (ss_option == 3) {
-            if (!is.na(doses_required_2)) {
-              doses_required <-  doses_required_2
-            }
-          }
-
-          # There are at least two doses for multiple doses
-          doses_required<-pmax(doses_required,2)
-
-          # Check if there are enough doses before observation
-          if (length(previous_doses) >= doses_required) {
-            # Extract the last few doses, with the number of doses specified by doses_required.
-            doses_to_check <- tail(previous_doses, doses_required)
-            amts_to_check <- tail(previous_amts, doses_required)
-
-            # Calculate intervals between consecutive dosing times
-            intervals <- diff(doses_to_check)
-
-            # # Identify the most common interval as the standard interval
-            # dose_interval <- as.numeric(names(sort(table(intervals), decreasing = TRUE)[1]))
-
-            # Calculate the median interval to reduce the impact of outliers
-            dose_interval <- median(intervals)
-
-            # Check if all intervals are within 1.5 times the median interval
-            is_continuous <-
-              all(abs(intervals - dose_interval) <= dose_interval * 0.5)
-
-            # Check if all dose amounts are within 1.25 times the median amount
-            is_same_dose <-
-              all(abs(amts_to_check - median(amts_to_check)) <= median(amts_to_check) * 1.25) # 20% amt difference
-
-            # Check  if the observation falls within the last dose interval.
-            is_within_last_dose_interval <-
-              df[df$ID == id &
-                   df$TIME == obsi &
-                   df$EVID == 0,]$tad < dose_interval * 1.25# allow 1.25 difference
-
-            if (is_continuous &
-                is_same_dose & is_within_last_dose_interval) {
-              if (doses_required == doses_required_1) {
-                df[df$ID == id &
-                     df$TIME == obsi &
-                     df$EVID == 0,]$SS.method <- "A fixed number of doses"
-              }
-
-              if (doses_required == doses_required_2) {
-                df[df$ID == id &
-                     df$TIME == obsi &
-                     df$EVID == 0,]$SS.method <- "A fixed number of half-lives"
-              }
-
-              # Mark the corresponding observation as steady state
-              df[df$ID == id &
-                   df$TIME == obsi &
-                   df$EVID == 0,]$SteadyState <- TRUE
-              df[df$ID == id &
-                   df$TIME == obsi &
-                   df$EVID == 0,]$recent_ii <- median(intervals)
-            }
-
-          }  # close the if last_doses_to_check
-
-        } # end previous_doses if
-
-      } # end SSflag if
-
-    } # end obs loop
-
-  } # end id loop
 
   return(df)
 }
