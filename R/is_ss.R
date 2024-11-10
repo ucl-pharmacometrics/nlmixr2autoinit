@@ -57,7 +57,7 @@
 #'
 #' @importFrom dplyr filter mutate group_by summarise ungroup
 #' @importFrom crayon black
-#' @importFrom purrr
+#' @import purrr
 #' @export
 
 is_ss <- function(df,
@@ -88,8 +88,8 @@ is_ss <- function(df,
     group_by(ID) %>%
     mutate(
       # Filter `TIME` and `AMT` for dosing events where `EVID` indicates a dose (e.g., EVID in c(4, 101, 1))
-      previous_doses = map(TIME, ~ TIME[EVID %in% c(4, 101, 1) & TIME <= .]),
-      previous_amts = map(TIME, ~ AMT[EVID %in% c(4, 101, 1) & TIME <= .])
+      previous_doses = purrr::map(TIME, ~ TIME[EVID %in% c(4, 101, 1) & TIME <= .]),
+      previous_amts = purrr::map(TIME, ~ AMT[EVID %in% c(4, 101, 1) & TIME <= .])
     )
 
   # Step 2: Calculate required number of doses based on fixed number of half-lives
@@ -100,7 +100,7 @@ is_ss <- function(df,
     ) %>%
     mutate(
       #  Calculate last_two_doses_interval for each observation
-      last_two_doses_interval = map2_dbl(previous_doses, TIME, ~ {
+      last_two_doses_interval = purrr::map2_dbl(previous_doses, TIME, ~ {
         last_two_doses <- tail(.x, 2)
         if (length(last_two_doses) == 2) {
           # Calculate and return the interval between the last two doses
@@ -132,12 +132,12 @@ is_ss <- function(df,
 
   df <- df %>%
     mutate(
-      doses_to_check = map2(previous_doses, doses_required, ~ tail(.x, .y)),
-      amts_to_check = map2(previous_amts, doses_required, ~ tail(.x, .y)),
-      intervals = map(doses_to_check, diff),
-      dose_interval = map_dbl(intervals, median, na.rm = TRUE),
-      is_continuous = map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
-      is_same_dose = map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25))
+      doses_to_check = purrr::map2(previous_doses, doses_required, ~ tail(.x, .y)),
+      amts_to_check = purrr::map2(previous_amts, doses_required, ~ tail(.x, .y)),
+      intervals = purrr::map(doses_to_check, diff),
+      dose_interval = purrr::map_dbl(intervals, median, na.rm = TRUE),
+      is_continuous = purrr::map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
+      is_same_dose = purrr::map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25))
     )
 
 
@@ -146,18 +146,18 @@ is_ss <- function(df,
   df <- df %>%
     mutate(
       # Extract the last `doses_required` doses and amounts
-      doses_to_check = map2(previous_doses, doses_required, ~ tail(.x, .y)),
-      amts_to_check = map2(previous_amts, doses_required, ~ tail(.x, .y)),
+      doses_to_check = purrr::map2(previous_doses, doses_required, ~ tail(.x, .y)),
+      amts_to_check = purrr::map2(previous_amts, doses_required, ~ tail(.x, .y)),
 
       # Calculate intervals between doses and the median interval
-      intervals = map(doses_to_check, diff),
-      dose_interval = map_dbl(intervals, median, na.rm = TRUE),
+      intervals = purrr::map(doses_to_check, diff),
+      dose_interval = purrr::map_dbl(intervals, median, na.rm = TRUE),
 
       # Check if all intervals are within 1.5 times the median interval
-      is_continuous = map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
+      is_continuous = purrr::map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
 
       # Check if all dose amounts are within 1.25 times the median dose amount
-      is_same_dose = map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25)),
+      is_same_dose = purrr::map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25)),
 
       # Check if each observation occurs within dose_interval * 1.25
       is_within_last_dose_interval = tad < dose_interval * 1.25
