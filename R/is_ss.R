@@ -167,7 +167,7 @@ is_ss <- function(df,
   df <- df %>%
     mutate(
       SteadyState = ifelse(
-        SSflag == 1 | (is_continuous & is_same_dose & is_within_last_dose_interval),
+        (SSflag == 1 & EVID == 0) | (is_continuous & is_same_dose & is_within_last_dose_interval),
         TRUE, FALSE
       ),
       SS.method = case_when(
