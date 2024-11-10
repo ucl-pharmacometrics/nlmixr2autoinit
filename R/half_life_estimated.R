@@ -158,12 +158,17 @@ get_hf <- function(testdat,
   # Identify the index of Tmax
   max_index <- which.max(testdat$Conc)
 
-  if (route == "bolus" || route == "infusion") {
+  temp1<-testdat
+
+  if (route == "infusion") {
     temp1 <-
       testdat[max_index:nrow(testdat),] # Subset data points after Tmax
   }
 
   if (route == "oral") {
+    if (max_index==nrow(testdat)){
+      return(half_life_)
+    }
     temp1 <-
       testdat[(max_index + 1):nrow(testdat),] # Subset data points after Tmax
   }
