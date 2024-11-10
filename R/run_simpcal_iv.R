@@ -39,11 +39,12 @@ run_simpcal_iv <- function(dat,
                  half_life = half_life )
   dat$duration_obs<-0
 
-  if (nrow(dat[dat$rateobs!=0,]>0)){
+  if (nrow(dat[dat$rateobs!=0,])>0){
   dat$duration_obs <- dat[dat$rateobs!=0,]$dose / dat[dat$rateobs!=0,]$rateobs
   }
 
-  dat.ss.obs <- dat[dat$SteadyState == T,]
+
+  dat.ss.obs <- dat[dat$SteadyState == TRUE & !is.na(dat$SteadyState), ]
 
   if (nrow(dat.ss.obs) > 2) {
       # If there are multiple points within the same dose interval,
