@@ -4,7 +4,7 @@
 \alias{graphcal_iv}
 \title{Graphical calculation of clearance and volume of distribution}
 \usage{
-graphcal_iv(dat, nlastpoints)
+graphcal_iv(dat, nlastpoints = 3)
 }
 \arguments{
 \item{dat}{A data frame with intravenous pharmacokinetic data, at least containing TIME and DV these two columns}

@@ -10,7 +10,8 @@ run_nca.normalised(
   trapezoidal.rule = 1,
   nbins = 8,
   fdobsflag = 1,
-  sdflag = 1
+  sdflag = 1,
+  route = "bolus"
 )
 }
 \arguments{
