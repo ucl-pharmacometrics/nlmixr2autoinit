@@ -218,7 +218,7 @@ run_simpcal_iv <- function(dat,
     if (nrow(dat[dat$EVID == 0 &
                  dat$dose_number == 1 &
                  dat$tad < half_life * 0.2 &
-                 dat$TIME < dat$duration_obs &
+                 # dat$TIME < dat$duration_obs & # allow sampling outside infusion duration
                  dat$iiobs==0,]) > 0) {
 
       dat$C_first_flag <- 0
@@ -226,7 +226,7 @@ run_simpcal_iv <- function(dat,
       dat[dat$EVID == 0 &
             dat$dose_number == 1 &
             dat$tad < half_life * 0.2 &
-            dat$TIME < dat$duration_obs  &
+            # dat$TIME < dat$duration_obs  &
             dat$iiobs==0,]$C_first_flag <- 1
 
       dat.fd.obs <- dat[dat$C_first_flag == 1, ]
