@@ -470,6 +470,9 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
         simpcal.RMSE <-  round(metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
         simpcal.rRMSE <- round( metrics.(pred.x =  simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
 
+        rm(simpcal_sim)
+        gc()
+
       }
     }
     # non-compartmental analysis
@@ -494,6 +497,9 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
       nca.RMSE <-  round(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
       nca.rRMSE <- round( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
 
+      rm(nca_sim)
+      gc()
+
     }
     }
 
@@ -512,6 +518,10 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
         nca_fd.MAPE <- round( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
         nca_fd.RMSE <-  round(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
         nca_fd.rRMSE <- round( metrics.(pred.x =nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+
+        rm(nca_fd_sim)
+        gc()
+
       }
     }
 
@@ -530,6 +540,9 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
         nca_efd.MAPE <- round( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
         nca_efd.RMSE <-  round(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
         nca_efd.rRMSE <- round( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+
+        rm(nca_efd_sim)
+        gc()
       }
     }
 
@@ -549,6 +562,9 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
         graph_fd.MAPE <- round( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
         graph_fd.RMSE <-  round(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
         graph_fd.rRMSE <- round( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+
+        rm( graph_fd_sim)
+        gc()
 
       }
     }
