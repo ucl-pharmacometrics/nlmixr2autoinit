@@ -113,7 +113,7 @@ is_ss <- function(df,
     mutate(
       doses_required_2 = ifelse(
         !is.na(last_two_doses_interval) & !is.na(time_to_ss),
-        ceiling(time_to_ss / last_two_doses_interval),  # Calculate doses needed to reach steady state
+        pmax(ceiling(time_to_ss / last_two_doses_interval),3),  # Calculate doses needed to reach steady state
         NA_real_  # Assign NA if conditions are not met
       )
     )
@@ -126,7 +126,7 @@ is_ss <- function(df,
         ss_option == 2 ~ doses_required_1, # Use fixed doses if `ss_option` is 2
         ss_option == 3 ~ ifelse(!is.na(doses_required_2), doses_required_2, doses_required_1) # Based on half-lives if available
       ),
-      doses_required = pmax(doses_required, 2)  # Ensure minimum of 2 doses
+      doses_required = pmax(doses_required, 3)  # Ensure minimum of 3 doses
     )
 
 
@@ -141,10 +141,9 @@ is_ss <- function(df,
     )
 
 
- # Check the observation
-
   df <- df %>%
     mutate(
+      dose_count_before_obs =  purrr::map_int(previous_doses, length),
       # Extract the last `doses_required` doses and amounts
       doses_to_check = purrr::map2(previous_doses, doses_required, ~ tail(.x, .y)),
       amts_to_check = purrr::map2(previous_amts, doses_required, ~ tail(.x, .y)),
@@ -167,7 +166,7 @@ is_ss <- function(df,
   df <- df %>%
     mutate(
       SteadyState = ifelse(
-        (SSflag == 1 & EVID == 0) | (is_continuous & is_same_dose & is_within_last_dose_interval),
+        (SSflag == 1 & EVID == 0) | ( (dose_count_before_obs >= doses_required) &  is_continuous & is_same_dose & is_within_last_dose_interval),
         TRUE, FALSE
       ),
       SS.method = case_when(
