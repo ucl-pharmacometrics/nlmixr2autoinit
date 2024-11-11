@@ -107,6 +107,7 @@ for (loopmm in 1:nrow(combs_df)) {
       rbind(sim.vmax.km.results.all, sim.vmax.km.results)
 
     rm(sim.lst) # To avoid occupying memory
+    gc()
   }
   return(sim.vmax.km.results.all)
 }
@@ -221,6 +222,7 @@ sim_sens_2cmpt <- function(dat,
       rbind(sim.2cmpt.results.all, sim.2cmpt.results)
 
     rm(sim.lst) # To avoid occupying memory
+    gc()
     }
   }
   return(sim.2cmpt.results.all)
@@ -359,7 +361,7 @@ sim_sens_3cmpt <- function(dat,
       rbind(sim.3cmpt.results.all, sim.3cmpt.results)
 
     rm(sim.lst) # To avoid occupying memory
-    # gc()
+    gc()
 
    }
   }
