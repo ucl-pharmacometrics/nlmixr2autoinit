@@ -209,6 +209,7 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
   }
 }
 
+
 ################# Naive pooled Non-compartmental analysis ##################################
   message(black(
     paste0("Run non-compartmental analysis on naive pooling data", strrep(".", 20))
@@ -347,6 +348,9 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
       simpcal.MAPE <- round( metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
       simpcal.RMSE <-  round(metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
       simpcal.rRMSE <- round( metrics.(pred.x = simpcal_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+
+      rm(simpcal_sim)
+      gc()
     }
 
 
@@ -370,6 +374,8 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
     nca.RMSE <-  round(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
     nca.rRMSE <- round( metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
 
+    rm(nca_sim)
+    gc()
   }
   }
 
@@ -388,6 +394,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
       nca_fd.MAPE <- round( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
       nca_fd.RMSE <-  round(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
       nca_fd.rRMSE <- round( metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+
+      rm(nca_fd_sim)
+      gc()
+
+
     }
   }
 
@@ -406,6 +417,11 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
       nca_efd.MAPE <- round( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
       nca_efd.RMSE <-  round(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
       nca_efd.rRMSE <- round( metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+
+      rm( nca_efd_sim )
+      gc()
+
+
     }
   }
 
@@ -425,6 +441,10 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
       graph_fd.MAPE <- round( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[3],3)
       graph_fd.RMSE <-  round(metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[4],3)
       graph_fd.rRMSE <- round( metrics.(pred.x = graph_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[5],3)
+
+      rm( graph_fd_sim)
+      gc()
+
     }
   }
 }
@@ -657,6 +677,7 @@ message_text <- paste0("Base PK parameter analysis finished. Estimated ka: ", ba
 
 cat(message_text, "\n")
 
+
 ################# Simulation-based Vmax and Km analysis#######################
 
   message(black(
@@ -731,6 +752,9 @@ cat(message_text, "\n")
       seq(1, nrow(sim.2cmpt.results.all), 1)
   }
   }
+
+
+
 
 
   if (oral_flag==1){
