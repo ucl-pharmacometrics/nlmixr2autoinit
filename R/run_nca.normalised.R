@@ -17,8 +17,8 @@
 #' @examples
 #' dat <- theo_sd
 #' dat <- processData(dat)$dat
-#' run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=1,nbins = 8, fdobsflag = 1,sdflag=0)
-#' run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=2,nbins = 8, fdobsflag = 1,sdflag=0)
+#' run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=1,nbins = 8, fdobsflag = 1,sdflag=1)
+#' run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=2,nbins = 8, fdobsflag = 1,sdflag=1)
 #' @export
 
 run_nca.normalised <- function(dat,
@@ -82,7 +82,6 @@ run_nca.normalised <- function(dat,
   if (fdobsflag==1){
 
     start.time <- Sys.time()
-    dat$DVnor <- dat$DV / dat$dose
 
     dat_fd <- dat[dat$dose_number == 1 & dat$iiobs==0, ]
     datpooled_fd <- pk.time.binning(testdat = dat_fd,
@@ -136,7 +135,6 @@ run_nca.normalised <- function(dat,
       as.numeric(names(sort(table(dose_intervals), decreasing = TRUE)[1]))
 
       start.time <- Sys.time()
-      dat$DVnor <- dat$DV / dat$dose
 
       dat_efd1.obs <- dat[dat$dose_number != 1 & dat$EVID==0, ]
       dat_efd1.dose <- dat[dat$dose_number != 1 & dat$EVID==1, ]
@@ -179,7 +177,6 @@ run_nca.normalised <- function(dat,
   if (fdobsflag==1 & sdflag==0){
 
   start.time <- Sys.time()
-  dat$DVnor <- dat$DV / dat$dose
 
   dat_all.obs <- dat[dat$EVID==0, ]
   dat_all.dose <- dat[dat$EVID==1, ]
