@@ -24,8 +24,8 @@
 #'   - `dat.fd.obs`: Subset of the data used for single-dose volume of distribution calculation.
 #' @importFrom dplyr %>% mutate if_else arrange group_by ungroup slice_min filter select
 #' @import nlmixr2
-#' @examples
 #'
+#' @examples
 #' # Example 1 (iv case)
 #' dat <- Bolus_1CPT
 #' fdat <- processData(dat)$dat
@@ -391,7 +391,6 @@ run_single_point <- function(dat,
 #' @param na.rm Logical. Should missing values (NA) be removed before computation? Defaults to TRUE.
 #' @return The trimmed geometric mean of the input vector as a numeric value.
 #'   If no values remain after trimming, returns `NA`.
-#' @examples
 #'
 trimmed_geom_mean <- function(x, trim = 0, na.rm = TRUE) {
   if (na.rm) x <- na.omit(x)  # Remove NA values if na.rm is TRUE

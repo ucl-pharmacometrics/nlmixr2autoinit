@@ -23,7 +23,7 @@ processData(dat)
 A list containing three data frames:
 \itemize{
 \item \code{dat}: The complete processed dataset with additional columns for \code{resetflag}, \code{SSflag},
-\code{route}, \code{dose_number}, and \code{DVnor} (normalized concentration).
+\code{route}, \code{dose_number}, and \code{DVstd} (normalized concentration).
 \item \code{fd_data}: Data between the first and second doses.
 \item \code{md_data}: Data after at least two doses have been administered.
 }

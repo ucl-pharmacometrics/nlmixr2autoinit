@@ -7,7 +7,7 @@
 pk.time.binning(testdat, nbins)
 }
 \arguments{
-\item{testdat}{A data frame containing the pharmacokinetic data with columns for time after dose (tad) and normalised concentration (DVnor).}
+\item{testdat}{A data frame containing the pharmacokinetic data with columns for time after dose (tad) and normalised concentration (DVstd).}
 
 \item{nbins}{The number of bins to create.}
 }
@@ -21,6 +21,6 @@ Creates time bins for the provided pharmacokinetic data and calculates the media
 dat <- Bolus_1CPT
 dat <- nmpkconvert(dat)
 dat <- calculate_tad(dat)
-dat$DVnor<-dat$DV/dat$dose
+dat$DVstd<-dat$DV/dat$dose
 pk.time.binning(dat,8)
 }
