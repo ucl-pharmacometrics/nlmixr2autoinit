@@ -4,7 +4,7 @@
 \alias{single_point_extra}
 \title{Perform extended single-point pharmacokinetic calculations}
 \usage{
-single_point_extra(single_point_base.lst)
+single_point_extra(single_point_base.lst, half_life)
 }
 \arguments{
 \item{single_point_base.lst}{A list object returned by \code{single_point_base}, containing preprocessed data and initial calculations for \(CL\) and \(V_d\).}

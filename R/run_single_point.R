@@ -556,7 +556,6 @@ single_point_extra <- function(single_point_base.lst,
 #' @param route The route of administration, either `"bolus"` (default) or `"infusion"`. Determines the formula for \(V_d\) calculation.
 #' @return The trimmed geometric mean of the approximated \(V_d\), calculated across individuals.
 #' @details
-#' @details
 #' - **Rapid Absorption Assumption:**
 #'   When \eqn{k_a \gg k_e}, most of the absorption is completed before elimination significantly impacts the drug concentration. Under this assumption, \eqn{C_{\text{max}}} is dominated by absorption rather than elimination.
 #'

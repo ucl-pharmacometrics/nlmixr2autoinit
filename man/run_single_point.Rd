@@ -46,7 +46,6 @@ run_single_point(fdat,half_life)
 dat <- Infusion_1CPT
 fdat <- processData(dat)$dat
 half_life<-half_life_estimated(dat = fdat)$half_life_median
-single_point_base(fdat,half_life)
 run_single_point(fdat,half_life)
 
 dat <- Oral_1CPT
