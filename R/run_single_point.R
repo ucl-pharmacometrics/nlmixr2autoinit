@@ -352,7 +352,7 @@ single_point_base <- function(dat,
 #'   - `single_point_ka_df`: Data used for \(k_a\) calculations (if applicable).
 #'   - `single_point_cl_df`: Data used for \(CL\) calculations.
 #'   - `single_point_vd_df`: Data used for \(V_d\) calculations.
-#'   - `single_point_vd_cmax_df`: \(C_{\text{max}}\) data used for \(V_d\) estimation.
+#'   - `single_point_vd_cmax_df`: \(C_{max}\) data used for \(V_d\) estimation.
 #' @details
 #' The function uses a series of conditional logic to determine which pharmacokinetic parameters can be reliably calculated based on the available data:
 #'
