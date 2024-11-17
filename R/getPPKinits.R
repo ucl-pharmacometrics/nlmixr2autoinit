@@ -717,7 +717,7 @@ cat(message_text, "\n")
   if (oral_flag==1){
       sim.2cmpt.results.all.i <- sim_sens_2cmpt(dat = dat,
                                                 estcl = base.cl.best,
-                                                estvd = base.vd.best,
+                                                sim_vc_list = c( approx.vc.value, base.vd.best),
                                                 estka = base.ka.best,
                                                 noniv_flag = 1)
       sim.2cmpt.results.all <-
@@ -735,7 +735,7 @@ cat(message_text, "\n")
 
     sim.3cmpt.results.all.i <- sim_sens_3cmpt(dat = dat,
                                               estcl = base.cl.best,
-                                              estvd = base.vd.best)
+                                              sim_vc_list = c( approx.vc.value, base.vd.best))
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results.all.i)
     rownames(sim.3cmpt.results.all) <-
@@ -747,7 +747,7 @@ cat(message_text, "\n")
 
     sim.3cmpt.results.all.i <- sim_sens_3cmpt(dat = dat,
                                               estcl = base.cl.best,
-                                              estvd = base.vd.best,
+                                              sim_vc_list = c( approx.vc.value, base.vd.best),
                                               estka = base.ka.best,
                                               noniv_flag = 1)
     sim.3cmpt.results.all <-
