@@ -539,12 +539,12 @@ single_point_extra <- function(single_point_base.lst,
 
 #' Approximate volume of distribution based on Cmax
 #'
-#' Approximates the volume of distribution (\(V_d\)) using observed \(C_{\text{max}}\) values.
-#' The calculation assumes rapid absorption (\(k_a \gg k_e\)), meaning that \(C_{\text{max}}\) occurs shortly after dosing, before significant elimination has taken place.
-#' To ensure this assumption, \(C_{\text{max}}\) points are filtered to those occurring within \(0.2 \times \text{half-life}\), a time window where elimination is minimal.
+#' Approximates the volume of distribution (\eqn{V_d}) using observed \eqn{C_{\mathrm{max}}} values.
+#' The calculation assumes rapid absorption (\eqn{k_a \gg k_e}), meaning that \eqn{C_{\mathrm{max}}} occurs shortly after dosing, before significant elimination has taken place.
+#' To ensure this assumption, \eqn{C_{\mathrm{max}}} points are filtered to those occurring within \eqn{0.2 \cdot \mathrm{half-life}}, a time window where elimination is minimal.
 #'
-#' @param dat A data frame containing pharmacokinetic data, including observed concentrations (\(DV\)), time after dose (\(tad\)), dose, and route information.
-#' @param half_life The half-life of the drug, used to filter \(C_{\text{max}}\) points to the early phase of elimination.
+#' @param dat A data frame containing pharmacokinetic data, including observed concentrations (\code{DV}), time after dose (\code{tad}), dose, and route information.
+#' @param half_life The half-life of the drug, used to filter \eqn{C_{\mathrm{max}}} points to the early phase of elimination.
 #' @param route The route of administration, either `"bolus"` (default) or `"infusion"`. Determines the formula for \(V_d\) calculation.
 #' @return The trimmed geometric mean of the approximated \(V_d\), calculated across individuals.
 #' @details
