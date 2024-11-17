@@ -394,6 +394,7 @@ single_point_extra <- function(single_point_base.lst,
                                half_life) {
   dat <- single_point_base.lst$dat
   trimmed_mean_ka <- NA
+  ka_single_point.out<-NA
   trimmed_mean_cl <-
     single_point_base.lst$single_point_base.results$cl
   trimmed_mean_vd <-
