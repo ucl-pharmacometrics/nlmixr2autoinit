@@ -63,7 +63,7 @@
 is_ss <- function(df,
                   ss_option = 1,
                   no.doses = 5,
-                  no.half_life = 3,
+                  no.half_life = 5,
                   half_life = NA) {
   if (missing(df)) {
     stop("Error, no dataset provided")
