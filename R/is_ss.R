@@ -80,7 +80,7 @@ is_ss <- function(df,
 
   df$SteadyState <- FALSE
   df$recent_ii <- 0
-  df$SS.method <- NA
+  # df$SS.method <- NA
 
 
   # Calculate `previous_doses` and `previous_amts` for each observation time
@@ -130,15 +130,15 @@ is_ss <- function(df,
     )
 
 
-  df <- df %>%
-    mutate(
-      doses_to_check = purrr::map2(previous_doses, doses_required, ~ tail(.x, .y)),
-      amts_to_check = purrr::map2(previous_amts, doses_required, ~ tail(.x, .y)),
-      intervals = purrr::map(doses_to_check, diff),
-      dose_interval = purrr::map_dbl(intervals, median, na.rm = TRUE),
-      is_continuous = purrr::map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
-      is_same_dose = purrr::map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25))
-    )
+  # df <- df %>%
+  #   mutate(
+  #     doses_to_check = purrr::map2(previous_doses, doses_required, ~ tail(.x, .y)),
+  #     amts_to_check = purrr::map2(previous_amts, doses_required, ~ tail(.x, .y)),
+  #     intervals = purrr::map(doses_to_check, diff),
+  #     dose_interval = purrr::map_dbl(intervals, median, na.rm = TRUE),
+  #     is_continuous = purrr::map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
+  #     is_same_dose = purrr::map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25))
+  #   )
 
 
   df <- df %>%
@@ -150,7 +150,7 @@ is_ss <- function(df,
 
       # Calculate intervals between doses and the median interval
       intervals = purrr::map(doses_to_check, diff),
-      dose_interval = purrr::map_dbl(intervals, median, na.rm = TRUE),
+      dose_interval = purrr::map_dbl(last_two_doses_interval, median, na.rm = TRUE),
 
       # Check if all intervals are within 1.5 times the median interval
       is_continuous = purrr::map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
