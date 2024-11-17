@@ -1,4 +1,4 @@
-#' Run Single-Point Pharmacokinetic Analysis
+#' Run single-point pharmacokinetic analysis
 #'
 #' This function performs a single-point pharmacokinetic analysis, estimating key parameters such as clearance (\(CL\)), volume of distribution (\(V_d\)), and absorption rate constant (\(k_a\)) based on the provided dataset and optional half-life (\(t_{1/2}\)).
 #'
@@ -23,8 +23,7 @@
 #' dat <- Bolus_1CPT
 #' fdat <- processData(dat)$dat
 #' half_life<-half_life_estimated(dat = fdat)$half_life_median
-#' out<-run_single_point(fdat,half_life)
-#' testout<-out$single_point_cl_df
+#' run_single_point(fdat,half_life)
 #'
 #' # Example 2 (infusion case).
 #'
@@ -36,7 +35,7 @@
 #'
 #' dat <- Oral_1CPT
 #' fdat <- processData(dat)$dat
-#' half_life<-half_life_estimated(dat = fdat)$half_life_median[1]
+#' half_life<-half_life_estimated(dat = fdat)$half_life_median
 #' run_single_point(fdat,half_life)
 #'
 #' @export
