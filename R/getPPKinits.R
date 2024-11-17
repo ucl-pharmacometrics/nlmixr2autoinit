@@ -627,6 +627,10 @@ all.out <- data.frame(
       all.out[all.out$`Relative Root Mean Squared Error (rRMSE)` == min(all.out$`Relative Root Mean Squared Error (rRMSE)`,na.rm = T),]
   }
 
+# Only use the first record (if same, temporary setting)
+  if (nrow(base.best)>1){
+    base.best<-base.best[1,]
+  }
 
   base.ka.best<-base.best$`Calculated Ka`
   base.cl.best <-base.best$`Calculated CL`
@@ -659,27 +663,25 @@ cat(message_text, "\n")
   sim.vmax.km.results.all <- NULL
 
   if (bolus_flag==1 || infusion_flag==1){
-  for (besti in 1:length(base.cl.best)) {
     sim.vmax.km.results.all.i <- sim_sens_vmax_km(
       dat = dat,
       estcmax =  fcmax,
-      estcl = base.cl.best[besti],
-      estvd = base.vd.best[besti]
+      estcl = base.cl.best,
+      estvd = base.vd.best
     )
     sim.vmax.km.results.all <-
       rbind(sim.vmax.km.results.all, sim.vmax.km.results.all.i)
     rownames(sim.vmax.km.results.all) <-
       seq(1, nrow(sim.vmax.km.results.all), 1)
    }
-  }
+
   if (oral_flag==1){
-    for (besti in 1:length(base.cl.best)) {
       sim.vmax.km.results.all.i <- sim_sens_vmax_km(
         dat = dat,
         estcmax =  fcmax,
-        estcl = base.cl.best[besti],
-        estvd = base.vd.best[besti],
-        estka = base.ka.best[besti],
+        estcl = base.cl.best,
+        estvd = base.vd.best,
+        estka = base.ka.best,
         noniv_flag = 1
       )
       sim.vmax.km.results.all <-
@@ -688,9 +690,6 @@ cat(message_text, "\n")
         seq(1, nrow(sim.vmax.km.results.all), 1)
     }
 
-  }
-
-
   # message(black(
   #   paste0("Nonlinear elimination parameter analysis finished. Estimated Vmax : ",   recommended_vmax_init, ", estimated km : ", recommended_km_init  )))
 
@@ -698,34 +697,34 @@ cat(message_text, "\n")
   message(black(
     paste0("Run simulation-based sensitivity analysis on multi-compartmental PK parameters",strrep(".", 20))))
 
+  # Collect identified vc from single-point extra and base.best.vd
+
   # Two-compartment model simulation
   sim.2cmpt.results.all <- NULL
 
+  approx.vc.value<-single.point.lst$approx.vc.out$approx.vc.value
+
   if (bolus_flag==1 || infusion_flag==1){
-  for (besti in 1:length(base.cl.best)) {
     sim.2cmpt.results.all.i <- sim_sens_2cmpt(dat = dat,
-                                              estcl = base.cl.best[besti],
-                                              estvd = base.vd.best[besti])
+                                              estcl = base.cl.best,
+                                              sim_vc_list = c( approx.vc.value, base.vd.best))
     sim.2cmpt.results.all <-
       rbind(sim.2cmpt.results.all, sim.2cmpt.results.all.i)
     rownames(sim.2cmpt.results.all) <-
       seq(1, nrow(sim.2cmpt.results.all), 1)
-  }
-  }
-
+   }
 
   if (oral_flag==1){
-    for (besti in 1:length(base.cl.best)) {
       sim.2cmpt.results.all.i <- sim_sens_2cmpt(dat = dat,
-                                                estcl = base.cl.best[besti],
-                                                estvd = base.vd.best[besti],
-                                                estka = base.ka.best[besti],
+                                                estcl = base.cl.best,
+                                                estvd = base.vd.best,
+                                                estka = base.ka.best,
                                                 noniv_flag = 1)
       sim.2cmpt.results.all <-
         rbind(sim.2cmpt.results.all, sim.2cmpt.results.all.i)
       rownames(sim.2cmpt.results.all) <-
         seq(1, nrow(sim.2cmpt.results.all), 1)
-    }
+
   }
 
 
@@ -733,31 +732,29 @@ cat(message_text, "\n")
   sim.3cmpt.results.all <- NULL
 
   if (bolus_flag==1 || infusion_flag==1){
-  for (besti in 1:length(base.cl.best)) {
+
     sim.3cmpt.results.all.i <- sim_sens_3cmpt(dat = dat,
-                                              estcl = base.cl.best[besti],
-                                              estvd = base.vd.best[besti])
+                                              estcl = base.cl.best,
+                                              estvd = base.vd.best)
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results.all.i)
     rownames(sim.3cmpt.results.all) <-
       seq(1, nrow(sim.3cmpt.results.all), 1)
   }
-  }
+
 
   if (oral_flag==1){
-  for (besti in 1:length(base.cl.best)) {
+
     sim.3cmpt.results.all.i <- sim_sens_3cmpt(dat = dat,
-                                              estcl = base.cl.best[besti],
-                                              estvd = base.vd.best[besti],
-                                              estka = base.ka.best[besti],
+                                              estcl = base.cl.best,
+                                              estvd = base.vd.best,
+                                              estka = base.ka.best,
                                               noniv_flag = 1)
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results.all.i)
     rownames(sim.3cmpt.results.all) <-
       seq(1, nrow(sim.3cmpt.results.all), 1)
   }
-  }
-
 
 ################## Parameter Selection Selection############################
   if (selection.criteria=="APE"){
