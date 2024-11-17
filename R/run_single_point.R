@@ -557,51 +557,46 @@ single_point_extra <- function(single_point_base.lst,
 #' @return The trimmed geometric mean of the approximated \(V_d\), calculated across individuals.
 #' @details
 #' - **Rapid Absorption Assumption:**
-#'   When \eqn{k_a \gg k_e}, most of the absorption is completed before elimination significantly impacts the drug concentration. Under this assumption, \eqn{C_{\text{max}}} is dominated by absorption rather than elimination.
+#'   When \eqn{k_a \gg k_e}, most of the absorption is completed before elimination significantly impacts the drug concentration. Under this assumption, \eqn{C_{\mathrm{max}}} is dominated by absorption rather than elimination.
 #'
-#' - ** \eqn{0.2 \times \text{half-life}}:**
-#'   - At \eqn{0.2 \times \text{half-life}}, less than 13% of the drug is eliminated. This is derived from the iv exponential decay model:
-#'     \deqn{\text{Elimination Fraction} = 1 - e^{-k_e \cdot t}}
-#'     Substituting \eqn{t = 0.2 \cdot \text{half-life}} and \eqn{k_e = \ln(2) / \text{half-life}}:
-#'     \deqn{\text{Elimination Fraction} = 1 - e^{-\ln(2) \cdot 0.2} \approx 0.13}
-#'     This ensures the selected \eqn{C_{\text{max}}} points primarily reflect absorption dynamics.
+#' - **Why \eqn{0.2 \cdot \mathrm{half-life}}:**
+#'   - At \eqn{0.2 \cdot \mathrm{half-life}}, less than 13% of the drug is eliminated. This is derived from the intravenous (IV) exponential decay model:
+#'     \deqn{\mathrm{Elimination\ Fraction} = 1 - e^{-k_e \cdot t}}
+#'     Substituting \eqn{t = 0.2 \cdot \mathrm{half-life}} and \eqn{k_e = \ln(2) / \mathrm{half-life}}:
+#'     \deqn{\mathrm{Elimination\ Fraction} = 1 - e^{-\ln(2) \cdot 0.2} \approx 0.13}
+#'     This ensures the selected \eqn{C_{\mathrm{max}}} points primarily reflect absorption dynamics.
 #'
 #' - **Data Filtering:**
 #'   - Observed data (\code{EVID == 0}) is grouped by \code{ID} and \code{dose_number}.
-#'   - The \eqn{C_{\text{max}}} for each group is identified and further filtered to include only points where \eqn{tad < 0.2 \times \text{half-life}}.
+#'   - The \eqn{C_{\mathrm{max}}} for each group is identified and further filtered to include only points where \eqn{tad < 0.2 \cdot \mathrm{half-life}}.
 #'
 #' - **Volume of Distribution Calculation (single-dose):**
-#'   - For bolus administration: \eqn{V_d = \frac{\text{Dose}}{C_{\text{max}}}}.
-#'   - For infusion: \eqn{V_d = \frac{\text{Rate} \cdot \min(\text{Time}, \text{Duration})}{C_{\text{max}}}}.
+#'   - For bolus administration:
+#'     \deqn{V_d = \frac{\mathrm{Dose}}{C_{\mathrm{max}}}}
+#'   - For infusion:
+#'     \deqn{V_d = \frac{\mathrm{Rate} \cdot \min(\mathrm{Time}, \mathrm{Duration})}{C_{\mathrm{max}}}}
 #'
 #' - **Summary of \eqn{V_d} values:**
-#'   - Individual \eqn{V_d} values are summarised using a trimmed geometric mean (\eqn{10\%}) to reduce the impact of outliers.
+#'   - Individual \eqn{V_d} values are summarized using a trimmed geometric mean (\eqn{10\%}) to reduce the impact of outliers.
 #'
-#' - **Accumulation Ratio (\eqn{R_{\text{ac}}}):**
+#' - **Accumulation Ratio (\eqn{R_{\mathrm{ac}}}):**
 #'   - For multiple-dose scenarios, the accumulation ratio is calculated as:
-#'     \deqn{R_{\text{ac}} = \frac{1}{1 - e^{-k_e \cdot \tau}}}
+#'     \deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \cdot \tau}}}
 #'     where:
-#'       - \eqn{k_e = \frac{\ln(2)}{\text{half-life}}} is the elimination rate constant.
+#'       - \eqn{k_e = \frac{\ln(2)}{\mathrm{half-life}}} is the elimination rate constant.
 #'       - \eqn{\tau} is the dosing interval (\code{dose_interval}).
 #'   - The accumulation ratio represents the steady-state concentration relative to the single-dose concentration.
 #'
-#' - **Selection of \eqn{C_{\text{max}}} Points:**
-#'   - Observed data (\code{EVID == 0}) is grouped by \code{ID} and \code{dose_number}.
-#'   - The maximum observed concentration (\eqn{C_{\text{max}}}) for each group is identified.
-#'   - Additional filtering ensures that only points where \eqn{tad < 0.2 \cdot \text{half-life}} are retained, reflecting absorption-dominated dynamics.
-#'
-#' - **Volume of Distribution (\eqn{V_d}) Calculation:**
+#' - **Volume of Distribution Calculation (multiple-dose):**
 #'   - For infusion routes:
-#'     \deqn{V_d = \frac{\text{Rate} \cdot \min(\text{Time}, \text{Duration})}{C_{\text{max}} / R_{\text{ac}}}}
-#'       - \eqn{\text{Rate}} is the infusion rate.
-#'       - \eqn{\min(\text{Time}, \text{Duration})} represents the shorter of infusion time or observation time.
-#'       - \eqn{C_{\text{max}} / R_{\text{ac}}} adjusts the observed concentration to reflect single-dose dynamics.
+#'     \deqn{V_d = \frac{\mathrm{Rate} \cdot \min(\mathrm{Time}, \mathrm{Duration})}{C_{\mathrm{max}} / R_{\mathrm{ac}}}}
+#'       - \eqn{\mathrm{Rate}} is the infusion rate.
+#'       - \eqn{\min(\mathrm{Time}, \mathrm{Duration})} represents the shorter of infusion time or observation time.
+#'       - \eqn{C_{\mathrm{max}} / R_{\mathrm{ac}}} adjusts the observed concentration to reflect single-dose dynamics.
 #'   - For bolus or other routes:
-#'     \deqn{V_d = \frac{\text{Dose}}{C_{\text{max}} / R_{\text{ac}}}}
-#'       - \eqn{\text{Dose}} is the administered dose.
+#'     \deqn{V_d = \frac{\mathrm{Dose}}{C_{\mathrm{max}} / R_{\mathrm{ac}}}}
+#'       - \eqn{\mathrm{Dose}} is the administered dose.
 #'
-#' - **Significance of Filtering:**
-#'   - The use of \eqn{tad < 0.2 \cdot \text{half-life}} ensures that selected \eqn{C_{\text{max}}} points primarily reflect absorption, minimizing the impact of elimination.
 #'
 #' @examples
 #' # Example 1: Bolus administration
