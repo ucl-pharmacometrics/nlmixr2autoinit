@@ -26,39 +26,31 @@ Extends the single-point pharmacokinetic calculations by incorporating additiona
 \details{
 The function uses a series of conditional logic to determine which pharmacokinetic parameters can be reliably calculated based on the available data:
 \itemize{
-\item \strong{Complete Data for \(CL\) and \(V_d\):}
+\item \strong{Complete Data for \eqn{CL} and \eqn{V_d}:}
 \itemize{
-\item If both steady-state data and single-dose data are available, \(CL\) and \(V_d\) are calculated directly.
+\item If both steady-state data and single-dose data are available, \eqn{CL} and \eqn{V_d} are calculated directly.
 }
-\item \strong{Incomplete Data for \(V_d\):}
+\item \strong{Incomplete Data for \eqn{V_d}:}
 \itemize{
-\item If \(V_d\) cannot be calculated but \(CL\) and \(t_{1/2}\) are available, \(V_d\) is derived using:
-[
-V_d = \frac{CL \cdot t_{1/2}}{\ln(2)}
-]
+\item If \eqn{V_d} cannot be calculated but \eqn{CL} and \eqn{t_{1/2}} are available, \eqn{V_d} is derived using:
+\deqn{V_d = \frac{CL \cdot t_{1/2}}{\ln(2)}}
 }
-\item \strong{Incomplete Data for \(CL\):}
+\item \strong{Incomplete Data for \eqn{CL}:}
 \itemize{
-\item If \(CL\) cannot be calculated but \(V_d\) and \(t_{1/2}\) are available, \(CL\) is derived using:
-[
-CL = \frac{V_d \cdot \ln(2)}{t_{1/2}}
-]
+\item If \eqn{CL} cannot be calculated but \eqn{V_d} and \eqn{t_{1/2}} are available, \eqn{CL} is derived using:
+\deqn{CL = \frac{V_d \cdot \ln(2)}{t_{1/2}}}
 }
-\item \strong{Insufficient Data for Both \(CL\) and \(V_d\):}
+\item \strong{Insufficient Data for Both \eqn{CL} and \eqn{V_d}:}
 \itemize{
-\item If neither \(CL\) nor \(V_d\) can be directly calculated, \(V_d\) is estimated from \(C_{\text{max}}\) and dose:
-[
-V_d = \frac{\text{Dose}}{C_{\text{max}}}
-]
-\(CL\) is then derived from \(V_d\) and \(t_{1/2}\).
+\item If neither \eqn{CL} nor \eqn{V_d} can be directly calculated, \eqn{V_d} is estimated from \eqn{C_{\mathrm{max}}} and dose:
+\deqn{V_d = \frac{\mathrm{Dose}}{C_{\mathrm{max}}}}
+\eqn{CL} is then derived from \eqn{V_d} and \eqn{t_{1/2}}.
 }
-\item \strong{Oral Absorption Rate (\(k_a\)):}
+\item \strong{Oral Absorption Rate (\eqn{k_a}):}
 \itemize{
-\item For oral dosing, \(k_a\) is estimated using data within the dose interval, considering \(t_{\text{max}}\) and the condition:
-[
-\text{tad} < 0.2 \cdot \frac{CL}{V_d}
-]
-\(k_a\) is then computed using an iterative solution.
+\item For oral dosing, \eqn{k_a} is estimated using data within the dose interval, considering \eqn{t_{\mathrm{max}}} and the condition:
+\deqn{\mathrm{tad} < 0.2 \cdot \frac{CL}{V_d}}
+\eqn{k_a} is then computed using an iterative solution.
 }
 }
 }
