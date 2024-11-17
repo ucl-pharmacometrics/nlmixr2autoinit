@@ -14,8 +14,7 @@
 #'
 #' # Example 1 (iv case)
 #' dat <- Bolus_1CPT
-#' dat <- nmpkconvert(dat)
-#' dat <- calculate_tad(dat)
+#' dat <- processData(dat)$dat
 #' run_graphcal(dat, route="bolus")
 #'
 #' # Example 2 (oral case)
@@ -38,7 +37,7 @@ run_graphcal <- function(dat,
                          route,
                          nbins=8,
                          nlastpoints=3,
-                         fdobsflag=0) {
+                         fdobsflag=1) {
 
   if (missing(route)){
     stop("Error, no dosing route was specified, please set it using the route option.")
@@ -60,7 +59,7 @@ run_graphcal <- function(dat,
     )
 
     if (fdobsflag==1){
-    dat$DVnor <- dat$DV / dat$dose
+
     dat_fd <- dat[dat$dose_number == 1,]
     datpooled_fd <- pk.time.binning(testdat = dat_fd,
                                     nbins = nbins)
@@ -93,8 +92,6 @@ run_graphcal <- function(dat,
 
     if (fdobsflag==1){
       start.time <- Sys.time()
-
-      dat$DVnor <- dat$DV / dat$dose
 
       dat_fd <- dat[dat$dose_number == 1,]
       datpooled_fd <- pk.time.binning(testdat = dat_fd,
