@@ -147,68 +147,12 @@ getPPKinits<- function(dat,
   message(black(
      paste0("Run single-point method to calculate PK parameters",strrep(".", 20))))
 
-  # if (!is.na(half_life)){
-  #     message(black(
-  #     paste0("Estimated half-life as reference to identify steady state: ",half_life,strrep(".", 20))))
-  # }
-  #
-  #  if (is.na(half_life)){
-  #  # use most commonly used dose-interval to replace half life
-  #    message(black(
-  #     paste0("No estimated half life found. half life: ",half_life, strrep(".", 20))))
-  #  }
-
- simpcal.results <- run_simpcal_iv(
+ simpcal.results <- run_single_point(
     dat = dat,
     half_life = half_life)
 
- simpcal.out <- simpcal.results$simpcal.results
-
+ simpcal.out <- simpcal.results$singlepoint.results
  dat<-simpcal.results$dat
-###################### Single point method (extra)########################
-
-  if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(half_life)==F) {
-    simpcal.out$message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on data within the dosing interval following the first dose "
-  }
-
-  if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(half_life)==T) {
-  simpcal.out$message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on data within the dosing interval following the first dose, the most commonly used dosing intervals were substituted for half-life to determine steady-state status."
-  }
-
-  # single-point method clearance + half-life estimated
-  if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==T & is.na(half_life)==F) {
-    message(black(
-      paste0("Volume of distribution could not be obtained using the single-point method, so it was derived from both clearance and estimated half-life calculations instead.", strrep(".", 20))))
-
-    simpcal.out$vd <-  signif(simpcal.out$cl * half_life/log(2), 3)
-    simpcal.out$message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on clearance and estimated half_life"
-  }
-
-  # single-point method volume of distribution + half-life estimated
-  if (is.na(simpcal.out$cl)==T & is.na(simpcal.out$vd)==F & is.na(half_life)==F) {
-    message(black(
-      paste0("Clearance could not be obtained using the single-point method, so it was derived from both volume of distribution and estimated half-life calculations instead.", strrep(".", 20))))
-
-    simpcal.out$cl<-  signif(simpcal.out$vd * log(2) / half_life, 3)
-    simpcal.out$message<-"Volume of distribution was calculated based on data within the dosing interval following the first dose  and clearance was calculated based on volume of distribution and estimated half_life"
-  }
-
-
-# Run extra ka to determine absorption constant rate
-ka_simpcal_value<-NA
-ka_simpcal.out<-NA
-
-if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
-
-  if (nrow(dat[dat$EVID==0  & dat$iiobs==0,])>0){
-  ka_simpcal.out<-run_ka_solution(df = dat,
-                                  cl = simpcal.out$cl,
-                                  ke = simpcal.out$cl/simpcal.out$vd )
-
-  ka_simpcal_value<-  signif(ka_simpcal.out$ka_calc_median,3)
-  }
-}
-
 
 ################# Naive pooled Non-compartmental analysis ##################################
   message(black(
@@ -451,14 +395,14 @@ if ( is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F &  oral_flag ==1){
 
 #================================== for oral case================================#
   if (oral_flag==1){
-    ka=  c(ka_simpcal_value,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all)
+    ka=  c(simpcal.out$ka,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all)
     # single-point method
-    if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(  ka_simpcal_value)==F) {
-      if (simpcal.out$cl > 0 & simpcal.out$vd > 0 & ka_simpcal_value>0 ) {
+    if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(  simpcal.out$ka)==F) {
+      if (simpcal.out$cl > 0 & simpcal.out$vd > 0 & simpcal.out$ka>0 ) {
         simpcal_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
-          input.ka = ka_simpcal_value,
+          input.ka = simpcal.out$ka,
           input.cl = simpcal.out$cl,
           input.vd = simpcal.out$vd,
           input.add = 0
@@ -768,9 +712,6 @@ cat(message_text, "\n")
       seq(1, nrow(sim.2cmpt.results.all), 1)
   }
   }
-
-
-
 
 
   if (oral_flag==1){
