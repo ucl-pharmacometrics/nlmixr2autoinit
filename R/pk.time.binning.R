@@ -1,7 +1,7 @@
 #' Create time bins for pooling a pharmacokinetic data
 #'
 #' Creates time bins for the provided pharmacokinetic data and calculates the median time and concentration for each bin.
-#' @param testdat A data frame containing the pharmacokinetic data with columns for time after dose (tad) and normalised concentration (DVnor).
+#' @param testdat A data frame containing the pharmacokinetic data with columns for time after dose (tad) and normalised concentration (DVstd).
 #' @param nbins The number of bins to create.
 #' @return A list containing two data frames: `test.pool.normalised` with median time and concentration for each bin, and `test.pool.group` with the maximum time in each bin.
 #' @import nlmixr2
@@ -9,7 +9,7 @@
 #' dat <- Bolus_1CPT
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
-#' dat$DVnor<-dat$DV/dat$dose
+#' dat$DVstd<-dat$DV/dat$dose
 #' pk.time.binning(dat,8)
 #' @export
 #'
@@ -17,7 +17,7 @@ pk.time.binning <- function(testdat,
                             nbins) {
 
   test.pool <- testdat[testdat$EVID == 0, ]
-  test.pool <- subset(test.pool, select = c(tad, DVnor))
+  test.pool <- subset(test.pool, select = c(tad, DVstd))
 
   colnames(test.pool) <- c("Time", "Conc")
   test.pool <- test.pool[order(test.pool$Time), ]

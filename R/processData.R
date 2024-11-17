@@ -15,7 +15,7 @@
 #' @return A list containing three data frames:
 #'   \itemize{
 #'     \item `dat`: The complete processed dataset with additional columns for `resetflag`, `SSflag`,
-#'       `route`, `dose_number`, and `DVnor` (normalized concentration).
+#'       `route`, `dose_number`, and `DVstd` (normalized concentration).
 #'     \item `fd_data`: Data between the first and second doses.
 #'     \item `md_data`: Data after at least two doses have been administered.
 #'   }
@@ -285,6 +285,11 @@ if ("ADDL" %in% column_names) {
 dat <- mark_dose_number(dat)
 dat<-calculate_tad(dat)
 
+dat$duration_obs<-0
+
+if (nrow(dat[dat$rateobs!=0,])>0){
+  dat$duration_obs <- dat[dat$rateobs!=0,]$dose / dat[dat$rateobs!=0,]$rateobs
+}
 
 dat <- dat %>%
   mutate(original_EVID = EVID) %>%  # Create a backup column for EVID
@@ -303,6 +308,7 @@ dat <- dat %>%
 dat <- select(dat, -Tmax)
 dat<-as.data.frame(dat)
 
+
 # Check if any EVID was changed from 0 to 2
 if (any(dat$original_EVID == 0 & dat$EVID == 2)) {
   message(black("Some rows have been updated: EVID set to 2 for DV=0 after Tmax, and they will be removed for the entire analysis."))
@@ -312,13 +318,13 @@ if (any(dat$original_EVID == 0 & dat$EVID == 2)) {
   }
 }
 
-dat$DVnor <- dat$DV / dat$dose
+dat$DVstd <- dat$DV / dat$dose
 
 ############################# Group data####################################
 # First dose data (Data between the first and second doses,dose number=1)
 fd_data<-dat[dat$dose_number==1 & dat$iiobs==0,]
 # Normalise concentration by dose
-fd_data$DVnor <- fd_data$DV / fd_data$dose
+fd_data$DVstd <- fd_data$DV / fd_data$dose
 fd_data_obs<-dat[dat$dose_number==1 & dat$EVID==0& dat$iiobs==0,]
 
 # Non-first dose data (Data after at least two doses have been administered,dose number>1)
@@ -327,7 +333,7 @@ md_data2 <-dat[dat$dose_number==1 & dat$iiobs>0,]
 md_data<-rbind(md_data1,md_data2)
 md_data<-md_data[with(md_data, order(ID, resetflag, TIME, -AMT)), ]
 
-md_data$DVnor <-md_data$DV / md_data$dose
+md_data$DVstd <-md_data$DV / md_data$dose
 md_data_obs <-dat[dat$dose_number>1 & dat$EVID==0,]
 
 ####################Summary output#############################
