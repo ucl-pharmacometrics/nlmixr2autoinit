@@ -45,7 +45,7 @@ run_single_point <- function(dat,
                               half_life=NA) {
 
   single.point.base.out<-single_point_base(dat,half_life)
-  single.point.out<-single_point_extra(single.point.base.out)
+  single.point.out<-single_point_extra(single_point_base.lst = single.point.base.out,half_life = half_life)
 
   return(single.point.out)
 }
@@ -328,8 +328,7 @@ single_point_base <- function(dat,
   single_point_base.results <- data.frame(
     cl = signif( trimmed_mean_cl, 3),
     vd = signif( trimmed_mean_vd, 3),
-    starttime = Sys.time(),
-    time.spent = time.spent
+    starttime = start.time
   )
 
   return(
@@ -400,15 +399,15 @@ single_point_base <- function(dat,
 #' @export
 #'
 
-single_point_extra<-function(single_point_base.lst){
-
-start.time <- Sys.time()
+single_point_extra<-function(single_point_base.lst,
+                             half_life){
 
   dat<-single_point_base.lst$dat
   trimmed_mean_cl<-single_point_base.lst$single_point_base.results$cl
   trimmed_mean_vd<-single_point_base.lst$single_point_base.results$vd
   dat.ss.obs<-single_point_base.lst$single_point_cl_df
   dat.fd.obs<-single_point_base.lst$single_point_vd_df
+  start.time<-single_point_base.lst$single_point_base.results$starttime
 
   approx.vc.out<-approx.vc(dat = dat,
                            single_point_base.lst = single_point_base.lst,
@@ -486,7 +485,7 @@ singlepoint.results <- data.frame(
   ka = signif( trimmed_mean_ka, 3),
   cl = signif( trimmed_mean_cl, 3),
   vd = signif( trimmed_mean_vd, 3),
-  starttime = Sys.time(),
+  starttime = start.time,
   time.spent = time.spent,
   single_point.message=single_point.message
 )
