@@ -403,6 +403,7 @@ single_point_extra<-function(single_point_base.lst,
                              half_life){
 
   dat<-single_point_base.lst$dat
+  trimmed_mean_ka<-NA
   trimmed_mean_cl<-single_point_base.lst$single_point_base.results$cl
   trimmed_mean_vd<-single_point_base.lst$single_point_base.results$vd
   dat.ss.obs<-single_point_base.lst$single_point_cl_df
