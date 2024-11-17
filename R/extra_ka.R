@@ -357,5 +357,8 @@ if(is.null(ka_calc_median)){
   ka_calc_median<-NA
 }
 
-return(list(ka_calc_median=ka_calc_median, ka_calc_dat=data_before_tmax))
+return(list(ka_calc_median=ka_calc_median,
+            ka_calc_dat_sd=data_before_tmax_sd,
+            ka_calc_dat_md=data_before_tmax_md,
+            ka_calc_dat=data_before_tmax))
 }
