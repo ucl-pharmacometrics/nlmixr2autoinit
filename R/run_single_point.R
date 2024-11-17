@@ -30,7 +30,6 @@
 #' dat <- Infusion_1CPT
 #' fdat <- processData(dat)$dat
 #' half_life<-half_life_estimated(dat = fdat)$half_life_median
-#' single_point_base(fdat,half_life)
 #' run_single_point(fdat,half_life)
 #'
 #' dat <- Oral_1CPT
@@ -399,108 +398,145 @@ single_point_base <- function(dat,
 #' @export
 #'
 
-single_point_extra<-function(single_point_base.lst,
-                             half_life){
+single_point_extra <- function(single_point_base.lst,
+                               half_life) {
+  dat <- single_point_base.lst$dat
+  trimmed_mean_ka <- NA
+  trimmed_mean_cl <-
+    single_point_base.lst$single_point_base.results$cl
+  trimmed_mean_vd <-
+    single_point_base.lst$single_point_base.results$vd
+  dat.ss.obs <- single_point_base.lst$single_point_cl_df
+  dat.fd.obs <- single_point_base.lst$single_point_vd_df
+  start.time <-
+    single_point_base.lst$single_point_base.results$starttime
 
-  dat<-single_point_base.lst$dat
-  trimmed_mean_ka<-NA
-  trimmed_mean_cl<-single_point_base.lst$single_point_base.results$cl
-  trimmed_mean_vd<-single_point_base.lst$single_point_base.results$vd
-  dat.ss.obs<-single_point_base.lst$single_point_cl_df
-  dat.fd.obs<-single_point_base.lst$single_point_vd_df
-  start.time<-single_point_base.lst$single_point_base.results$starttime
+  approx.vc.out <- approx.vc(
+    dat = dat,
+    single_point_base.lst = single_point_base.lst,
+    half_life = half_life
+  )
 
-  approx.vc.out<-approx.vc(dat = dat,
-                           single_point_base.lst = single_point_base.lst,
-                           half_life = half_life)
+  ##############################Single Point Extra#############################
+  # Both can be calculated in the base part
+  if (is.na(trimmed_mean_cl) == F & is.na(trimmed_mean_vd) == F) {
+    single_point.message <-
+      "Clearance was calculated using steady-state data and volume of distribution was calculated based on data within the dosing interval following the first dose "
+  }
 
-##############################Single Point Extra#############################
-# Both can be calculated in the base part
-if (is.na(trimmed_mean_cl)==F & is.na(trimmed_mean_vd)==F) {
-  single_point.message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on data within the dosing interval following the first dose "
-}
+  # if half_life is available, Vd is not available
+  if (is.na(trimmed_mean_cl) == F &
+      is.na(trimmed_mean_vd) == T & is.na(half_life) == F) {
+    message(black(
+      paste0(
+        "Insufficient single-dose (IV) data for Vd calculation; derived from clearance and estimated half-life instead.",
+        strrep(".", 20)
+      )
+    ))
 
-# if half_life is available, Vd is not available
-if (is.na(trimmed_mean_cl)==F & is.na(trimmed_mean_vd)==T & is.na(half_life)==F) {
-  message(black(
-    paste0("Insufficient single-dose (IV) data for Vd calculation; derived from clearance and estimated half-life instead.", strrep(".", 20))))
+    # individual_mean_vd <- tryCatch( aggregate(cl* half_life/log(2) ~ ID, data = dat.ss.obs, FUN = trimmed_geom_mean),error=function(e) {NA})
 
-  # individual_mean_vd <- tryCatch( aggregate(cl* half_life/log(2) ~ ID, data = dat.ss.obs, FUN = trimmed_geom_mean),error=function(e) {NA})
+    trimmed_mean_vd <-  signif(trimmed_mean_cl * half_life / log(2), 3)
+    single_point.message <-
+      "Clearance was calculated using steady-state data and volume of distribution was calculated based on clearance and estimated half_life"
+  }
 
-  trimmed_mean_vd <-  signif(trimmed_mean_cl * half_life/log(2), 3)
-  single_point.message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on clearance and estimated half_life"
-}
+  # single-point method volume of distribution + half-life estimated
+  if (is.na(trimmed_mean_cl) == T &
+      is.na(trimmed_mean_vd) == F & is.na(half_life) == F) {
+    message(black(
+      paste0(
+        "Insufficient steady-state data for CL calculation; derived from Vd and estimated half-life instead.",
+        strrep(".", 20)
+      )
+    ))
 
-# single-point method volume of distribution + half-life estimated
-if (is.na(trimmed_mean_cl)==T & is.na(trimmed_mean_vd)==F & is.na(half_life)==F) {
-  message(black(
-    paste0("Insufficient steady-state data for CL calculation; derived from Vd and estimated half-life instead.", strrep(".", 20))))
+    trimmed_mean_cl <-
+      signif(trimmed_mean_vd * log(2) / half_life, 3)
+    single_point.message <-
+      "Vd was calculated based on data within the dosing interval following the first dose and clearance was calculated based on volume of distribution and estimated half_life"
+  }
 
-  trimmed_mean_cl <-  signif(trimmed_mean_vd * log(2) / half_life, 3)
-  single_point.message<-"Vd was calculated based on data within the dosing interval following the first dose and clearance was calculated based on volume of distribution and estimated half_life"
-}
+  if (is.na(trimmed_mean_cl) == T &
+      is.na(trimmed_mean_vd) == T & is.na(half_life) == F) {
+    message(black(
+      paste0(
+        "Neither single-dose (IV) data nor steady-state data supports the calculation of clearance (CL) and volume of distribution (Vd). Vd will be estimated using Dose/Cmax, and CL will be derived based on the estimated half-life and Vd.",
+        strrep(".", 20)
+      )
+    ))
 
-if (is.na(trimmed_mean_cl)==T & is.na(trimmed_mean_vd)==T & is.na(half_life)==F) {
-  message(black(
-    paste0("Neither single-dose (IV) data nor steady-state data supports the calculation of clearance (CL) and volume of distribution (Vd). Vd will be estimated using Dose/Cmax, and CL will be derived based on the estimated half-life and Vd.", strrep(".", 20))))
+    trimmed_mean_vd <- approx.vc.out$approx.vc.value
 
-  trimmed_mean_vd<-approx.vc.out$approx.vc.value
+    trimmed_mean_cl <-
+      signif(trimmed_mean_vd * log(2) / half_life, 3)
 
-  trimmed_mean_cl <-  signif(trimmed_mean_vd * log(2) / half_life, 3)
+    single_point.message <-
+      "Vd was calculated based on Cmax in each dose interval and clearance was calculated based on volume of distribution and estimated half_life"
+  }
 
-  single_point.message<-"Vd was calculated based on Cmax in each dose interval and clearance was calculated based on volume of distribution and estimated half_life"
-}
+  # extra ka for oral case
+  if (unique(dat[dat$EVID == 1, ]$route) == "oral") {
+    if (is.na(trimmed_mean_cl) == F & is.na(trimmed_mean_vd) == F) {
+      datobs <- dat[dat$EVID == 0, ]
 
-# extra ka for oral case
-if (unique(dat[dat$EVID==1,]$route) == "oral") {
+      cmax_by_group2 <- datobs %>%
+        group_by(ID, dose_number) %>%
+        mutate(Tmax = TIME[which.max(DV)]) %>%
+        filter(TIME < Tmax |
+                 (
+                   n() == 1 & tad < 0.2 * log(2) * trimmed_mean_cl / trimmed_mean_vd
+                 )) %>%
+        slice_max(order_by = DV, with_ties = FALSE) %>%
+        ungroup() %>%
+        select(-Tmax)
 
-  if (is.na( trimmed_mean_cl)==F & is.na( trimmed_mean_vd)==F){
+      if (nrow(cmax_by_group2[cmax_by_group2$EVID == 0  &
+                              cmax_by_group2$iiobs == 0, ]) > 0) {
+        ka_single_point.out <- run_ka_solution(df = cmax_by_group2,
+                                               cl = trimmed_mean_cl,
+                                               ke = trimmed_mean_cl / trimmed_mean_vd)
 
-    datobs<-dat[dat$EVID==0,]
+        trimmed_mean_ka <-
+          tryCatch(
+            trimmed_geom_mean(
+              ka_single_point.out$ka_calc_dat$ka_calcv,
+              trim = 0.05,
+              na.rm = TRUE
+            ),
+            error = function(e) {
+              NA
+            }
+          )
 
-    cmax_by_group2 <- datobs %>%
-      group_by(ID, dose_number) %>%
-      mutate(Tmax = TIME[which.max(DV)]) %>%
-      filter(TIME < Tmax | (n() == 1 & tad < 0.2*log(2)*trimmed_mean_cl/trimmed_mean_vd)) %>%
-      slice_max(order_by = DV, with_ties = FALSE) %>%
-      ungroup()%>%
-      select(-Tmax)
-
-    if (nrow(cmax_by_group2[cmax_by_group2$EVID==0  & cmax_by_group2$iiobs==0,])>0){
-      ka_single_point.out<-run_ka_solution(df =cmax_by_group2,
-                                           cl = trimmed_mean_cl,
-                                           ke = trimmed_mean_cl/trimmed_mean_vd)
-
-      trimmed_mean_ka<-  tryCatch(trimmed_geom_mean(ka_single_point.out$ka_calc_dat$ka_calcv, trim = 0.05, na.rm = TRUE),error=function(e) {NA})
-
+      }
     }
   }
-}
 
-end.time <- Sys.time()
+  end.time <- Sys.time()
 
-time.spent <- round(difftime(end.time, start.time), 4)
+  time.spent <- round(difftime(end.time, start.time), 4)
 
-# Only selected the key columns
-singlepoint.results <- data.frame(
-  ka = signif( trimmed_mean_ka, 3),
-  cl = signif( trimmed_mean_cl, 3),
-  vd = signif( trimmed_mean_vd, 3),
-  starttime = start.time,
-  time.spent = time.spent,
-  single_point.message=single_point.message
-)
-
-return(
-  list(
-    singlepoint.results = singlepoint.results,
-    dat = dat,
-    single_point_ka_df=   ka_single_point.out,
-    single_point_cl_df =  dat.ss.obs,
-    single_point_vd_df =  dat.fd.obs,
-    approx.vc.out=approx.vc.out
+  # Only selected the key columns
+  singlepoint.results <- data.frame(
+    ka = signif(trimmed_mean_ka, 3),
+    cl = signif(trimmed_mean_cl, 3),
+    vd = signif(trimmed_mean_vd, 3),
+    starttime = start.time,
+    time.spent = time.spent,
+    single_point.message = single_point.message
   )
-)
+
+  return(
+    list(
+      singlepoint.results = singlepoint.results,
+      dat = dat,
+      single_point_ka_df =   ka_single_point.out,
+      single_point_cl_df =  dat.ss.obs,
+      single_point_vd_df =  dat.fd.obs,
+      approx.vc.out = approx.vc.out
+    )
+  )
 
 }
 
@@ -520,25 +556,53 @@ return(
 #' @param route The route of administration, either `"bolus"` (default) or `"infusion"`. Determines the formula for \(V_d\) calculation.
 #' @return The trimmed geometric mean of the approximated \(V_d\), calculated across individuals.
 #' @details
-#' The method relies on the following logic:
-#' - **Rapid Absorption Assumption:** When \(k_a \gg k_e\), most of the absorption is completed before elimination significantly impacts drug concentration. Under this assumption, \(C_{\text{max}}\) is dominated by absorption, not elimination.
-#' - **Why \(0.2 \times \text{half-life}\):**
-#'   - At \(0.2 \times \text{half-life}\), less than 13% of the drug has been eliminated. This is derived from the exponential decay model:
-#'     \[
-#'     \text{Elimination Fraction} = 1 - e^{-k_e \cdot t}
-#'     \]
-#'     Substituting \(t = 0.2 \cdot \text{half-life}\) and \(k_e = \ln(2) / \text{half-life}\):
-#'     \[
-#'     \text{Elimination Fraction} = 1 - e^{-\ln(2) \cdot 0.2} \approx 0.13
-#'     \]
-#'     This ensures the selected \(C_{\text{max}}\) points reflect absorption dynamics rather than elimination.
+#' @details
+#' - **Rapid Absorption Assumption:**
+#'   When \eqn{k_a \gg k_e}, most of the absorption is completed before elimination significantly impacts the drug concentration. Under this assumption, \eqn{C_{\text{max}}} is dominated by absorption rather than elimination.
+#'
+#' - ** \eqn{0.2 \times \text{half-life}}:**
+#'   - At \eqn{0.2 \times \text{half-life}}, less than 13% of the drug is eliminated. This is derived from the iv exponential decay model:
+#'     \deqn{\text{Elimination Fraction} = 1 - e^{-k_e \cdot t}}
+#'     Substituting \eqn{t = 0.2 \cdot \text{half-life}} and \eqn{k_e = \ln(2) / \text{half-life}}:
+#'     \deqn{\text{Elimination Fraction} = 1 - e^{-\ln(2) \cdot 0.2} \approx 0.13}
+#'     This ensures the selected \eqn{C_{\text{max}}} points primarily reflect absorption dynamics.
+#'
 #' - **Data Filtering:**
-#'   - Observed data (\(EVID == 0\)) is grouped by \(ID\) and \(dose\_number\).
-#'   - The \(C_{\text{max}}\) for each group is identified and further filtered to include only points where \(tad < 0.2 \times \text{half-life}\).
-#' - **Volume of Distribution Calculation:**
-#'   - For bolus: \(V_d = \frac{\text{Dose}}{C_{\text{max}}}\).
-#'   - For infusion: \(V_d = \frac{\text{Rate} \cdot \min(\text{Time}, \text{Duration})}{C_{\text{max}}}\).
-#' - Individual \(V_d\) values are summarised using a trimmed geometric mean (\(10\%\)) to reduce the impact of outliers.
+#'   - Observed data (\code{EVID == 0}) is grouped by \code{ID} and \code{dose_number}.
+#'   - The \eqn{C_{\text{max}}} for each group is identified and further filtered to include only points where \eqn{tad < 0.2 \times \text{half-life}}.
+#'
+#' - **Volume of Distribution Calculation (single-dose):**
+#'   - For bolus administration: \eqn{V_d = \frac{\text{Dose}}{C_{\text{max}}}}.
+#'   - For infusion: \eqn{V_d = \frac{\text{Rate} \cdot \min(\text{Time}, \text{Duration})}{C_{\text{max}}}}.
+#'
+#' - **Summary of \eqn{V_d} values:**
+#'   - Individual \eqn{V_d} values are summarised using a trimmed geometric mean (\eqn{10\%}) to reduce the impact of outliers.
+#'
+#' - **Accumulation Ratio (\eqn{R_{\text{ac}}}):**
+#'   - For multiple-dose scenarios, the accumulation ratio is calculated as:
+#'     \deqn{R_{\text{ac}} = \frac{1}{1 - e^{-k_e \cdot \tau}}}
+#'     where:
+#'       - \eqn{k_e = \frac{\ln(2)}{\text{half-life}}} is the elimination rate constant.
+#'       - \eqn{\tau} is the dosing interval (\code{dose_interval}).
+#'   - The accumulation ratio represents the steady-state concentration relative to the single-dose concentration.
+#'
+#' - **Selection of \eqn{C_{\text{max}}} Points:**
+#'   - Observed data (\code{EVID == 0}) is grouped by \code{ID} and \code{dose_number}.
+#'   - The maximum observed concentration (\eqn{C_{\text{max}}}) for each group is identified.
+#'   - Additional filtering ensures that only points where \eqn{tad < 0.2 \cdot \text{half-life}} are retained, reflecting absorption-dominated dynamics.
+#'
+#' - **Volume of Distribution (\eqn{V_d}) Calculation:**
+#'   - For infusion routes:
+#'     \deqn{V_d = \frac{\text{Rate} \cdot \min(\text{Time}, \text{Duration})}{C_{\text{max}} / R_{\text{ac}}}}
+#'       - \eqn{\text{Rate}} is the infusion rate.
+#'       - \eqn{\min(\text{Time}, \text{Duration})} represents the shorter of infusion time or observation time.
+#'       - \eqn{C_{\text{max}} / R_{\text{ac}}} adjusts the observed concentration to reflect single-dose dynamics.
+#'   - For bolus or other routes:
+#'     \deqn{V_d = \frac{\text{Dose}}{C_{\text{max}} / R_{\text{ac}}}}
+#'       - \eqn{\text{Dose}} is the administered dose.
+#'
+#' - **Significance of Filtering:**
+#'   - The use of \eqn{tad < 0.2 \cdot \text{half-life}} ensures that selected \eqn{C_{\text{max}}} points primarily reflect absorption, minimizing the impact of elimination.
 #'
 #' @examples
 #' # Example 1: Bolus administration
@@ -559,94 +623,123 @@ return(
 #' # Example 3: Theno_md
 #' dat<-theo_md
 #' dat<-processData(dat)$dat
-#' approx.vc.lst<-approx.vc(dat,half_life = half_life_estimated(dat)$half_life_median)
-#' approx.vc.lst
+#' approx.vc(dat,half_life = half_life_estimated(dat)$half_life_median)
+#'
 #'
 #' @export
 
-approx.vc<-function(dat,
-                    half_life,
-                    single_point_base.lst){
+approx.vc <- function(dat,
+                      half_life,
+                      single_point_base.lst) {
+  if (missing(half_life) || is.na(half_life) || is.null(half_life)) {
+    stop("No half life provided for approximate central volume of distribution calculation")
+  }
 
+  if (missing(single_point_base.lst)) {
+    single_point_base.lst <- single_point_base(dat, half_life)
+  }
 
-if (missing(half_life)||is.na(half_life)||is.null(half_life)){
-  stop("No half life provided for approximate central volume of distribution calculation")
-}
+  cmax_by_group1 <- NULL
+  cmax_by_group2 <- NULL
+  approx.vc.value <- NA
 
-if (missing(single_point_base.lst)) {
-  single_point_base.lst<-single_point_base(dat,half_life)
-}
+  if (nrow(dat[dat$EVID == 0 & dat$dose_number == 1, ]) > 0) {
+    datobs_fd <- dat[dat$EVID == 0 & dat$dose_number == 1, ]
 
-cmax_by_group1<-NULL
-cmax_by_group2<-NULL
-approx.vc.value<-NA
+    cmax_by_group1 <- datobs_fd %>%
+      group_by(ID, dose_number) %>%
+      slice_max(order_by = DV, with_ties = FALSE) %>%
+      ungroup()
 
-if (nrow(dat[dat$EVID==0 & dat$dose_number==1,])>0){
+    cmax_by_group1 <- cmax_by_group1[cmax_by_group1$tad < half_life * 0.2, ]
 
-   datobs_fd<-dat[dat$EVID==0 & dat$dose_number==1,]
+    if (unique(dat[dat$EVID == 1, ]$route) == "infusion") {
+      cmax_by_group1$vd <-
+        signif(
+          pmin(cmax_by_group1$TIME, cmax_by_group1$duration_obs) * cmax_by_group1$rateobs / cmax_by_group1$DV,
+          3
+        )
+    }
 
-  cmax_by_group1 <- datobs_fd %>%
-  group_by(ID, dose_number) %>%
-  slice_max(order_by = DV, with_ties = FALSE) %>%
-  ungroup()
-
-  cmax_by_group1<-cmax_by_group1[cmax_by_group1$tad<half_life*0.2,]
-
-if (unique(dat[dat$EVID==1,]$route) == "infusion") {
-  cmax_by_group1$vd <-
-    signif(pmin(cmax_by_group1$TIME,cmax_by_group1$duration_obs) * cmax_by_group1$rateobs / cmax_by_group1$DV, 3)
-}
-
-cmax_by_group1$vd <-
-  signif(cmax_by_group1$dose/ cmax_by_group1$DV, 3)
-}
+    cmax_by_group1$vd <-
+      signif(cmax_by_group1$dose / cmax_by_group1$DV, 3)
+  }
 
   # Accumulation ratio was borrowed to approximately estimate the Cmax after single dose
-if (length(single_point_base.lst$single_point_cl_df)>1){
+  if (length(single_point_base.lst$single_point_cl_df) > 1) {
+    dat.ss.obs <- single_point_base.lst$single_point_cl_df
 
-    dat.ss.obs<-single_point_base.lst$single_point_cl_df
-
-    dat.ss.obs$Rac<-1/(1-exp(- (log(2)/half_life)*dat.ss.obs$dose_interval))
+    dat.ss.obs$Rac <-
+      1 / (1 - exp(-(log(2) / half_life) * dat.ss.obs$dose_interval))
 
     cmax_by_group2 <-  dat.ss.obs %>%
       group_by(ID, dose_number) %>%
       slice_max(order_by = DV, with_ties = FALSE) %>%
       ungroup()
 
-    cmax_by_group2<-cmax_by_group2[cmax_by_group2$tad<half_life*0.2,]
+    cmax_by_group2 <-
+      cmax_by_group2[cmax_by_group2$tad < half_life * 0.2, ]
 
-    if (unique(dat[dat$EVID==1,]$route) == "infusion") {
+    if (unique(dat[dat$EVID == 1, ]$route) == "infusion") {
       cmax_by_group2$vd <-
-        signif(pmin(cmax_by_group2$TIME,cmax_by_group2$duration_obs) * cmax_by_group2$rateobs / (cmax_by_group2$DV/cmax_by_group2$Rac), 3)
+        signif(
+          pmin(cmax_by_group2$TIME, cmax_by_group2$duration_obs) * cmax_by_group2$rateobs / (cmax_by_group2$DV /
+                                                                                               cmax_by_group2$Rac),
+          3
+        )
     }
 
     cmax_by_group2$vd <-
-      signif(cmax_by_group2$dose/ (cmax_by_group2$DV/cmax_by_group2$Rac), 3)
+      signif(cmax_by_group2$dose / (cmax_by_group2$DV / cmax_by_group2$Rac),
+             3)
   }
 
-cmax_by_group<-rbind(data.frame(ID=cmax_by_group1$ID,
-                                dose_number=cmax_by_group1$dose_number,
-                                vd=cmax_by_group1$vd),
-                     data.frame(ID=cmax_by_group2$ID,
-                                dose_number=cmax_by_group2$dose_number,
-                                vd=cmax_by_group2$vd))
+  cmax_by_group <- rbind(
+    data.frame(
+      ID = cmax_by_group1$ID,
+      dose_number = cmax_by_group1$dose_number,
+      vd = cmax_by_group1$vd
+    ),
+    data.frame(
+      ID = cmax_by_group2$ID,
+      dose_number = cmax_by_group2$dose_number,
+      vd = cmax_by_group2$vd
+    )
+  )
 
-if (!is.null(cmax_by_group)){
-# Calculate median vd for each individual
-individual_mean_vd <- tryCatch( aggregate(vd ~ ID, data = cmax_by_group, FUN = trimmed_geom_mean),error=function(e) {NA})
+  if (!is.null(cmax_by_group)) {
+    # Calculate median vd for each individual
+    individual_mean_vd <-
+      tryCatch(
+        aggregate(vd ~ ID, data = cmax_by_group, FUN = trimmed_geom_mean),
+        error = function(e) {
+          NA
+        }
+      )
 
-# Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
-trimmed_mean_vd <-tryCatch(trimmed_geom_mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE),error=function(e) {NA})
-approx.vc.value<-trimmed_mean_vd
+    # Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
+    trimmed_mean_vd <-
+      tryCatch(
+        trimmed_geom_mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE),
+        error = function(e) {
+          NA
+        }
+      )
+    approx.vc.value <- trimmed_mean_vd
+  }
+
+
+  return(
+    list = list(
+      approx.vc.value = approx.vc.value,
+      approx.vc.dat = cmax_by_group,
+      approx.vc.dat.sd = cmax_by_group1,
+      approx.vc.dat.md = cmax_by_group2
+    )
+  )
+
 }
 
-
-return(list=list(approx.vc.value=approx.vc.value,
-              approx.vc.dat=cmax_by_group,
-              approx.vc.dat.sd=cmax_by_group1,
-              approx.vc.dat.md=cmax_by_group2 ))
-
-}
 
 
 #' Calculate the trimmed geometric mean
