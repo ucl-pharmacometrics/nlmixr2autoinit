@@ -17,7 +17,7 @@ A list containing:
 \item \code{single_point_ka_df}: Data used for \(k_a\) calculations (if applicable).
 \item \code{single_point_cl_df}: Data used for \(CL\) calculations.
 \item \code{single_point_vd_df}: Data used for \(V_d\) calculations.
-\item \code{single_point_vd_cmax_df}: \(C_{\text{max}}\) data used for \(V_d\) estimation.
+\item \code{single_point_vd_cmax_df}: \(C_{max}\) data used for \(V_d\) estimation.
 }
 }
 \description{
