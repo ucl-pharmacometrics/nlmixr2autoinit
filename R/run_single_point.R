@@ -1,4 +1,57 @@
-#' Perform single-point pharmacokinetic calculations
+#' Run Single-Point Pharmacokinetic Analysis
+#'
+#' This function performs a single-point pharmacokinetic analysis, estimating key parameters such as clearance (\(CL\)), volume of distribution (\(V_d\)), and absorption rate constant (\(k_a\)) based on the provided dataset and optional half-life (\(t_{1/2}\)).
+#'
+#' @param dat A data frame containing pharmacokinetic data, including observed concentrations (\(DV\)), time after dose (\(tad\)), dosing interval (\(ii\)), and dose information.
+#' @param half_life The half-life of the drug (\(t_{1/2}\)). If not provided, some calculations may use alternative assumptions or data-based rules.
+#' @return A list containing:
+#'   - `singlepoint.results`: A data frame with estimated \(CL\), \(V_d\), \(k_a\), processing time, and a descriptive message.
+#'   - `dat`: The input dataset used in the calculations.
+#'   - `single_point_ka_df`: Data used for \(k_a\) calculations (if applicable).
+#'   - `single_point_cl_df`: Data used for \(CL\) calculations.
+#'   - `single_point_vd_df`: Data used for \(V_d\) calculations.
+#'   - `approx.vc.out`: A message or result indicating whether the approximate central volume of distribution (\(V_d\)) was successfully estimated.
+#' @details
+#' This function integrates two key components:
+#' 1. **`single_point_base`:** Conducts basic single-point calculations, determining parameters based on steady-state or dose-interval data.
+#' 2. **`single_point_extra`:** Extends the analysis by handling additional cases, such as oral absorption rate (\(k_a\)) or compensating for missing \(CL\) or \(V_d\) values.
+#'
+#' The function dynamically adapts to the provided data, leveraging different strategies based on the availability of steady-state, dose-interval, or single-dose data. If half-life (\(t_{1/2}\)) is provided, it is used in relevant calculations.
+#'
+#' @examples
+#' # Example 1 (iv case)
+#' dat <- Bolus_1CPT
+#' fdat <- processData(dat)$dat
+#' half_life<-half_life_estimated(dat = fdat)$half_life_median
+#' out<-run_single_point(fdat,half_life)
+#' testout<-out$single_point_cl_df
+#'
+#' # Example 2 (infusion case).
+#'
+#' dat <- Infusion_1CPT
+#' fdat <- processData(dat)$dat
+#' half_life<-half_life_estimated(dat = fdat)$half_life_median
+#' single_point_base(fdat,half_life)
+#' run_single_point(fdat,half_life)
+#'
+#' dat <- Oral_1CPT
+#' fdat <- processData(dat)$dat
+#' half_life<-half_life_estimated(dat = fdat)$half_life_median[1]
+#' run_single_point(fdat,half_life)
+#'
+#' @export
+
+
+run_single_point <- function(dat,
+                              half_life=NA) {
+
+  single.point.base.out<-single_point_base(dat,half_life)
+  single.point.out<-single_point_extra(single.point.base.out)
+
+  return(single.point.out)
+}
+
+#' Perform basic single-point pharmacokinetic calculations
 #'
 #' Performs pharmacokinetic calculations using a single-point method and calculates clearance (CL) and volume of distribution (Vd) based on the provided pharmacokinetic data.
 #'
@@ -36,7 +89,8 @@
 #'
 #' dat <- Infusion_1CPT
 #' fdat <- processData(dat)$dat
-#' half_life<-half_life_estimated(dat = fdat)[1]
+#' half_life<-half_life_estimated(dat = fdat)$half_life_median
+#' single_point_base(fdat,half_life)
 #' run_single_point(fdat,half_life)
 #'
 #' dat <- Oral_1CPT
@@ -47,7 +101,7 @@
 #'
 #' @export
 
-run_single_point <- function(dat,
+single_point_base <- function(dat,
                               half_life=NA) {
   start.time <- Sys.time()
   # Default
@@ -77,6 +131,8 @@ run_single_point <- function(dat,
         mutate(
           max_value = max(DV),
           min_value = min(DV),
+          max_time = tad[which.max(DV)],
+          min_time = tad[which.min(DV)],
           avg_value = (max_value + min_value) / 2,
           max_interval = ifelse(DV == max(DV), TRUE, FALSE),
           min_interval = ifelse(DV == min(DV), TRUE, FALSE)
@@ -118,7 +174,7 @@ run_single_point <- function(dat,
       # Second selection， only select the max, min points
       dat.ss.obs <- dat.ss.obs[dat.ss.obs$SteadyState == T,]
 
-      # Css type identification
+      # avg_value type identification
       # Only applicable for oral case with very fast absorption, and with the majority of absorption occurring before Tmax, and only a short period is required to reach Tmax.
 
       dat.ss.obs  <-   dat.ss.obs %>%
@@ -127,13 +183,14 @@ run_single_point <- function(dat,
           Css_type = "Css_avg",
 
           # Identify Cssmax and Cssmin based on 'tad', 'ii', and the condition max_value == min_value
+          # Identify Cssmax and Cssmin based on both 'max_time' and 'min_time'
           Css_type = case_when(
-            max_value == min_value & tad <= 0.2 * recent_ii ~ "Css_max",            # tad within 20% of ii -> Css,min
-            max_value == min_value & tad >= 0.8 * recent_ii & tad <= recent_ii ~ "Css_min", # tad within 80-100% of ii -> Css,max
-            TRUE ~ Css_type                                                   # Default to Css,avg for all other cases
+            (max_time <= 0.2 * recent_ii & max_time != 0 ) & ( min_time <= 0.2 * recent_ii & min_time != 0) ~ "Css_max",  # Both max_time and min_time within 20% of dosing interval
+            # max_time >= 0.8 * recent_ii & min_time >= 0.8 * recent_ii ~ "Css_min",  # Both max_time and min_time within 80-100% of dosing interval
+            (max_time >= 0.8 * recent_ii | max_time == 0 ) & ( min_time >= 0.8 * recent_ii| min_time == 0) ~ "Css_min",  # Both in 80-100% of ii or either is 0
+            TRUE ~ Css_type  # Default to Css_avg for all other cases
           )
         )
-
 
       dat.ss.obs$cl <- NA
 
@@ -268,117 +325,330 @@ run_single_point <- function(dat,
     }
   }
 
-  ##############################Single Point Extra#############################
-  # Both can be calculated in the base part
-  if (is.na(trimmed_mean_cl)==F & is.na(trimmed_mean_vd)==F) {
-    single_point.message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on data within the dosing interval following the first dose "
-  }
-
- # if half_life is available, Vd is not available
-  if (is.na(trimmed_mean_cl)==F & is.na(trimmed_mean_vd)==T & is.na(half_life)==F) {
-    message(black(
-      paste0("Insufficient single-dose (IV) data for Vd calculation; derived from clearance and estimated half-life instead.", strrep(".", 20))))
-
-    individual_mean_vd <- tryCatch( aggregate(cl* half_life/log(2) ~ ID, data = dat.ss.obs, FUN = trimmed_geom_mean),error=function(e) {NA})
-
-    trimmed_mean_vd <-  signif(trimmed_mean_cl * half_life/log(2), 3)
-    single_point.message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on clearance and estimated half_life"
-  }
-
-  # single-point method volume of distribution + half-life estimated
-  if (is.na(trimmed_mean_cl)==T & is.na(trimmed_mean_vd)==F & is.na(half_life)==F) {
-    message(black(
-      paste0("Insufficient steady-state data for CL calculation; derived from Vd and estimated half-life instead.", strrep(".", 20))))
-
-    trimmed_mean_cl <-  signif(trimmed_mean_vd * log(2) / half_life, 3)
-    single_point.message<-"Vd was calculated based on data within the dosing interval following the first dose and clearance was calculated based on volume of distribution and estimated half_life"
-  }
-
-  if (is.na(trimmed_mean_cl)==T & is.na(trimmed_mean_vd)==T & is.na(half_life)==F) {
-    message(black(
-      paste0("Neither single-dose (IV) data nor steady-state data supports the calculation of clearance (CL) and volume of distribution (Vd). Vd will be estimated using Dose/Cmax, and CL will be derived based on the estimated half-life and Vd.", strrep(".", 20))))
-
-    datobs<-dat[dat$EVID==0,]
-
-    cmax_by_group <- datobs %>%
-      group_by(ID, dose_number) %>%
-      slice_max(order_by = DV, with_ties = FALSE) %>%
-      ungroup()
-
-    cmax_by_group<-cmax_by_group[cmax_by_group$tad<half_life*0.2,]
-
-    if (unique(dat[dat$EVID==1,]$route) == "infusion") {
-    cmax_by_group$vd <-
-       signif(pmin(cmax_by_group$TIME,cmax_by_group$duration_obs) * cmax_by_group$rateobs / cmax_by_group$DV, 3)
-    }
-
-    cmax_by_group$vd <-
-      signif(cmax_by_group$dose/ cmax_by_group$DV, 3)
-
-    # Calculate median vd for each individual
-    individual_mean_vd <- tryCatch( aggregate(vd ~ ID, data = cmax_by_group, FUN = trimmed_geom_mean),error=function(e) {NA})
-
-    # Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
-    trimmed_mean_vd <-tryCatch(trimmed_geom_mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE),error=function(e) {NA})
-
-
-    trimmed_mean_cl <-  signif(trimmed_mean_vd * log(2) / half_life, 3)
-    single_point.message<-"Vd was calculated based on Cmax in each dose interval and clearance was calculated based on volume of distribution and estimated half_life"
-  }
-
-  # extra ka for oral case
-  if (unique(dat[dat$EVID==1,]$route) == "oral") {
-
-    if (is.na( trimmed_mean_cl)==F & is.na( trimmed_mean_vd)==F){
-
-      datobs<-dat[dat$EVID==0,]
-
-      cmax_by_group2 <- datobs %>%
-        group_by(ID, dose_number) %>%
-        mutate(Tmax = TIME[which.max(DV)]) %>%
-        filter(TIME < Tmax | (n() == 1 & tad < 0.2*log(2)*trimmed_mean_cl/trimmed_mean_vd)) %>%
-        slice_max(order_by = DV, with_ties = FALSE) %>%
-        ungroup()%>%
-        select(-Tmax)
-
-      if (nrow(cmax_by_group2[cmax_by_group2$EVID==0  & cmax_by_group2$iiobs==0,])>0){
-        ka_single_point.out<-run_ka_solution(df =cmax_by_group2,
-                                        cl = trimmed_mean_cl,
-                                        ke = trimmed_mean_cl/trimmed_mean_vd)
-
-        trimmed_mean_ka<-  tryCatch(trimmed_geom_mean(ka_single_point.out$ka_calc_dat$ka_calcv, trim = 0.05, na.rm = TRUE),error=function(e) {NA})
-
-      }
-    }
-  }
-
-  end.time <- Sys.time()
-
-  time.spent <- round(difftime(end.time, start.time), 4)
-
   # Only selected the key columns
-  singlepoint.results <- data.frame(
-    ka = signif( trimmed_mean_ka, 3),
+  single_point_base.results <- data.frame(
     cl = signif( trimmed_mean_cl, 3),
     vd = signif( trimmed_mean_vd, 3),
     starttime = Sys.time(),
-    time.spent = time.spent,
-    single_point.message=single_point.message
+    time.spent = time.spent
   )
-
 
   return(
     list(
-      singlepoint.results = singlepoint.results,
+      single_point_base.results= single_point_base.results,
       dat = dat,
-      single_point_ka_df=   ka_single_point.out,
       single_point_cl_df =  dat.ss.obs,
-      single_point_vd_df =  dat.fd.obs,
-      single_point_vd_cmax_df=cmax_by_group
+      single_point_vd_df =  dat.fd.obs
     )
   )
 
 }
+
+#' Perform extended single-point pharmacokinetic calculations
+#'
+#' Extends the single-point pharmacokinetic calculations by incorporating additional logic to derive clearance (\(CL\)), volume of distribution (\(V_d\)), and absorption rate constant (\(k_a\)) based on the availability of data. The function evaluates data completeness and uses appropriate methods to estimate parameters when certain data types are unavailable.
+#'
+#' @param single_point_base.lst A list object returned by `single_point_base`, containing preprocessed data and initial calculations for \(CL\) and \(V_d\).
+#' @return A list containing:
+#'   - `singlepoint.results`: A data frame with estimated \(k_a\), \(CL\), \(V_d\), and processing time.
+#'   - `dat`: The input dataset used in the calculations.
+#'   - `single_point_ka_df`: Data used for \(k_a\) calculations (if applicable).
+#'   - `single_point_cl_df`: Data used for \(CL\) calculations.
+#'   - `single_point_vd_df`: Data used for \(V_d\) calculations.
+#'   - `single_point_vd_cmax_df`: \(C_{\text{max}}\) data used for \(V_d\) estimation.
+#' @details
+#' The function uses a series of conditional logic to determine which pharmacokinetic parameters can be reliably calculated based on the available data:
+#'
+#' - **Complete Data for \(CL\) and \(V_d\):**
+#'   - If both steady-state data and single-dose data are available, \(CL\) and \(V_d\) are calculated directly.
+#'
+#' - **Incomplete Data for \(V_d\):**
+#'   - If \(V_d\) cannot be calculated but \(CL\) and \(t_{1/2}\) are available, \(V_d\) is derived using:
+#'     \[
+#'     V_d = \frac{CL \cdot t_{1/2}}{\ln(2)}
+#'     \]
+#'
+#' - **Incomplete Data for \(CL\):**
+#'   - If \(CL\) cannot be calculated but \(V_d\) and \(t_{1/2}\) are available, \(CL\) is derived using:
+#'     \[
+#'     CL = \frac{V_d \cdot \ln(2)}{t_{1/2}}
+#'     \]
+#'
+#' - **Insufficient Data for Both \(CL\) and \(V_d\):**
+#'   - If neither \(CL\) nor \(V_d\) can be directly calculated, \(V_d\) is estimated from \(C_{\text{max}}\) and dose:
+#'     \[
+#'     V_d = \frac{\text{Dose}}{C_{\text{max}}}
+#'     \]
+#'     \(CL\) is then derived from \(V_d\) and \(t_{1/2}\).
+#'
+#' - **Oral Absorption Rate (\(k_a\)):**
+#'   - For oral dosing, \(k_a\) is estimated using data within the dose interval, considering \(t_{\text{max}}\) and the condition:
+#'     \[
+#'     \text{tad} < 0.2 \cdot \frac{CL}{V_d}
+#'     \]
+#'     \(k_a\) is then computed using an iterative solution.
+#'
+#' @examples
+#'
+#' # Example usage with preprocessed theo_md data
+#'
+#' dat <- theo_md
+#' fdat <- processData(dat)$dat
+#' half_life<-half_life_estimated(dat = fdat)$half_life_median
+#' results <- single_point_extra(single_point_base(fdat,half_life))
+#'
+#'
+#' @export
+#'
+
+single_point_extra<-function(single_point_base.lst){
+
+start.time <- Sys.time()
+
+  dat<-single_point_base.lst$dat
+  trimmed_mean_cl<-single_point_base.lst$single_point_base.results$cl
+  trimmed_mean_vd<-single_point_base.lst$single_point_base.results$vd
+  dat.ss.obs<-single_point_base.lst$single_point_cl_df
+  dat.fd.obs<-single_point_base.lst$single_point_vd_df
+
+  approx.vc.out<-approx.vc(dat = dat,
+                           single_point_base.lst = single_point_base.lst,
+                           half_life = half_life)
+
+##############################Single Point Extra#############################
+# Both can be calculated in the base part
+if (is.na(trimmed_mean_cl)==F & is.na(trimmed_mean_vd)==F) {
+  single_point.message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on data within the dosing interval following the first dose "
+}
+
+# if half_life is available, Vd is not available
+if (is.na(trimmed_mean_cl)==F & is.na(trimmed_mean_vd)==T & is.na(half_life)==F) {
+  message(black(
+    paste0("Insufficient single-dose (IV) data for Vd calculation; derived from clearance and estimated half-life instead.", strrep(".", 20))))
+
+  # individual_mean_vd <- tryCatch( aggregate(cl* half_life/log(2) ~ ID, data = dat.ss.obs, FUN = trimmed_geom_mean),error=function(e) {NA})
+
+  trimmed_mean_vd <-  signif(trimmed_mean_cl * half_life/log(2), 3)
+  single_point.message<-"Clearance was calculated using steady-state data and volume of distribution was calculated based on clearance and estimated half_life"
+}
+
+# single-point method volume of distribution + half-life estimated
+if (is.na(trimmed_mean_cl)==T & is.na(trimmed_mean_vd)==F & is.na(half_life)==F) {
+  message(black(
+    paste0("Insufficient steady-state data for CL calculation; derived from Vd and estimated half-life instead.", strrep(".", 20))))
+
+  trimmed_mean_cl <-  signif(trimmed_mean_vd * log(2) / half_life, 3)
+  single_point.message<-"Vd was calculated based on data within the dosing interval following the first dose and clearance was calculated based on volume of distribution and estimated half_life"
+}
+
+if (is.na(trimmed_mean_cl)==T & is.na(trimmed_mean_vd)==T & is.na(half_life)==F) {
+  message(black(
+    paste0("Neither single-dose (IV) data nor steady-state data supports the calculation of clearance (CL) and volume of distribution (Vd). Vd will be estimated using Dose/Cmax, and CL will be derived based on the estimated half-life and Vd.", strrep(".", 20))))
+
+  trimmed_mean_vd<-approx.vc.out$approx.vc.value
+
+  trimmed_mean_cl <-  signif(trimmed_mean_vd * log(2) / half_life, 3)
+
+  single_point.message<-"Vd was calculated based on Cmax in each dose interval and clearance was calculated based on volume of distribution and estimated half_life"
+}
+
+# extra ka for oral case
+if (unique(dat[dat$EVID==1,]$route) == "oral") {
+
+  if (is.na( trimmed_mean_cl)==F & is.na( trimmed_mean_vd)==F){
+
+    datobs<-dat[dat$EVID==0,]
+
+    cmax_by_group2 <- datobs %>%
+      group_by(ID, dose_number) %>%
+      mutate(Tmax = TIME[which.max(DV)]) %>%
+      filter(TIME < Tmax | (n() == 1 & tad < 0.2*log(2)*trimmed_mean_cl/trimmed_mean_vd)) %>%
+      slice_max(order_by = DV, with_ties = FALSE) %>%
+      ungroup()%>%
+      select(-Tmax)
+
+    if (nrow(cmax_by_group2[cmax_by_group2$EVID==0  & cmax_by_group2$iiobs==0,])>0){
+      ka_single_point.out<-run_ka_solution(df =cmax_by_group2,
+                                           cl = trimmed_mean_cl,
+                                           ke = trimmed_mean_cl/trimmed_mean_vd)
+
+      trimmed_mean_ka<-  tryCatch(trimmed_geom_mean(ka_single_point.out$ka_calc_dat$ka_calcv, trim = 0.05, na.rm = TRUE),error=function(e) {NA})
+
+    }
+  }
+}
+
+end.time <- Sys.time()
+
+time.spent <- round(difftime(end.time, start.time), 4)
+
+# Only selected the key columns
+singlepoint.results <- data.frame(
+  ka = signif( trimmed_mean_ka, 3),
+  cl = signif( trimmed_mean_cl, 3),
+  vd = signif( trimmed_mean_vd, 3),
+  starttime = Sys.time(),
+  time.spent = time.spent,
+  single_point.message=single_point.message
+)
+
+return(
+  list(
+    singlepoint.results = singlepoint.results,
+    dat = dat,
+    single_point_ka_df=   ka_single_point.out,
+    single_point_cl_df =  dat.ss.obs,
+    single_point_vd_df =  dat.fd.obs,
+    approx.vc.out=approx.vc.out
+  )
+)
+
+}
+
+
+
+
+
+
+#' Approximate volume of distribution based on Cmax
+#'
+#' Approximates the volume of distribution (\(V_d\)) using observed \(C_{\text{max}}\) values.
+#' The calculation assumes rapid absorption (\(k_a \gg k_e\)), meaning that \(C_{\text{max}}\) occurs shortly after dosing, before significant elimination has taken place.
+#' To ensure this assumption, \(C_{\text{max}}\) points are filtered to those occurring within \(0.2 \times \text{half-life}\), a time window where elimination is minimal.
+#'
+#' @param dat A data frame containing pharmacokinetic data, including observed concentrations (\(DV\)), time after dose (\(tad\)), dose, and route information.
+#' @param half_life The half-life of the drug, used to filter \(C_{\text{max}}\) points to the early phase of elimination.
+#' @param route The route of administration, either `"bolus"` (default) or `"infusion"`. Determines the formula for \(V_d\) calculation.
+#' @return The trimmed geometric mean of the approximated \(V_d\), calculated across individuals.
+#' @details
+#' The method relies on the following logic:
+#' - **Rapid Absorption Assumption:** When \(k_a \gg k_e\), most of the absorption is completed before elimination significantly impacts drug concentration. Under this assumption, \(C_{\text{max}}\) is dominated by absorption, not elimination.
+#' - **Why \(0.2 \times \text{half-life}\):**
+#'   - At \(0.2 \times \text{half-life}\), less than 13% of the drug has been eliminated. This is derived from the exponential decay model:
+#'     \[
+#'     \text{Elimination Fraction} = 1 - e^{-k_e \cdot t}
+#'     \]
+#'     Substituting \(t = 0.2 \cdot \text{half-life}\) and \(k_e = \ln(2) / \text{half-life}\):
+#'     \[
+#'     \text{Elimination Fraction} = 1 - e^{-\ln(2) \cdot 0.2} \approx 0.13
+#'     \]
+#'     This ensures the selected \(C_{\text{max}}\) points reflect absorption dynamics rather than elimination.
+#' - **Data Filtering:**
+#'   - Observed data (\(EVID == 0\)) is grouped by \(ID\) and \(dose\_number\).
+#'   - The \(C_{\text{max}}\) for each group is identified and further filtered to include only points where \(tad < 0.2 \times \text{half-life}\).
+#' - **Volume of Distribution Calculation:**
+#'   - For bolus: \(V_d = \frac{\text{Dose}}{C_{\text{max}}}\).
+#'   - For infusion: \(V_d = \frac{\text{Rate} \cdot \min(\text{Time}, \text{Duration})}{C_{\text{max}}}\).
+#' - Individual \(V_d\) values are summarised using a trimmed geometric mean (\(10\%\)) to reduce the impact of outliers.
+#'
+#' @examples
+#' # Example 1: Bolus administration
+#' dat<-Bolus_2CPT
+#' dat<-processData(dat)$dat
+#' approx.vc(dat,half_life = half_life_estimated(dat)$half_life_median)
+#'
+#' # Example 2: Oral administration
+#' dat<-Oral_2CPT
+#' dat<-processData(dat)$dat
+#' approx.vc(dat,half_life = half_life_estimated(dat)$half_life_median)
+#'
+#' # Example 3: Theno_sd
+#' dat<-theo_sd
+#' dat<-processData(dat)$dat
+#' approx.vc(dat,half_life = half_life_estimated(dat)$half_life_median)
+#'
+#' # Example 3: Theno_md
+#' dat<-theo_md
+#' dat<-processData(dat)$dat
+#' approx.vc.lst<-approx.vc(dat,half_life = half_life_estimated(dat)$half_life_median)
+#' approx.vc.lst
+#'
+#' @export
+
+approx.vc<-function(dat,
+                    half_life,
+                    single_point_base.lst){
+
+
+if (missing(half_life)||is.na(half_life)||is.null(half_life)){
+  stop("No half life provided for approximate central volume of distribution calculation")
+}
+
+if (missing(single_point_base.lst)) {
+  single_point_base.lst<-single_point_base(dat,half_life)
+}
+
+cmax_by_group1<-NULL
+cmax_by_group2<-NULL
+approx.vc.value<-NA
+
+if (nrow(dat[dat$EVID==0 & dat$dose_number==1,])>0){
+
+   datobs_fd<-dat[dat$EVID==0 & dat$dose_number==1,]
+
+  cmax_by_group1 <- datobs_fd %>%
+  group_by(ID, dose_number) %>%
+  slice_max(order_by = DV, with_ties = FALSE) %>%
+  ungroup()
+
+  cmax_by_group1<-cmax_by_group1[cmax_by_group1$tad<half_life*0.2,]
+
+if (unique(dat[dat$EVID==1,]$route) == "infusion") {
+  cmax_by_group1$vd <-
+    signif(pmin(cmax_by_group1$TIME,cmax_by_group1$duration_obs) * cmax_by_group1$rateobs / cmax_by_group1$DV, 3)
+}
+
+cmax_by_group1$vd <-
+  signif(cmax_by_group1$dose/ cmax_by_group1$DV, 3)
+}
+
+  # Accumulation ratio was borrowed to approximately estimate the Cmax after single dose
+if (length(single_point_base.lst$single_point_cl_df)>1){
+
+    dat.ss.obs<-single_point_base.lst$single_point_cl_df
+
+    dat.ss.obs$Rac<-1/(1-exp(- (log(2)/half_life)*dat.ss.obs$dose_interval))
+
+    cmax_by_group2 <-  dat.ss.obs %>%
+      group_by(ID, dose_number) %>%
+      slice_max(order_by = DV, with_ties = FALSE) %>%
+      ungroup()
+
+    cmax_by_group2<-cmax_by_group2[cmax_by_group2$tad<half_life*0.2,]
+
+    if (unique(dat[dat$EVID==1,]$route) == "infusion") {
+      cmax_by_group2$vd <-
+        signif(pmin(cmax_by_group2$TIME,cmax_by_group2$duration_obs) * cmax_by_group2$rateobs / (cmax_by_group2$DV/cmax_by_group2$Rac), 3)
+    }
+
+    cmax_by_group2$vd <-
+      signif(cmax_by_group2$dose/ (cmax_by_group2$DV/cmax_by_group2$Rac), 3)
+  }
+
+cmax_by_group<-rbind(data.frame(ID=cmax_by_group1$ID,
+                                dose_number=cmax_by_group1$dose_number,
+                                vd=cmax_by_group1$vd),
+                     data.frame(ID=cmax_by_group2$ID,
+                                dose_number=cmax_by_group2$dose_number,
+                                vd=cmax_by_group2$vd))
+
+if (!is.null(cmax_by_group)){
+# Calculate median vd for each individual
+individual_mean_vd <- tryCatch( aggregate(vd ~ ID, data = cmax_by_group, FUN = trimmed_geom_mean),error=function(e) {NA})
+
+# Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
+trimmed_mean_vd <-tryCatch(trimmed_geom_mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE),error=function(e) {NA})
+approx.vc.value<-trimmed_mean_vd
+}
+
+
+return(list=list(approx.vc.value=approx.vc.value,
+              approx.vc.dat=cmax_by_group,
+              approx.vc.dat.sd=cmax_by_group1,
+              approx.vc.dat.md=cmax_by_group2 ))
+
+}
+
 
 #' Calculate the trimmed geometric mean
 #'

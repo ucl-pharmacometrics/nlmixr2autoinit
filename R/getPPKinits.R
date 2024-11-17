@@ -147,12 +147,12 @@ getPPKinits<- function(dat,
   message(black(
      paste0("Run single-point method to calculate PK parameters",strrep(".", 20))))
 
- simpcal.results <- run_single_point(
+ single.point.lst <- run_single_point(
     dat = dat,
     half_life = half_life)
 
- simpcal.out <- simpcal.results$singlepoint.results
- dat<-simpcal.results$dat
+ single.point.out <- single.point.lst$singlepoint.results
+ dat<-single.point.lst$dat
 
 ################# Naive pooled Non-compartmental analysis ##################################
   message(black(
@@ -277,13 +277,13 @@ getPPKinits<- function(dat,
   if (bolus_flag==1 || infusion_flag==1){
     ka=  c(NA,NA,NA,NA,NA)
    # single-point method
-    if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F) {
+    if (is.na(single.point.out$cl)==F & is.na(single.point.out$vd)==F) {
       simpcal_sim <-
         Fit_1cmpt_iv(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
-          input.cl = simpcal.out$cl,
-          input.vd = simpcal.out$vd,
+          input.cl = single.point.out$cl,
+          input.vd = single.point.out$vd,
           input.add = 0
         )
 
@@ -395,16 +395,16 @@ getPPKinits<- function(dat,
 
 #================================== for oral case================================#
   if (oral_flag==1){
-    ka=  c(simpcal.out$ka,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all)
+    ka=  c(single.point.out$ka,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all)
     # single-point method
-    if (is.na(simpcal.out$cl)==F & is.na(simpcal.out$vd)==F & is.na(  simpcal.out$ka)==F) {
-      if (simpcal.out$cl > 0 & simpcal.out$vd > 0 & simpcal.out$ka>0 ) {
+    if (is.na(single.point.out$cl)==F & is.na(single.point.out$vd)==F & is.na(  single.point.out$ka)==F) {
+      if (single.point.out$cl > 0 & single.point.out$vd > 0 & single.point.out$ka>0 ) {
         simpcal_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
-          input.ka = simpcal.out$ka,
-          input.cl = simpcal.out$cl,
-          input.vd = simpcal.out$vd,
+          input.ka = single.point.out$ka,
+          input.cl = single.point.out$cl,
+          input.vd = single.point.out$vd,
           input.add = 0
         )
 
@@ -530,7 +530,7 @@ all.out <- data.frame(
     ka=ka,
 
     cl = c(
-      simpcal.out$cl,
+      single.point.out$cl,
       graph.results_fd$cl,
       nca.results_fd$cl,
       nca.results_efd$cl,
@@ -538,7 +538,7 @@ all.out <- data.frame(
     ),
 
     vd = c(
-      simpcal.out$vd,
+      single.point.out$vd,
       graph.results_fd$vd,
       nca.results_fd$vd,
       nca.results_efd$vd,
@@ -579,7 +579,7 @@ all.out <- data.frame(
                  nca.rRMSE),
 
     time.spent = c(
-      simpcal.out$time.spent,
+      single.point.out$time.spent,
       graph.results_fd$time.spent,
       nca.results_fd$time.spent,
       nca.results_efd$time.spent,

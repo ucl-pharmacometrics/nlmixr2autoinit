@@ -1,23 +1,23 @@
-#' Sensitivity analysis for Vmax and Km
+#' Simulation-based sensitivity analysis for Vmax and Km
 #'
 #' This function performs sensitivity analysis by testing a series of Vmax and Km values.
 #' @param dat A data frame containing the pharmacokinetic data with columns for EVID and DV.
 #' @param sim_vmax_list A list of Vmax values to simulate (optional).
 #' @param sim_km_list A list of Km values to simulate (optional).
-#' @param estvd Estimated volume of distribution.
+#' @param estvc Estimated volume of distribution.
 #' @param estcl Estimated clearance (optional, required if `sim_vmax_list` and `sim_km_list` are not provided).
 #' @param estcmax Estimated maximum concentration (optional, required if `sim_vmax_list` and `sim_km_list` are not provided).
 #' @return A data frame containing the Vmax, Km, APE, MAPE, and time spent for each simulation.
 #' @import nlmixr2
 #' @examples
 #' dat <- Bolus_1CPT
-#' sim_sens_vmax_km(dat = Bolus_1CPT,sim_vmax_list = c(500,1000,1500),sim_km_list = c(200,300,400),estvd = 70)
+#' sim_sens_vmax_km(dat = Bolus_1CPT,sim_vmax_list = c(500,1000,1500),sim_km_list = c(200,300,400),estvc = 70)
 #' @export
 
 sim_sens_vmax_km <- function(dat,
                              sim_vmax_list=NA,
                              sim_km_list=NA,
-                             estvd,
+                             estvc,
                              estcl,
                              estcmax,
                              estka=NA,
@@ -25,7 +25,7 @@ sim_sens_vmax_km <- function(dat,
 
   start.time <- Sys.time()
 
-  if (missing(estvd)) {
+  if (missing(estvc)) {
     stop("Error: no volume of distribution for simulation was provided")
   }
 
@@ -66,7 +66,7 @@ for (loopmm in 1:nrow(combs_df)) {
       est.method = "rxSolve",
       input.vmax = input.vmax,
       input.km = input.km,
-      input.vd = estvd,
+      input.vd = estvc,
       input.add = 0
     )
     }
@@ -78,7 +78,7 @@ for (loopmm in 1:nrow(combs_df)) {
       input.ka = input.ka,
       input.vmax = input.vmax,
       input.km = input.km,
-      input.vd = estvd,
+      input.vd = estvc,
       input.add = 0
     )
    }
@@ -113,7 +113,7 @@ for (loopmm in 1:nrow(combs_df)) {
 }
 
 
-#' Sensitivity analysis for a two-compartment model
+#' Simulation-based sensitivity analysis for  for a two-compartment model
 #'
 #' Performs sensitivity analysis by testing a series of potential ratios of vc to vp.
 #' @param dat A data frame containing the pharmacokinetic data
@@ -122,32 +122,30 @@ for (loopmm in 1:nrow(combs_df)) {
 #' @param sim_q_list A list of inter-compartmental clearance (Q) to simulate (optional).
 #' @param estka Estimated absorption rate if oral case.
 #' @param estcl Estimated clearance.
-#' @param estvd Estimated volume of distribution (optional, required if `sim_vc_list` and `sim_vp_list` are not provided).
+#' @param estvc Estimated volume of distribution (optional, required if `sim_vc_list` and `sim_vp_list` are not provided).
 #' @return A data frame containing the Vc, Vp, APE, MAPE, and time spent for each simulation.
 #' @import nlmixr2
 #' @examples
 #' dat <- Bolus_2CPT
-#' sim.results<-sim_sens_2cmpt(dat, estka=1,estcl = 4, estvd = 70)
+#' sim.results<-sim_sens_2cmpt(dat, estka=1,estcl = 4, estvc = 70)
 #' @export
 #'
 sim_sens_2cmpt <- function(dat,
                            sim_vc_list=NA,
                            sim_vp_list=NA,
-                           estcl,
-                           estvd,
                            sim_q_list=NA,
-                           estka=NA,
-                           noniv_flag=0) {
+                           estcl,
+                           estka=NA) {
 
   if (missing(estcl)) {
     stop("Error: no estimated clearance for simulation was provided")
   }
 
-  if (missing(estvd)) {
-    stop("Error: no estimated volume of distribution for simulation was provided")
-  }
 
   if (is.na(sim_vc_list)==T || is.na(sim_vp_list)==T||is.na(sim_q_list)==T) {
+
+      estvc<-approx.vc(dat)
+
       # Two-compartment model
       start.time <- Sys.time()
       # from linear to nonlinear
@@ -155,9 +153,9 @@ sim_sens_2cmpt <- function(dat,
       vc_vp_ratio_range <- c(10, 5, 2, 1, 0.5, 0.2, 0.1)
 
       sim_vc_list <-
-        signif(estvd * vc_vp_ratio_range / (vc_vp_ratio_range + 1), 3)
+        signif(estvc * vc_vp_ratio_range / (vc_vp_ratio_range + 1), 3)
       sim_vp_list <-
-        signif(estvd * (1 - vc_vp_ratio_range / (vc_vp_ratio_range + 1)), 3)
+        signif(estvc * (1 - vc_vp_ratio_range / (vc_vp_ratio_range + 1)), 3)
 
      sim_q_list<-c(0.1,1,10,100)
   }
@@ -236,14 +234,14 @@ sim_sens_2cmpt <- function(dat,
 #' @param sim_vp_list A list of first peripheral compartment volumes (Vp) to simulate (optional).
 #' @param sim_vp2_list A list of second peripheral compartment volumes (Vp2) to simulate (optional).
 #' @param estcl Estimated clearance.
-#' @param estvd Estimated volume of distribution (optional, required if `sim_vc_list`, `sim_vp_list`and `sim_vp2_list`  are not provided).
+#' @param estvc Estimated cenntral volume of distribution (optional, required if `sim_vc_list`, `sim_vp_list`and `sim_vp2_list`  are not provided).
 #' @param estq Estimated intercompartmental clearance (optional, default is `estcl`).
 #' @param estq2 Estimated intercompartmental clearance between central compartment and second peripheral compartment (optional, default is `estcl`).
 #' @return A data frame containing the Vc, Vp, Vp2 APE, MAPE, and time spent for each simulation.
 #' @import nlmixr2
 #' @examples
 #' dat <- Bolus_2CPT
-#' sim_results<-sim_sens_3cmpt(dat, estcl = 4, estvd = 70)
+#' sim_results<-sim_sens_3cmpt(dat, estcl = 4, estvc = 70)
 #' sim_results
 #' @export
 #'
@@ -253,7 +251,7 @@ sim_sens_3cmpt <- function(dat,
                            sim_vp_list=NA,
                            sim_vp2_list=NA,
                            estcl,
-                           estvd,
+                           estvc,
                            sim_q_list=NA,
                            estka=NA,
                            noniv_flag=0) {
@@ -263,7 +261,7 @@ sim_sens_3cmpt <- function(dat,
     stop("Error: no estimated clearance for simulation was provided")
   }
 
-  if (missing(estvd)) {
+  if (missing(estvc)) {
       stop("Error: no estimated volume of distribution for simulation was provided")
    }
 
@@ -283,13 +281,13 @@ sim_sens_3cmpt <- function(dat,
       vp2_ratio_range <-  combs_df[, 3]
 
       sim_vc_list <-
-        signif(estvd *  vc_ratio_range / (vc_ratio_range + vp_ratio_range + vp2_ratio_range),
+        signif(estvc *  vc_ratio_range / (vc_ratio_range + vp_ratio_range + vp2_ratio_range),
                3)
       sim_vp_list <-
-        signif(estvd *  vp_ratio_range / (vc_ratio_range + vp_ratio_range + vp2_ratio_range),
+        signif(estvc *  vp_ratio_range / (vc_ratio_range + vp_ratio_range + vp2_ratio_range),
                3)
       sim_vp2_list <-
-        signif(estvd * vp2_ratio_range / (vc_ratio_range + vp_ratio_range + vp2_ratio_range),
+        signif(estvc * vp2_ratio_range / (vc_ratio_range + vp_ratio_range + vp2_ratio_range),
                3)
 
       sim_q_list<-c(0.1,1,10,100)
