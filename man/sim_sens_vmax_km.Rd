@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_sens_params.R
 \name{sim_sens_vmax_km}
 \alias{sim_sens_vmax_km}
-\title{Sensitivity analysis for Vmax and Km}
+\title{Simulation-based sensitivity analysis for Vmax and Km}
 \usage{
 sim_sens_vmax_km(
   dat,
@@ -22,11 +22,11 @@ sim_sens_vmax_km(
 
 \item{sim_km_list}{A list of Km values to simulate (optional).}
 
-\item{estvd}{Estimated volume of distribution.}
-
 \item{estcl}{Estimated clearance (optional, required if \code{sim_vmax_list} and \code{sim_km_list} are not provided).}
 
 \item{estcmax}{Estimated maximum concentration (optional, required if \code{sim_vmax_list} and \code{sim_km_list} are not provided).}
+
+\item{estvc}{Estimated volume of distribution.}
 }
 \value{
 A data frame containing the Vmax, Km, APE, MAPE, and time spent for each simulation.
@@ -36,5 +36,5 @@ This function performs sensitivity analysis by testing a series of Vmax and Km v
 }
 \examples{
 dat <- Bolus_1CPT
-sim_sens_vmax_km(dat = Bolus_1CPT,sim_vmax_list = c(500,1000,1500),sim_km_list = c(200,300,400),estvd = 70)
+sim_sens_vmax_km(dat = Bolus_1CPT,sim_vmax_list = c(500,1000,1500),sim_km_list = c(200,300,400),estvc = 70)
 }

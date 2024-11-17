@@ -4,7 +4,7 @@
 \alias{is_ss}
 \title{Determine steady state for pharmacokinetic observations}
 \usage{
-is_ss(df, ss_option = 1, no.doses = 5, no.half_life = 3, half_life = NA)
+is_ss(df, ss_option = 1, no.doses = 5, no.half_life = 5, half_life = NA)
 }
 \arguments{
 \item{df}{A data frame containing pharmacokinetic data. It should include columns:

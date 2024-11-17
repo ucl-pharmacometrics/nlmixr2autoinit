@@ -37,6 +37,6 @@ Perform a non-compartmental analysis (NCA) for intravenous dosing data with norm
 \examples{
 dat <- theo_sd
 dat <- processData(dat)$dat
-run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=1,nbins = 8, fdobsflag = 1,sdflag=0)
-run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=2,nbins = 8, fdobsflag = 1,sdflag=0)
+run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=1,nbins = 8, fdobsflag = 1,sdflag=1)
+run_nca.normalised(dat, nlastpoints = 3, trapezoidal.rule=2,nbins = 8, fdobsflag = 1,sdflag=1)
 }

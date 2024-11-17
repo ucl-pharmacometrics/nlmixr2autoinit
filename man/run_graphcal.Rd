@@ -4,7 +4,7 @@
 \alias{run_graphcal}
 \title{Graphical calculation of pharmacokinetic parameters}
 \usage{
-run_graphcal(dat, route, nbins = 8, nlastpoints = 3, fdobsflag = 0)
+run_graphcal(dat, route, nbins = 8, nlastpoints = 3, fdobsflag = 1)
 }
 \arguments{
 \item{dat}{A data frame containing the pharmacokinetic data.}
@@ -26,8 +26,7 @@ Performs a graphical calculation of clearance and volume of distribution based o
 
 # Example 1 (iv case)
 dat <- Bolus_1CPT
-dat <- nmpkconvert(dat)
-dat <- calculate_tad(dat)
+dat <- processData(dat)$dat
 run_graphcal(dat, route="bolus")
 
 # Example 2 (oral case)

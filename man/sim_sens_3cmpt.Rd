@@ -9,9 +9,8 @@ sim_sens_3cmpt(
   sim_vc_list = NA,
   sim_vp_list = NA,
   sim_vp2_list = NA,
-  estcl,
-  estvd,
   sim_q_list = NA,
+  estcl,
   estka = NA,
   noniv_flag = 0
 )
@@ -27,7 +26,7 @@ sim_sens_3cmpt(
 
 \item{estcl}{Estimated clearance.}
 
-\item{estvd}{Estimated volume of distribution (optional, required if \code{sim_vc_list}, \code{sim_vp_list}and \code{sim_vp2_list}  are not provided).}
+\item{estvc}{Estimated cenntral volume of distribution (optional, required if \code{sim_vc_list}, \code{sim_vp_list}and \code{sim_vp2_list}  are not provided).}
 
 \item{estq}{Estimated intercompartmental clearance (optional, default is \code{estcl}).}
 
@@ -41,6 +40,6 @@ This function performs sensitivity analysis by testing a series of potential rat
 }
 \examples{
 dat <- Bolus_2CPT
-sim_results<-sim_sens_3cmpt(dat, estcl = 4, estvd = 70)
+sim_results<-sim_sens_3cmpt(dat, estcl = 4, sim_vc_list = 70)
 sim_results
 }

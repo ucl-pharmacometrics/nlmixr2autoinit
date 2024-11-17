@@ -2,62 +2,56 @@
 % Please edit documentation in R/run_single_point.R
 \name{run_single_point}
 \alias{run_single_point}
-\title{Perform single-point pharmacokinetic calculations}
+\title{Run single-point pharmacokinetic analysis}
 \usage{
 run_single_point(dat, half_life = NA)
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data, including information on doses, sampling times, and observed concentrations.}
+\item{dat}{A data frame containing pharmacokinetic data, including observed concentrations (\(DV\)), time after dose (\(tad\)), dosing interval (\(ii\)), and dose information.}
 
-\item{half_life}{The half-life of the drug, used for determining elimination phase parameters and steady-state conditions.}
+\item{half_life}{The half-life of the drug (\(t_{1/2}\)). If not provided, some calculations may use alternative assumptions or data-based rules.}
 }
 \value{
-A list containing the following:
+A list containing:
 \itemize{
-\item \code{singlepoint.results}: A data frame with the calculated clearance (CL) and volume of distribution (Vd), along with processing start and elapsed time.
-\item \code{dat}: The processed dataset with additional columns for steady-state and other calculated flags.
-\item \code{dat.ss.obs}: Subset of the data used for steady-state clearance calculation.
-\item \code{dat.fd.obs}: Subset of the data used for single-dose volume of distribution calculation.
+\item \code{singlepoint.results}: A data frame with estimated \(CL\), \(V_d\), \(k_a\), processing time, and a descriptive message.
+\item \code{dat}: The input dataset used in the calculations.
+\item \code{single_point_ka_df}: Data used for \(k_a\) calculations (if applicable).
+\item \code{single_point_cl_df}: Data used for \(CL\) calculations.
+\item \code{single_point_vd_df}: Data used for \(V_d\) calculations.
+\item \code{approx.vc.out}: A message or result indicating whether the approximate central volume of distribution (\(V_d\)) was successfully estimated.
 }
 }
 \description{
-Performs pharmacokinetic calculations using a single-point method and calculates clearance (CL) and volume of distribution (Vd) based on the provided pharmacokinetic data.
+This function performs a single-point pharmacokinetic analysis, estimating key parameters such as clearance (\(CL\)), volume of distribution (\(V_d\)), and absorption rate constant (\(k_a\)) based on the provided dataset and optional half-life (\(t_{1/2}\)).
 }
 \details{
-The function includes two main calculations:
+This function integrates two key components:
 \enumerate{
-\item \strong{Clearance (CL):}
-\itemize{
-\item Calculated using steady-state data from multiple dosing regimens.
-\item Steady-state concentrations are identified and used to estimate clearance based on the dose, observed steady-state concentrations, and dosing intervals.
-}
-\item \strong{Volume of Distribution (Vd):}
-\itemize{
-\item Calculated for intravenous single-dose data.
-\item The first sampling point (C0) after dose administration is used to estimate Vd with the formula \code{Dose / C0}.
-}
+\item \strong{\code{single_point_base}:} Conducts basic single-point calculations, determining parameters based on steady-state or dose-interval data.
+\item \strong{\code{single_point_extra}:} Extends the analysis by handling additional cases, such as oral absorption rate (\(k_a\)) or compensating for missing \(CL\) or \(V_d\) values.
 }
 
-The function supports both bolus and short-term infusion routes. It processes input data to identify steady-state and first-dose conditions and calculates trimmed mean values for CL and Vd to reduce the impact of outliers.
+The function dynamically adapts to the provided data, leveraging different strategies based on the availability of steady-state, dose-interval, or single-dose data. If half-life (\(t_{1/2}\)) is provided, it is used in relevant calculations.
 }
 \examples{
 # Example 1 (iv case)
 dat <- Bolus_1CPT
 fdat <- processData(dat)$dat
-half_life<-half_life_estimated(dat = fdat)[1]
+half_life<-half_life_estimated(dat = fdat)$half_life_median
 run_single_point(fdat,half_life)
 
 # Example 2 (infusion case).
 
 dat <- Infusion_1CPT
 fdat <- processData(dat)$dat
-half_life<-half_life_estimated(dat = fdat)[1]
+half_life<-half_life_estimated(dat = fdat)$half_life_median
+single_point_base(fdat,half_life)
 run_single_point(fdat,half_life)
 
 dat <- Oral_1CPT
 fdat <- processData(dat)$dat
-half_life<-half_life_estimated(dat = fdat)$half_life_median[1]
+half_life<-half_life_estimated(dat = fdat)$half_life_median
 run_single_point(fdat,half_life)
-
 
 }
