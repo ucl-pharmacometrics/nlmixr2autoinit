@@ -7,50 +7,49 @@
 single_point_extra(single_point_base.lst, half_life)
 }
 \arguments{
-\item{single_point_base.lst}{A list object returned by \code{single_point_base}, containing preprocessed data and initial calculations for \(CL\) and \(V_d\).}
+\item{single_point_base.lst}{A list object returned by \code{single_point_base}, containing preprocessed data and initial calculations for \eqn{CL} and \eqn{V_d}.}
 }
 \value{
 A list containing:
 \itemize{
-\item \code{singlepoint.results}: A data frame with estimated \(k_a\), \(CL\), \(V_d\), and processing time.
+\item \code{singlepoint.results}: A data frame with estimated \eqn{k_a}, \eqn{CL}, \eqn{V_d}, and processing time.
 \item \code{dat}: The input dataset used in the calculations.
-\item \code{single_point_ka_df}: Data used for \(k_a\) calculations (if applicable).
-\item \code{single_point_cl_df}: Data used for \(CL\) calculations.
-\item \code{single_point_vd_df}: Data used for \(V_d\) calculations.
-\item \code{single_point_vd_cmax_df}: \(C_{max}\) data used for \(V_d\) estimation.
+\item \code{single_point_ka_df}: Data used for \eqn{k_a} calculations (if applicable).
+\item \code{single_point_cl_df}: Data used for \eqn{CL} calculations.
+\item \code{single_point_vd_df}: Data used for \eqn{V_d} calculations.
+\item \code{single_point_vd_cmax_df}: \eqn{C_{\mathrm{max}}} data used for \eqn{V_d} estimation.
 }
 }
 \description{
-Extends the single-point pharmacokinetic calculations by incorporating additional logic to derive clearance (\(CL\)), volume of distribution (\(V_d\)), and absorption rate constant (\(k_a\)) based on the availability of data. The function evaluates data completeness and uses appropriate methods to estimate parameters when certain data types are unavailable.
+Extends the single-point pharmacokinetic calculations by incorporating additional logic to derive clearance (\eqn{CL}), volume of distribution (\eqn{V_d}), and absorption rate constant (\eqn{k_a}) based on the availability of data. The function evaluates which parameters were not successfully calculated in the \code{single_point_base} step and uses appropriate methods to estimate missing parameters.
 }
 \details{
-The function uses a series of conditional logic to determine which pharmacokinetic parameters can be reliably calculated based on the available data:
+The function uses a series of conditional logic to determine which pharmacokinetic parameters have not been calculated in the \code{single_point_base} part and derives them using the parameters that have already been calculated:
 \itemize{
-\item \strong{Complete Data for \eqn{CL} and \eqn{V_d}:}
+\item \strong{Successfully Calculated \eqn{CL} and \eqn{V_d}:}
 \itemize{
-\item If both steady-state data and single-dose data are available, \eqn{CL} and \eqn{V_d} are calculated directly.
+\item If both \eqn{CL} and \eqn{V_d} are successfully calculated in the \code{single_point_base} part, they are directly used in the results without further derivations.
 }
-\item \strong{Incomplete Data for \eqn{V_d}:}
+\item \strong{Uncalculated \eqn{V_d}:}
 \itemize{
-\item If \eqn{V_d} cannot be calculated but \eqn{CL} and \eqn{t_{1/2}} are available, \eqn{V_d} is derived using:
+\item If \eqn{V_d} cannot be calculated in the \code{single_point_base} part but \eqn{CL} and \eqn{t_{1/2}} are available, \eqn{V_d} is derived using:
 \deqn{V_d = \frac{CL \cdot t_{1/2}}{\ln(2)}}
 }
-\item \strong{Incomplete Data for \eqn{CL}:}
+\item \strong{Uncalculated \eqn{CL}:}
 \itemize{
-\item If \eqn{CL} cannot be calculated but \eqn{V_d} and \eqn{t_{1/2}} are available, \eqn{CL} is derived using:
+\item If \eqn{CL} cannot be calculated in the \code{single_point_base} part but \eqn{V_d} and \eqn{t_{1/2}} are available, \eqn{CL} is derived using:
 \deqn{CL = \frac{V_d \cdot \ln(2)}{t_{1/2}}}
 }
-\item \strong{Insufficient Data for Both \eqn{CL} and \eqn{V_d}:}
+\item \strong{Uncalculated Both \eqn{CL} and \eqn{V_d}:}
 \itemize{
-\item If neither \eqn{CL} nor \eqn{V_d} can be directly calculated, \eqn{V_d} is estimated from \eqn{C_{\mathrm{max}}} and dose:
+\item If neither \eqn{CL} nor \eqn{V_d} can be calculated in the \code{single_point_base} part, \eqn{V_d} is estimated from \eqn{C_{\mathrm{max}}} and dose:
 \deqn{V_d = \frac{\mathrm{Dose}}{C_{\mathrm{max}}}}
 \eqn{CL} is then derived from \eqn{V_d} and \eqn{t_{1/2}}.
 }
 \item \strong{Oral Absorption Rate (\eqn{k_a}):}
 \itemize{
-\item For oral dosing, \eqn{k_a} is estimated using data within the dose interval, considering \eqn{t_{\mathrm{max}}} and the condition:
-\deqn{\mathrm{tad} < 0.2 \cdot \frac{CL}{V_d}}
-\eqn{k_a} is then computed using an iterative solution.
+\item For oral dosing, the calculation focuses on data collected before \eqn{t_{\mathrm{max}}}, ensuring that \eqn{\mathrm{tad} < 0.2 \cdot \mathrm{half-life}} to reflect the absorption phase.
+\item The absorption rate constant (\eqn{k_a}) is computed using the \code{run_ka_solution} function, which applies a solution-based approach tailored to the selected data points.
 }
 }
 }
@@ -61,7 +60,7 @@ The function uses a series of conditional logic to determine which pharmacokinet
 dat <- theo_md
 fdat <- processData(dat)$dat
 half_life<-half_life_estimated(dat = fdat)$half_life_median
-results <- single_point_extra(single_point_base(fdat,half_life))
+single_point_extra(single_point_base(fdat,half_life))
 
 
 }

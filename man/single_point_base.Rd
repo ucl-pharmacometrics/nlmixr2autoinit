@@ -55,9 +55,11 @@ half_life<-half_life_estimated(dat = fdat)$half_life_median
 single_point_base(fdat,half_life)
 run_single_point(fdat,half_life)
 
+ # Example 3 (Oral case).
+
 dat <- Oral_1CPT
 fdat <- processData(dat)$dat
-half_life<-half_life_estimated(dat = fdat)$half_life_median[1]
+half_life<-half_life_estimated(dat = fdat)$half_life_median
 run_single_point(fdat,half_life)
 
 

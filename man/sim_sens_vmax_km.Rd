@@ -36,5 +36,7 @@ This function performs sensitivity analysis by testing a series of Vmax and Km v
 }
 \examples{
 dat <- Bolus_1CPT
-sim_sens_vmax_km(dat = Bolus_1CPT,sim_vmax_list = c(500,1000,1500),sim_km_list = c(200,300,400),estvc = 70)
+sim_sens_vmax_km(dat = Bolus_1CPT,sim_vmax_list = c(500,1000,1500),sim_km_list = c(200,300,400),estvd = 70)
+
+
 }

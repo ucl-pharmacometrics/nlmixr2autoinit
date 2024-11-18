@@ -36,6 +36,13 @@ A data frame containing the Vc, Vp, APE, MAPE, and time spent for each simulatio
 Performs sensitivity analysis by testing a series of potential ratios of vc to vp.
 }
 \examples{
+
+# Example 1. IV case
 dat <- Bolus_2CPT
-sim.results<-sim_sens_2cmpt(dat, estcl = 4, sim_vc_list = 70)
+head(sim_sens_2cmpt(dat, estcl = 4, sim_vc_list = 70))
+
+# Example 2. Oral case
+dat <- Oral_2CPT
+head(sim_sens_2cmpt(dat, estka=1, estcl = 4, sim_vc_list = 70))
+
 }
