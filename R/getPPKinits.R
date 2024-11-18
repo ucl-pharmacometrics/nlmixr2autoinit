@@ -189,25 +189,26 @@ getPPKinits<- function(dat,
      }
   }
 
-  if (oral_flag==1 & length(nca.results$datpooled_efd)==2){
-    if (is.na(nca.results$nca.efd.results$cl)==F & is.na(nca.results$nca.efd.results$vd)==F){
-      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_efd$test.pool.normalised,
-                                                nlastpoints = nlastpoints,
-                                                nca.out = unlist(nca.results$nca.efd.results, use.names = FALSE))
-      ka_method_1_efd <-signif(ka_wanger_nelson_result$ka,3)
-      ka_method_1_out_efd<-ka_wanger_nelson_result$dat_out_wanger_nelson
-    }
-    }
+  # Not applicable for multiple doses.
+  # if (oral_flag==1 & length(nca.results$datpooled_efd)==2){
+  #   if (is.na(nca.results$nca.efd.results$cl)==F & is.na(nca.results$nca.efd.results$vd)==F){
+  #     ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_efd$test.pool.normalised,
+  #                                               nlastpoints = nlastpoints,
+  #                                               nca.out = unlist(nca.results$nca.efd.results, use.names = FALSE))
+  #     ka_method_1_efd <-signif(ka_wanger_nelson_result$ka,3)
+  #     ka_method_1_out_efd<-ka_wanger_nelson_result$dat_out_wanger_nelson
+  #   }
+  #   }
 
-    if (oral_flag==1 & length(nca.results$datpooled_all)==2){
-      if (is.na(nca.results$nca.all.results$cl)==F & is.na(nca.results$nca.all.results$vd)==F){
-      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_all$test.pool.normalised,
-                                                nlastpoints = nlastpoints,
-                                                nca.out = unlist(nca.results$nca.all.results, use.names = FALSE))
-      ka_method_1_all <-signif(ka_wanger_nelson_result$ka,3)
-      ka_method_1_out_all<-ka_wanger_nelson_result$dat_out_wanger_nelson
-      }
-   }
+  # if (oral_flag==1 & length(nca.results$datpooled_all)==2){
+  #     if (is.na(nca.results$nca.all.results$cl)==F & is.na(nca.results$nca.all.results$vd)==F){
+  #     ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_all$test.pool.normalised,
+  #                                               nlastpoints = nlastpoints,
+  #                                               nca.out = unlist(nca.results$nca.all.results, use.names = FALSE))
+  #     ka_method_1_all <-signif(ka_wanger_nelson_result$ka,3)
+  #     ka_method_1_out_all<-ka_wanger_nelson_result$dat_out_wanger_nelson
+  #     }
+  #  }
 
     # can be used for later hybrid method
     ka_values<-c(ka_method_1_fd, ka_method_1_efd, ka_method_1_all)
@@ -1425,6 +1426,8 @@ cat(message_text, "\n")
 
   init.history <- list(
     base.out = all.out,
+    single.point.lst=single.point.lst,
+
     sim.vmax.km = sim.vmax.km.results.all,
     sim.2cmpt = sim.2cmpt.results.all,
     sim.3cmpt = sim.3cmpt.results.all,
