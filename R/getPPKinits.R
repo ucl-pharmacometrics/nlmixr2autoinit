@@ -584,6 +584,7 @@ all.out <- data.frame(
       nca.results_efd$time.spent,
       nca.results_all$time.spent
     )
+
   )
 
   colnames(all.out) <-
@@ -1413,7 +1414,8 @@ cat(message_text, "\n")
       "Mean Absolute Percentage Error (MAPE)",
       "Root Mean Squared Error (RMSE)",
       "Relative Root Mean Squared Error (rRMSE)",
-      "Time spent"
+      "Time spent",
+      "num_min_metrics"
     )
   colnames(sim.vmax.km.results.all) <-
     c(
@@ -1424,7 +1426,8 @@ cat(message_text, "\n")
       "Mean Absolute Percentage Error (MAPE)",
       "Root Mean Squared Error (RMSE)",
       "Relative Root Mean Squared Error (rRMSE)",
-      "Time spent"
+      "Time spent",
+      "num_min_metrics"
     )
   colnames(sim.2cmpt.results.all) <-
     c(
@@ -1436,7 +1439,8 @@ cat(message_text, "\n")
       "Mean Absolute Percentage Error (MAPE)",
       "Root Mean Squared Error (RMSE)",
       "Relative Root Mean Squared Error (rRMSE)",
-      "Time spent"
+      "Time spent",
+      "num_min_metrics"
     )
   colnames(sim.3cmpt.results.all) <-
     c(
@@ -1450,7 +1454,8 @@ cat(message_text, "\n")
       "Mean Absolute Percentage Error (MAPE)",
       "Root Mean Squared Error (RMSE)",
       "Relative Root Mean Squared Error (rRMSE)",
-      "Time spent"
+      "Time spent",
+      "num_min_metrics"
     )
 
   init.history <- list(
