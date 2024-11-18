@@ -85,7 +85,7 @@ run_single_point <- function(dat,
 #' # Example 1 (iv case)
 #' dat <- Bolus_1CPT
 #' fdat <- processData(dat)$dat
-#' half_life<-half_life_estimated(dat = fdat)[1]
+#' half_life<-half_life_estimated(dat = fdat)$half_life_median
 #' run_single_point(fdat,half_life)
 #'
 #' # Example 2 (infusion case).
