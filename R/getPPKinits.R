@@ -31,9 +31,6 @@
 #' inits.out<-getPPKinits(dat = Infusion_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
 #' inits.out
 #'
-#'
-#'
-#'
 #' @export
 #'
 
