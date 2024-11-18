@@ -1,22 +1,27 @@
 #' Run single-point pharmacokinetic analysis
 #'
-#' This function performs a single-point pharmacokinetic analysis, estimating key parameters such as clearance (\(CL\)), volume of distribution (\(V_d\)), and absorption rate constant (\(k_a\)) based on the provided dataset and optional half-life (\(t_{1/2}\)).
+#' This function performs a single-point pharmacokinetic analysis, estimating key parameters such as clearance (\eqn{CL}), volume of distribution (\eqn{V_d}), and absorption rate constant (\eqn{k_a}) based on the provided dataset and optional half-life (\eqn{t_{1/2}}).
 #'
-#' @param dat A data frame containing pharmacokinetic data, including observed concentrations (\(DV\)), time after dose (\(tad\)), dosing interval (\(ii\)), and dose information.
-#' @param half_life The half-life of the drug (\(t_{1/2}\)). If not provided, some calculations may use alternative assumptions or data-based rules.
+#' @param dat A data frame containing pharmacokinetic data, including observed concentrations (\code{DV}), time after dose (\code{tad}), dosing interval (\code{ii}), and dose information.
+#' @param half_life The half-life of the drug (\eqn{t_{1/2}}). If not provided, alternative assumptions or data-based rules may be applied for calculations.
+#'
 #' @return A list containing:
-#'   - `singlepoint.results`: A data frame with estimated \(CL\), \(V_d\), \(k_a\), processing time, and a descriptive message.
-#'   - `dat`: The input dataset used in the calculations.
-#'   - `single_point_ka_df`: Data used for \(k_a\) calculations (if applicable).
-#'   - `single_point_cl_df`: Data used for \(CL\) calculations.
-#'   - `single_point_vd_df`: Data used for \(V_d\) calculations.
-#'   - `approx.vc.out`: A message or result indicating whether the approximate central volume of distribution (\(V_d\)) was successfully estimated.
+#' \itemize{
+#'   \item \code{singlepoint.results}: A data frame with estimated \eqn{CL}, \eqn{V_d}, \eqn{k_a}, processing time, and a descriptive message.
+#'   \item \code{dat}: The input dataset used in the calculations.
+#'   \item \code{single_point_ka_df}: Data used for \eqn{k_a} calculations (if applicable).
+#'   \item \code{single_point_cl_df}: Data used for \eqn{CL} calculations.
+#'   \item \code{single_point_vd_df}: Data used for \eqn{V_d} calculations.
+#'   \item \code{approx.vc.out}: A message or result indicating whether the approximate central volume of distribution (\eqn{V_d}) was successfully estimated.
+#' }
+#'
 #' @details
 #' This function integrates two key components:
-#' 1. **`single_point_base`:** Conducts basic single-point calculations, determining parameters based on steady-state or dose-interval data.
-#' 2. **`single_point_extra`:** Extends the analysis by handling additional cases, such as oral absorption rate (\(k_a\)) or compensating for missing \(CL\) or \(V_d\) values.
+#' \itemize{
+#'   \item \code{single_point_base}: Conducts basic single-point calculations to estimate parameters based on steady-state or dose-interval data.
+#'   \item \code{single_point_extra}: Extends the analysis to handle additional cases, such as calculating oral absorption rate (\eqn{k_a}) or estimating parameters when data is incomplete (e.g., when \eqn{CL} or \eqn{V_d} is missing).
+#' }
 #'
-#' The function dynamically adapts to the provided data, leveraging different strategies based on the availability of steady-state, dose-interval, or single-dose data. If half-life (\(t_{1/2}\)) is provided, it is used in relevant calculations.
 #'
 #' @examples
 #' # Example 1 (iv case)
@@ -91,9 +96,11 @@ run_single_point <- function(dat,
 #' single_point_base(fdat,half_life)
 #' run_single_point(fdat,half_life)
 #'
+#'  # Example 3 (Oral case).
+#'
 #' dat <- Oral_1CPT
 #' fdat <- processData(dat)$dat
-#' half_life<-half_life_estimated(dat = fdat)$half_life_median[1]
+#' half_life<-half_life_estimated(dat = fdat)$half_life_median
 #' run_single_point(fdat,half_life)
 #'
 #'
@@ -343,39 +350,42 @@ single_point_base <- function(dat,
 
 #' Perform extended single-point pharmacokinetic calculations
 #'
-#' Extends the single-point pharmacokinetic calculations by incorporating additional logic to derive clearance (\(CL\)), volume of distribution (\(V_d\)), and absorption rate constant (\(k_a\)) based on the availability of data. The function evaluates data completeness and uses appropriate methods to estimate parameters when certain data types are unavailable.
+#' Extends the single-point pharmacokinetic calculations by incorporating additional logic to derive clearance (\eqn{CL}), volume of distribution (\eqn{V_d}), and absorption rate constant (\eqn{k_a}) based on the availability of data. The function evaluates which parameters were not successfully calculated in the \code{single_point_base} step and uses appropriate methods to estimate missing parameters.
 #'
-#' @param single_point_base.lst A list object returned by `single_point_base`, containing preprocessed data and initial calculations for \(CL\) and \(V_d\).
+#' @param single_point_base.lst A list object returned by \code{single_point_base}, containing preprocessed data and initial calculations for \eqn{CL} and \eqn{V_d}.
+#'
 #' @return A list containing:
-#'   - `singlepoint.results`: A data frame with estimated \(k_a\), \(CL\), \(V_d\), and processing time.
-#'   - `dat`: The input dataset used in the calculations.
-#'   - `single_point_ka_df`: Data used for \(k_a\) calculations (if applicable).
-#'   - `single_point_cl_df`: Data used for \(CL\) calculations.
-#'   - `single_point_vd_df`: Data used for \(V_d\) calculations.
-#'   - `single_point_vd_cmax_df`: \(C_{max}\) data used for \(V_d\) estimation.
+#' \itemize{
+#'   \item \code{singlepoint.results}: A data frame with estimated \eqn{k_a}, \eqn{CL}, \eqn{V_d}, and processing time.
+#'   \item \code{dat}: The input dataset used in the calculations.
+#'   \item \code{single_point_ka_df}: Data used for \eqn{k_a} calculations (if applicable).
+#'   \item \code{single_point_cl_df}: Data used for \eqn{CL} calculations.
+#'   \item \code{single_point_vd_df}: Data used for \eqn{V_d} calculations.
+#'   \item \code{single_point_vd_cmax_df}: \eqn{C_{\mathrm{max}}} data used for \eqn{V_d} estimation.
+#' }
+#'
 #' @details
-#' The function uses a series of conditional logic to determine which pharmacokinetic parameters can be reliably calculated based on the available data:
+#' The function uses a series of conditional logic to determine which pharmacokinetic parameters have not been calculated in the \code{single_point_base} part and derives them using the parameters that have already been calculated:
 #'
-#' - **Complete Data for \eqn{CL} and \eqn{V_d}:**
-#'   - If both steady-state data and single-dose data are available, \eqn{CL} and \eqn{V_d} are calculated directly.
+#' - **Successfully Calculated \eqn{CL} and \eqn{V_d}:**
+#'   - If both \eqn{CL} and \eqn{V_d} are successfully calculated in the \code{single_point_base} part, they are directly used in the results without further derivations.
 #'
-#' - **Incomplete Data for \eqn{V_d}:**
-#'   - If \eqn{V_d} cannot be calculated but \eqn{CL} and \eqn{t_{1/2}} are available, \eqn{V_d} is derived using:
+#' - **Uncalculated \eqn{V_d}:**
+#'   - If \eqn{V_d} cannot be calculated in the \code{single_point_base} part but \eqn{CL} and \eqn{t_{1/2}} are available, \eqn{V_d} is derived using:
 #'     \deqn{V_d = \frac{CL \cdot t_{1/2}}{\ln(2)}}
 #'
-#' - **Incomplete Data for \eqn{CL}:**
-#'   - If \eqn{CL} cannot be calculated but \eqn{V_d} and \eqn{t_{1/2}} are available, \eqn{CL} is derived using:
+#' - **Uncalculated \eqn{CL}:**
+#'   - If \eqn{CL} cannot be calculated in the \code{single_point_base} part but \eqn{V_d} and \eqn{t_{1/2}} are available, \eqn{CL} is derived using:
 #'     \deqn{CL = \frac{V_d \cdot \ln(2)}{t_{1/2}}}
 #'
-#' - **Insufficient Data for Both \eqn{CL} and \eqn{V_d}:**
-#'   - If neither \eqn{CL} nor \eqn{V_d} can be directly calculated, \eqn{V_d} is estimated from \eqn{C_{\mathrm{max}}} and dose:
+#' - **Uncalculated Both \eqn{CL} and \eqn{V_d}:**
+#'   - If neither \eqn{CL} nor \eqn{V_d} can be calculated in the \code{single_point_base} part, \eqn{V_d} is estimated from \eqn{C_{\mathrm{max}}} and dose:
 #'     \deqn{V_d = \frac{\mathrm{Dose}}{C_{\mathrm{max}}}}
 #'     \eqn{CL} is then derived from \eqn{V_d} and \eqn{t_{1/2}}.
 #'
 #' - **Oral Absorption Rate (\eqn{k_a}):**
-#'   - For oral dosing, \eqn{k_a} is estimated using data within the dose interval, considering \eqn{t_{\mathrm{max}}} and the condition:
-#'     \deqn{\mathrm{tad} < 0.2 \cdot \frac{CL}{V_d}}
-#'     \eqn{k_a} is then computed using an iterative solution.
+#'   - For oral dosing, the calculation focuses on data collected before \eqn{t_{\mathrm{max}}}, ensuring that \eqn{\mathrm{tad} < 0.2 \cdot \mathrm{half-life}} to reflect the absorption phase.
+#'   - The absorption rate constant (\eqn{k_a}) is computed using the \code{run_ka_solution} function, which applies a solution-based approach tailored to the selected data points.
 #'
 #' @examples
 #'
@@ -384,7 +394,7 @@ single_point_base <- function(dat,
 #' dat <- theo_md
 #' fdat <- processData(dat)$dat
 #' half_life<-half_life_estimated(dat = fdat)$half_life_median
-#' results <- single_point_extra(single_point_base(fdat,half_life))
+#' single_point_extra(single_point_base(fdat,half_life))
 #'
 #'
 #' @export
