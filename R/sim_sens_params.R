@@ -11,7 +11,9 @@
 #' @import nlmixr2
 #' @examples
 #' dat <- Bolus_1CPT
-#' sim_sens_vmax_km(dat = Bolus_1CPT,sim_vmax_list = c(500,1000,1500),sim_km_list = c(200,300,400),estvc = 70)
+#' sim_sens_vmax_km(dat = Bolus_1CPT,sim_vmax_list = c(500,1000,1500),sim_km_list = c(200,300,400),estvd = 70)
+#'
+#'
 #' @export
 
 sim_sens_vmax_km <- function(dat,
@@ -28,17 +30,20 @@ sim_sens_vmax_km <- function(dat,
     stop("Error: no volume of distribution for simulation was provided")
   }
 
-  if (missing(estcl)) {
-    stop("Error: no estimated clearance for simulation was provided")
-  }
-
-  if (missing(estcmax)) {
-    stop("Error, no estimated cmax for simuation was provided")
-  }
 
   combs_df <- data.frame(vmax = sim_vmax_list, km = sim_km_list)
 
-  if (is.na(sim_vmax_list) == T || is.na(sim_km_list) == T) {
+
+  if (nrow( combs_df)==1) {
+
+    if (missing(estcl)) {
+      stop("Error: no estimated clearance for simulation was provided")
+    }
+
+    if (missing(estcmax)) {
+      stop("Error, no estimated cmax for simuation was provided")
+    }
+
     # generate the default vman and km test list from linear kinetcs to nonlinear kinetics
     km_range <- c(4, 2, 1, 0.5, 0.25, 0.125, 0.1, 0.05) * estcmax
     # cl ~ range (0, vmax/km)
@@ -54,7 +59,11 @@ sim_sens_vmax_km <- function(dat,
   # start simulation
   sim.vmax.km.results.all <- NULL
 
+  # Create a progress bar
+  pb <- txtProgressBar(min = 0, max = nrow(combs_df), style = 3)
+
   for (loopmm in 1:nrow(combs_df)) {
+
     input.vmax <- combs_df[loopmm, ]$vmax
     input.km <- combs_df[loopmm, ]$km
 
@@ -111,7 +120,11 @@ sim_sens_vmax_km <- function(dat,
 
     rm(sim.lst) # To avoid occupying memory
     gc()
+
+    setTxtProgressBar(pb, loopmm)
   }
+
+  close(pb)
   return(sim.vmax.km.results.all)
 }
 
@@ -129,8 +142,15 @@ sim_sens_vmax_km <- function(dat,
 #' @return A data frame containing the Vc, Vp, APE, MAPE, and time spent for each simulation.
 #' @import nlmixr2
 #' @examples
+#'
+#' # Example 1. IV case
 #' dat <- Bolus_2CPT
-#' sim.results<-sim_sens_2cmpt(dat, estcl = 4, sim_vc_list = 70)
+#' head(sim_sens_2cmpt(dat, estcl = 4, sim_vc_list = 70))
+#'
+#'# Example 2. Oral case
+#' dat <- Oral_2CPT
+#' head(sim_sens_2cmpt(dat, estka=1, estcl = 4, sim_vc_list = 70))
+#'
 #' @export
 #'
 sim_sens_2cmpt <- function(dat,
@@ -140,6 +160,9 @@ sim_sens_2cmpt <- function(dat,
                            estcl,
                            estka = NA,
                            noniv_flag = 0) {
+
+ start.time <- Sys.time()
+
   if (missing(estcl)) {
     stop("Error: no estimated clearance for simulation was provided")
   }
@@ -147,6 +170,7 @@ sim_sens_2cmpt <- function(dat,
   if (missing(sim_vc_list)) {
     stop("Error: vc provided for simulation analysis")
   }
+
 
   sim_vc_list <- na.omit(sim_vc_list)
   sim_vc_list <- sort(sim_vc_list)
@@ -170,7 +194,7 @@ sim_sens_2cmpt <- function(dat,
 
   if (is.na(sim_vp_list) == T) {
     # Two-compartment model
-    start.time <- Sys.time()
+
     # from linear to nonlinear
     # 10:1, 5:1, 2:1, 1:1, 1:2, 1:5, 1:10
     vc_vp_ratio_range <- c(10, 5, 2, 1, 0.5, 0.2, 0.1)
@@ -199,7 +223,10 @@ sim_sens_2cmpt <- function(dat,
 
   sim.2cmpt.results.all <- NULL
 
-  for (loop2cmpt in 1:length(combs_df)) {
+  # Create a progress bar
+  pb <- txtProgressBar(min = 0, max = nrow(combs_df), style = 3)
+
+  for (loop2cmpt in 1:nrow(combs_df)) {
     input.vc <-  combs_df[loop2cmpt, 1]
     input.vp <-  combs_df[loop2cmpt, 3]
 
@@ -262,7 +289,11 @@ sim_sens_2cmpt <- function(dat,
       rm(sim.lst) # To avoid occupying memory
       gc()
     }
+
+    setTxtProgressBar(pb, loop2cmpt)
   }
+
+  close(pb)
   return(sim.2cmpt.results.all)
 }
 
@@ -280,9 +311,15 @@ sim_sens_2cmpt <- function(dat,
 #' @return A data frame containing the Vc, Vp, Vp2 APE, MAPE, and time spent for each simulation.
 #' @import nlmixr2
 #' @examples
+#'
+#' # Example 1. IV case
 #' dat <- Bolus_2CPT
-#' sim_results<-sim_sens_3cmpt(dat, estcl = 4, sim_vc_list = 70)
-#' sim_results
+#' head(sim_sens_3cmpt(dat, estcl = 4, sim_vc_list = 70))
+#'
+#'# Example 2. Oral case
+#' dat <- Oral_2CPT
+#' head(sim_sens_3cmpt(dat, estka=1, estcl = 4, sim_vc_list = 70,noniv_flag=1))
+#'
 #' @export
 #'
 
@@ -295,6 +332,9 @@ sim_sens_3cmpt <- function(dat,
                            estka=NA,
                            noniv_flag=0) {
 
+# generate the default parameter list
+  start.time <- Sys.time()
+
 # default value
   if (missing(estcl)) {
     stop("Error: no estimated clearance for simulation was provided")
@@ -303,6 +343,7 @@ sim_sens_3cmpt <- function(dat,
   if (missing(sim_vc_list)) {
       stop("Error: No planned central volume of distribution (Vd) was specified for the simulation.")
    }
+
 
   if (is.na(sim_vp_list)==T || is.na(sim_vp2_list)==T || is.na(sim_q_list)==F) {
 
@@ -324,28 +365,27 @@ sim_sens_3cmpt <- function(dat,
       # If there's only one number after removing NA
       deduplicated_values <- sim_vc_list
     }
+
     sim_vc_list <- deduplicated_values
 
+    vc_vp_ratio_range <- c(10, 5, 2, 1, 0.5, 0.2, 0.1)
 
-      # generate the default parameter list
-      start.time <- Sys.time()
-      vc_vp_ratio_range <- c(5, 2, 1, 0.5, 0.2)
-      vp_vp2_ratio_range <- c(5, 2, 1, 0.5, 0.2)
+    combs <- expand.grid(sim_vc_list, vc_vp_ratio_range)
+    combs_df <- data.frame(combs)
 
-      # Generate the matrix of all combinations
-      combs <- expand.grid(sim_vc_list, vc_vp_ratio_range,  vp_vp2_ratio_range)
-      combs_df <- data.frame(combs)
+    combs_df$Var3 <- signif(combs_df$Var1 / combs_df$Var2)
+    combs_df2<- combs_df
+    combs_df$Var4 <-combs_df$Var1
+    combs_df2$Var4<- combs_df2$Var3
 
-      colnames(combs_df) <- c("estvc", "vc_vp_ratio", "vp_vp2_ratio")
+    combs_df<-rbind(  combs_df,   combs_df2)
+    colnames(combs_df) <- c("estvc", "vc_vp_ratio", "estvp","estvp2")
 
-      combs_df$vc_vp2_ratio <-  combs_df[, 2] * combs_df[, 3]
-      # combs_df$vp_ratio_range <-  combs_df[, 3] *  combs_df[, 4]
-      # combs_df$vp2_ratio_range <-  combs_df[, 4]
+    combs_df <-  combs_df %>%
+      distinct(estvc,estvp,estvp2, .keep_all = TRUE)
 
-      combs_df$estvp<-combs_df$estvc/combs_df$vc_vp_ratio
-      combs_df$estvp2<-combs_df$estvc/combs_df$vc_vp2_ratio
 
-      sim_q_list <- c(1, 10, estcl)
+    sim_q_list <- c(1, 10, estcl)
 
       base_values <-
         sim_q_list[-length(sim_q_list)]  # The other base values (1 and 10)
@@ -364,10 +404,14 @@ sim_sens_3cmpt <- function(dat,
 
   sim.3cmpt.results.all <- NULL
 
-  for (loop3cmpt in 1:length(combs_df)) {
+  # Create a progress bar
+  pb <- txtProgressBar(min = 0, max = nrow(combs_df), style = 3)
+
+  for (loop3cmpt in 1:nrow(combs_df)) {
+
     input.vc <- combs_df[loop3cmpt,1]
-    input.vp <- combs_df[loop3cmpt,5]
-    input.vp2 <- combs_df[loop3cmpt,6]
+    input.vp <- combs_df[loop3cmpt,3]
+    input.vp2 <- combs_df[loop3cmpt,4]
 
    for (estq in sim_q_list){
 
@@ -384,6 +428,8 @@ sim_sens_3cmpt <- function(dat,
       input.add = 0
     )
     }
+
+
     if (noniv_flag==1){
     sim.lst <- Fit_3cmpt_oral(
       data = dat[dat$EVID != 2,],
@@ -430,7 +476,12 @@ sim_sens_3cmpt <- function(dat,
     gc()
 
    }
+
+    setTxtProgressBar(pb, loop3cmpt)
+
   }
+
+  close(pb)
 
   return(sim.3cmpt.results.all)
 
