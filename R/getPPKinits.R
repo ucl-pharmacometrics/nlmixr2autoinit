@@ -177,7 +177,7 @@ getPPKinits<- function(dat,
     ka_method_1_out_efd=NA
     ka_method_1_all=NA
     ka_method_1_out_all=NA
-
+    ka_wanger_nelson_result="No ka calculation using the Wagner-Nelson method was performed."
   if (oral_flag==1 & length(nca.results$datpooled_fd)==2 ){
      if (is.na(nca.results$nca.fd.results$cl)==F & is.na(nca.results$nca.fd.results$vd)==F){
      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_fd$test.pool.normalised,
@@ -1427,7 +1427,9 @@ cat(message_text, "\n")
   init.history <- list(
     base.out = all.out,
     single.point.lst=single.point.lst,
-
+    nca.results=nca.results,
+    ka_wanger_nelson_result=    ka_wanger_nelson_result,
+    graph.results_fd=   graph.results_fd,
     sim.vmax.km = sim.vmax.km.results.all,
     sim.2cmpt = sim.2cmpt.results.all,
     sim.3cmpt = sim.3cmpt.results.all,
