@@ -601,16 +601,14 @@ all.out <- data.frame(
       "Time spent"
     )
 
-all.out$`Absolute Predicted Error (APE)`
+  stat_cols <- colnames(all.out)[5:9]
 
-  if (selection.criteria=="All"){
-    # Ensure stat_cols are correctly selected
-    stat_cols <- colnames(all.out)[5:9]
-
-    # Calculate the minimum count for each row
+  # Calculate the minimum count for each row
     all.out$min_count <- rowSums(sapply(all.out[stat_cols], function(col) {
       col == min(col, na.rm = TRUE)
     }))
+
+  if (selection.criteria=="All"){
      base.best<- all.out[which.max(all.out$min_count), ]
   }
 
@@ -769,23 +767,22 @@ cat(message_text, "\n")
   }
 
 ################## Parameter Selection Selection############################
-
-  if (selection.criteria=="All"){
     # Identify the columns containing the statistics
     stat_cols <- grep("^sim", names(sim.vmax.km.results.all), value = TRUE)
     # Calculate how many minimum values each row has across the statistics columns
     sim.vmax.km.results.all$min_count <- rowSums(sapply(sim.vmax.km.results.all[stat_cols], function(col) col == min(col, na.rm = TRUE)))
-    # Select the row with the majority of minimum values
-    recommended_mm<- sim.vmax.km.results.all[which.max(sim.vmax.km.results.all$min_count), ]
 
     stat_cols <- grep("^sim", names( sim.2cmpt.results.all), value = TRUE)
     sim.2cmpt.results.all$min_count <- rowSums(sapply( sim.2cmpt.results.all[stat_cols], function(col) col == min(col, na.rm = TRUE)))
-    recommended.multi1<-  sim.2cmpt.results.all[which.max( sim.2cmpt.results.all$min_count), ]
 
     stat_cols <- grep("^sim", names( sim.3cmpt.results.all), value = TRUE)
     sim.3cmpt.results.all$min_count <- rowSums(sapply( sim.3cmpt.results.all[stat_cols], function(col) col == min(col, na.rm = TRUE)))
-    recommended.multi2<-  sim.3cmpt.results.all[which.max( sim.3cmpt.results.all$min_count), ]
 
+  if (selection.criteria=="All"){
+    # Select the row with the majority of minimum values
+    recommended_mm<- sim.vmax.km.results.all[which.max(sim.vmax.km.results.all$min_count), ]
+    recommended.multi1<-  sim.2cmpt.results.all[which.max( sim.2cmpt.results.all$min_count), ]
+    recommended.multi2<-  sim.3cmpt.results.all[which.max( sim.3cmpt.results.all$min_count), ]
   }
 
   if (selection.criteria=="APE"){
