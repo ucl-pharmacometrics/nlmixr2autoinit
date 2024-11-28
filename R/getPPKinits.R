@@ -85,7 +85,12 @@ getPPKinits<- function(dat,
   Datainfo<-  processData.out$Datainfo
 
   # Reset ID
-  dat$ID<-dat$ID+(dat$resetflag-1)*max(dat$ID)
+  # Since inter-individual variability is not included in the overall calculation design,
+  # R=reset the ID to distinguish the subset of data where EVID=4 from the original IDs.
+  # This prevents errors in calculations for multiple dosing regimens.
+  dat$ID <- dat$ID + (dat$resetflag - 1) * max(dat$ID)
+
+  rawdat<-dat # keep raw dat for naive pooled data compartmental analysis
 
   # prepare flag for analysis
     fdobsflag <-0
@@ -122,11 +127,16 @@ getPPKinits<- function(dat,
     route<-"oral"
   }
 
-  rawdat<-dat # keep raw dat for naive pooled data compartmental analysis
+
 
 ########################### Pipeline part ##################################
   if (run.option<2){
-######################## Half-life estimated ################################
+
+####################Single point method ################################
+
+message(black(
+  paste0("Run single-point method to calculate PK parameters",strrep(".", 20))))
+# Half-life estimated
 
    half_life_out<-half_life_estimated(dat = dat,
                                   nlastpoints = nlastpoints,
@@ -137,12 +147,6 @@ getPPKinits<- function(dat,
 
    message(black(
      paste0("Estimated half-life : ", half_life)))
-
-
-  ####################Single point method ################################
-
-  message(black(
-     paste0("Run single-point method to calculate PK parameters",strrep(".", 20))))
 
  single.point.lst <- run_single_point(
     dat = dat,
