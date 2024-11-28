@@ -40,7 +40,7 @@ initsControl<-function( half_life = NA,
                         trapezoidal.rule = 1,
                         nbins = 10,
                         est.method = "nls",
-                        selection.criteria="All",
+                        selection.criteria="rRMSE",
                         npdcmpt.inits.strategy= 0){
 
   return(  list(half_life =  half_life ,
