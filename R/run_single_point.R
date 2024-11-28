@@ -187,12 +187,35 @@ single_point_base <- function(dat,
           # Initialise 'Css_type' to "Css,avg" by default
           Css_type = "Css_avg",
 
-          # Identify Cssmax and Cssmin based on 'tad', 'ii', and the condition max_value == min_value
-          # Identify Cssmax and Cssmin based on both 'max_time' and 'min_time'
+          # Identify Cssmax and Cssmin based on 'tad', 'ii', and additional conditions
           Css_type = case_when(
-            (max_time <= 0.2 * recent_ii & max_time != 0 ) & ( min_time <= 0.2 * recent_ii & min_time != 0) ~ "Css_max",  # Both max_time and min_time within 20% of dosing interval
-            # max_time >= 0.8 * recent_ii & min_time >= 0.8 * recent_ii ~ "Css_min",  # Both max_time and min_time within 80-100% of dosing interval
-            (max_time >= 0.8 * recent_ii | max_time == 0 ) & ( min_time >= 0.8 * recent_ii| min_time == 0) ~ "Css_min",  # Both in 80-100% of ii or either is 0
+
+            # Secondary Condition: Css_avg
+            # Ensure Css_avg is checked first if max_value is more than 2 times min_value
+            max_value > 2 * min_value ~ "Css_avg",
+
+            # - Conditions ensure that if only one point is collected in the dose interval,
+            #   or if the two points are very close to each other (both falling in the early phase),
+            #   they are correctly classified as Css_max or Cssmin
+
+            # Condition 1: Identify Css_max
+            # - Both max_time and min_time must be within the first 20% of the dosing interval (recent_ii).
+            # - Neither max_time nor min_time should be 0 (to avoid misclassifying early absorption as Css_max).
+
+            (max_time <= 0.2 * recent_ii &
+               max_time != 0) &
+              (min_time <= 0.2 * recent_ii &
+                 min_time != 0) ~ "Css_max",
+            # Both max_time and min_time within 20% of dosing interval
+            # Condition 2: Identify Css_min
+            # - Both max_time and min_time must be within the last 80%-100% of the dosing interval (recent_ii).
+            # - Either max_time or min_time being 0 (indicating very low concentration) is also classified as Css_min.
+
+            (max_time >= 0.8 * recent_ii |
+               max_time == 0) &
+              (min_time >= 0.8 * recent_ii |
+                 min_time == 0) ~ "Css_min",
+
             TRUE ~ Css_type  # Default to Css_avg for all other cases
           )
         )
@@ -283,20 +306,32 @@ single_point_base <- function(dat,
                  dat$dose_number == 1 & dat$tad < half_life * 0.2 & dat$iiobs==0,]) > 0) {
 
       dat$C_first_flag <- 0
-      dat[dat$EVID == 0 &
-            dat$dose_number == 1 & dat$tad < half_life * 0.2 & dat$iiobs==0,]$C_first_flag <- 1
+      # dat[dat$EVID == 0 &
+      #       dat$dose_number == 1 & dat$tad < half_life * 0.2 & dat$iiobs==0,]$C_first_flag <- 1
 
+      # only retain the first point per ID with C_first_flag = 1
+      dat <- dat %>%
+        mutate(
+          C_first_flag = ifelse(
+            EVID == 0 & dose_number == 1 & tad < half_life * 0.2 & iiobs == 0, 1, 0
+          )
+        ) %>%
+        group_by(ID) %>%
+        mutate(
+          C_first_flag = ifelse(C_first_flag == 1 & TIME == min(TIME[C_first_flag == 1], na.rm = TRUE), 1, 0)
+        ) %>%
+        ungroup()
 
     dat.fd.obs <- dat[dat$C_first_flag == 1, ]
 
     dat.fd.obs$vd <- signif(dat.fd.obs$dose / dat.fd.obs$DV, 3)
 
-    # Calculate median vd for each individual
-    individual_mean_vd <- aggregate(vd ~ ID, data = dat.fd.obs, FUN = trimmed_geom_mean)
+    # Calculate geometric mean vd for each individual
+    # individual_mean_vd <- aggregate(vd ~ ID, data = dat.fd.obs, FUN = trimmed_geom_mean)
 
     # Calculate the trimmed mean (e.g., 10% trimmed mean to reduce outlier impact)
-    trimmed_mean_vd <-trimmed_geom_mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE)
-
+    # trimmed_mean_vd <-trimmed_geom_mean(individual_mean_vd$vd, trim = 0.05, na.rm = TRUE)
+    trimmed_mean_vd <-trimmed_geom_mean(dat.fd.obs$vd, trim = 0.05, na.rm = TRUE)
     }
   }
 
@@ -432,7 +467,7 @@ single_point_extra <- function(single_point_base.lst,
       is.na(trimmed_mean_vd) == T & is.na(half_life) == F) {
     message(black(
       paste0(
-        "Insufficient single-dose (IV) data for Vd calculation; derived from clearance and estimated half-life instead.",
+        "Insufficient data points to support Vd calculation (single-dose IV or oral); derived from clearance and estimated half-life instead.",
         strrep(".", 20)
       )
     ))
@@ -530,8 +565,7 @@ single_point_extra <- function(single_point_base.lst,
     single_point.message = single_point.message
   )
 
-  return(
-    list(
+  single.point.lst<- list(
       singlepoint.results = singlepoint.results,
       dat = dat,
       single_point_ka_df =   ka_single_point.out,
@@ -539,6 +573,11 @@ single_point_extra <- function(single_point_base.lst,
       single_point_vd_df =  dat.fd.obs,
       approx.vc.out = approx.vc.out
     )
+
+   class(single.point.lst) <- "single.point.lst"
+
+  return(
+    single.point.lst
   )
 
 }
