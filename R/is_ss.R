@@ -153,7 +153,7 @@ is_ss <- function(df,
       dose_interval = purrr::map_dbl(last_two_doses_interval, median, na.rm = TRUE),
 
       # Check if all intervals are within 1.5 times the median interval
-      is_continuous = purrr::map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
+      is_continuous = purrr::map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.25)),
 
       # Check if all dose amounts are within 1.25 times the median dose amount
       is_same_dose = purrr::map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25)),
