@@ -617,28 +617,25 @@ all.out <- data.frame(
   }
 
   if (selection.criteria=="APE"){
-  base.best <-
-    all.out[all.out$`Absolute Predicted Error (APE)` == min(all.out$`Absolute Predicted Error (APE)`,na.rm = T) & is.na(all.out$`Absolute Predicted Error (APE)`)==F,]
+  # base.best <-
+  #   all.out[all.out$`Absolute Predicted Error (APE)` == min(all.out$`Absolute Predicted Error (APE)`,na.rm = T) & is.na(all.out$`Absolute Predicted Error (APE)`)==F,]
+    base.best <- all.out[which.min(all.out$`Absolute Predicted Error (APE)`), ]
   }
 
   if (selection.criteria=="MAE"){
-  base.best <-
-    all.out[all.out$`Mean Absolute Error (MAE)` == min(all.out$`Mean Absolute Error (MAE)`,na.rm = T) & is.na(all.out$`Mean Absolute Error (MAE)`)==F ,]
+    base.best <- all.out[which.min(all.out$`Mean Absolute Error (MAE)`), ]
   }
 
   if (selection.criteria=="MAPE"){
-    base.best <-
-      all.out[all.out$`Mean Absolute Percentage Error (MAPE)` == min(all.out$`Mean absolute prediction error (MAPE)`,na.rm = T) & is.na(all.out$`Mean absolute prediction error (MAPE)`)==F,]
+    base.best <- all.out[which.min(all.out$`Mean Absolute Percentage Error (MAPE)`), ]
   }
 
   if (selection.criteria=="RMSE"){
-    base.best <-
-      all.out[all.out$`Root Mean Squared Error (RMSE)` == min(all.out$`Root Mean Squared Error (RMSE)`,na.rm = T) & is.na(all.out$`Mean absolute prediction error (MAPE)`)==F ,]
+    base.best <- all.out[which.min(all.out$`Root Mean Squared Error (RMSE)`), ]
   }
 
   if (selection.criteria=="rRMSE"){
-    base.best <-
-      all.out[all.out$`Relative Root Mean Squared Error (rRMSE)` == min(all.out$`Relative Root Mean Squared Error (rRMSE)`,na.rm = T),]
+    base.best <- all.out[which.min(all.out$`Relative Root Mean Squared Error (rRMSE)`), ]
   }
 
 # Only use the first record (if same, temporary setting)
@@ -790,43 +787,39 @@ cat(message_text, "\n")
   }
 
   if (selection.criteria=="APE"){
-    recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.APE == min(sim.vmax.km.results.all$sim.mm.APE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.APE)==F,][1,]
-
-    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE== min(sim.2cmpt.results.all$sim.2cmpt.APE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.APE)==F,][1,]
-    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE== min(sim.3cmpt.results.all$sim.3cmpt.APE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.APE)==F,][1,]
+    # recommended_mm<-
+    #   sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.APE == min(sim.vmax.km.results.all$sim.mm.APE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.APE)==F,][1,]
+    #
+    # recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.APE== min(sim.2cmpt.results.all$sim.2cmpt.APE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.APE)==F,][1,]
+    # recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.APE== min(sim.3cmpt.results.all$sim.3cmpt.APE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.APE)==F,][1,]
+    recommended_mm<- sim.vmax.km.results.all[which.min(sim.vmax.km.results.all$sim.mm.APE ), ]
+    recommended.multi1<-  sim.2cmpt.results.all[which.min( sim.2cmpt.results.all$sim.2cmpt.APE), ]
+    recommended.multi2<-  sim.3cmpt.results.all[which.min( sim.3cmpt.results.all$sim.3cmpt.APE ), ]
   }
 
   if (selection.criteria=="MAE"){
-    recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAE == min(sim.vmax.km.results.all$sim.mm.MAE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.MAE)==F,][1,]
+    recommended_mm<- sim.vmax.km.results.all[which.min(sim.vmax.km.results.all$sim.mm.MAE ), ]
+    recommended.multi1<-  sim.2cmpt.results.all[which.min( sim.2cmpt.results.all$sim.2cmpt.MAE), ]
+    recommended.multi2<-  sim.3cmpt.results.all[which.min( sim.3cmpt.results.all$sim.3cmpt.MAE ), ]
 
-    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAE== min(sim.2cmpt.results.all$sim.2cmpt.MAE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.MAE)==F,][1,]
-    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAE== min(sim.3cmpt.results.all$sim.3cmpt.MAE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.MAE)==F,][1,]
   }
 
   if (selection.criteria=="MAPE"){
-    recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.MAPE == min(sim.vmax.km.results.all$sim.mm.MAPE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.MAPE)==F,][1,]
-
-    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.MAPE== min(sim.2cmpt.results.all$sim.2cmpt.MAPE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.MAPE)==F,][1,]
-    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.MAPE== min(sim.3cmpt.results.all$sim.3cmpt.MAPE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.MAPE)==F,][1,]
+    recommended_mm<- sim.vmax.km.results.all[which.min(sim.vmax.km.results.all$sim.mm.MAPE ), ]
+    recommended.multi1<-  sim.2cmpt.results.all[which.min( sim.2cmpt.results.all$sim.2cmpt.MAPE), ]
+    recommended.multi2<-  sim.3cmpt.results.all[which.min( sim.3cmpt.results.all$sim.3cmpt.MAPE ), ]
   }
 
   if (selection.criteria=="RMSE"){
-    recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.RMSE == min(sim.vmax.km.results.all$sim.mm.RMSE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.RMSE)==F,][1,]
-
-    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.RMSE== min(sim.2cmpt.results.all$sim.2cmpt.RMSE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.RMSE)==F,][1,]
-    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.RMSE== min(sim.3cmpt.results.all$sim.3cmpt.RMSE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.RMSE)==F,][1,]
+    recommended_mm<- sim.vmax.km.results.all[which.min(sim.vmax.km.results.all$sim.mm.RMSE ), ]
+    recommended.multi1<-  sim.2cmpt.results.all[which.min( sim.2cmpt.results.all$sim.2cmpt.RMSE), ]
+    recommended.multi2<-  sim.3cmpt.results.all[which.min( sim.3cmpt.results.all$sim.3cmpt.RMSE ), ]
   }
 
   if (selection.criteria=="rRMSE"){
-    recommended_mm<-
-      sim.vmax.km.results.all[sim.vmax.km.results.all$sim.mm.rRMSE == min(sim.vmax.km.results.all$sim.mm.rRMSE,na.rm = T) & is.na(sim.vmax.km.results.all$sim.mm.rRMSE)==F,][1,]
-
-    recommended.multi1<-sim.2cmpt.results.all[sim.2cmpt.results.all$sim.2cmpt.rRMSE== min(sim.2cmpt.results.all$sim.2cmpt.rRMSE,na.rm = T) & is.na(sim.2cmpt.results.all$sim.2cmpt.rRMSE)==F,][1,]
-    recommended.multi2<-sim.3cmpt.results.all[sim.3cmpt.results.all$sim.3cmpt.rRMSE== min(sim.3cmpt.results.all$sim.3cmpt.rRMSE,na.rm = T) & is.na(sim.3cmpt.results.all$sim.3cmpt.rRMSE)==F,][1,]
+    recommended_mm<- sim.vmax.km.results.all[which.min(sim.vmax.km.results.all$sim.mm.rRMSE ), ]
+    recommended.multi1<-  sim.2cmpt.results.all[which.min( sim.2cmpt.results.all$sim.2cmpt.rRMSE), ]
+    recommended.multi2<-  sim.3cmpt.results.all[which.min( sim.3cmpt.results.all$sim.3cmpt.rRMSE ), ]
   }
 
 
