@@ -200,7 +200,7 @@ single_point_base <- function(dat,
             # Condition 2: Classify as Css_avg based on dynamic threshold
             # Use the theoretical decay model to determine if the ratio between
             # max_value and min_value exceeds the expected range based on half-life.
-            max_value / min_value > exp(-log(2)/half_life * recent_ii) ~ "Css_avg",
+            max_value / min_value > exp(log(2)/half_life * recent_ii) ~ "Css_avg",
 
             # Condition 3: Classify as Css_max
             # - Both max_time and min_time must be within the first 20% of the dosing interval (recent_ii).
