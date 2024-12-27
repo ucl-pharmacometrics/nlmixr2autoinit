@@ -184,41 +184,43 @@ single_point_base <- function(dat,
 
       dat.ss.obs  <-   dat.ss.obs %>%
         mutate(
-          # Initialise 'Css_type' to "Css,avg" by default
+          # Initialise 'Css_type' to "Css_avg" by default
           Css_type = "Css_avg",
 
           # Identify Cssmax and Cssmin based on 'tad', 'ii', and additional conditions
           Css_type = case_when(
 
-            # Secondary Condition: Css_avg
-            # Ensure Css_avg is checked first if max_value is more than 2 times min_value
-            max_value > 2 * min_value ~ "Css_avg",
+            # Condition 1: Classify as Css_avg based on exponential condition
+            # If e^(-k * tau) >= 0.6667, it implies:
+            # 1. Css_max and Css_min differ by less than 1.5 times.
+            # 2. Css_avg and Css_min differ by less than 20%.
+            # 3. Css_avg and Css_max differ by less than 20%.
+            exp(-log(2)/half_life * recent_ii) >= 0.6667 ~ "Css_avg",
 
-            # - Conditions ensure that if only one point is collected in the dose interval,
-            #   or if the two points are very close to each other (both falling in the early phase),
-            #   they are correctly classified as Css_max or Cssmin
+            # Condition 2: Classify as Css_avg based on dynamic threshold
+            # Use the theoretical decay model to determine if the ratio between
+            # max_value and min_value exceeds the expected range based on half-life.
+            max_value / min_value > exp(-log(2)/half_life * recent_ii) ~ "Css_avg",
 
-            # Condition 1: Identify Css_max
+            # Condition 3: Classify as Css_max
             # - Both max_time and min_time must be within the first 20% of the dosing interval (recent_ii).
             # - Neither max_time nor min_time should be 0 (to avoid misclassifying early absorption as Css_max).
+            (max_time <= 0.2 * recent_ii & max_time != 0) &
+              (min_time <= 0.2 * recent_ii & min_time != 0) ~ "Css_max",
 
-            (max_time <= 0.2 * recent_ii &
-               max_time != 0) &
-              (min_time <= 0.2 * recent_ii &
-                 min_time != 0) ~ "Css_max",
-            # Both max_time and min_time within 20% of dosing interval
-            # Condition 2: Identify Css_min
+            # Condition 4: Classify as Css_min
             # - Both max_time and min_time must be within the last 80%-100% of the dosing interval (recent_ii).
             # - Either max_time or min_time being 0 (indicating very low concentration) is also classified as Css_min.
+            # - Note: The original formula was based on (recent_ii - 0.2 * half_life), but due to concerns about half-life stability,
+            #   it has been replaced with recent_ii for better robustness.
+            (max_time >= 0.8 * recent_ii | max_time == 0) &
+              (min_time >= 0.8 * recent_ii | min_time == 0) ~ "Css_min",
 
-            (max_time >= 0.8 * recent_ii |
-               max_time == 0) &
-              (min_time >= 0.8 * recent_ii |
-                 min_time == 0) ~ "Css_min",
-
-            TRUE ~ Css_type  # Default to Css_avg for all other cases
+            # Default condition: Classify as Css_avg for all other cases
+            TRUE ~ Css_type
           )
         )
+
 
       dat.ss.obs$cl <- NA
 
