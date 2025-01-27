@@ -39,8 +39,8 @@
 
 run_npd_1cmpt_iv <- function(dat,
                              est.method="nls",
-                             input.cl=1,
-                             input.vd=1,
+                             input.cl=exp(1),
+                             input.vd=exp(1),
                              input.add=1) {
   start.time <- Sys.time()
   npd.list <-NA
@@ -156,11 +156,11 @@ run_npd_1cmpt_iv <- function(dat,
 #' @export
 run_npd_1cmpt_mm_iv <- function(dat,
                                 est.method="nls",
-                                npdmm_inputvmax=1,
-                                npdmm_inputkm=1,
-                                npdmm_inputcl=1,
-                                npdmm_inputvd=1,
-                                km_threshold=T) {
+                                npdmm_inputvmax=exp(1),
+                                npdmm_inputkm=exp(1),
+                                npdmm_inputcl=exp(1),
+                                npdmm_inputvd=exp(1),
+                                km_threshold=F) {
   start.time <- Sys.time()
   estvmax<-npdmm_inputvmax
   estkm<-npdmm_inputkm
@@ -295,10 +295,10 @@ run_npd_1cmpt_mm_iv <- function(dat,
 
 run_npd_2cmpt_iv <- function(dat,
                              est.method="nls",
-                             input.cl=1,
-                             input.vc2cmpt=1,
-                             input.vp2cmpt=1,
-                             input.q2cmpt=1,
+                             input.cl=exp(1),
+                             input.vc2cmpt=exp(1),
+                             input.vp2cmpt=exp(1),
+                             input.q2cmpt=exp(1),
                              input.add=1) {
   start.time <- Sys.time()
 
@@ -422,12 +422,12 @@ run_npd_2cmpt_iv <- function(dat,
 
 run_npd_3cmpt_iv <- function(dat,
                              est.method="nls",
-                             input.cl=1,
-                             input.vc3cmpt = 1,
-                             input.vp3cmpt = 1,
-                             input.vp23cmpt =1,
-                             input.q3cmpt =  1,
-                             input.q23cmpt = 1,
+                             input.cl= exp(1),
+                             input.vc3cmpt = exp(1),
+                             input.vp3cmpt = exp(1),
+                             input.vp23cmpt =exp(1),
+                             input.q3cmpt =  exp(1),
+                             input.q23cmpt = exp(1),
                              input.add=1) {
   start.time <- Sys.time()
   npd.list.3cmpt<-NA
@@ -546,9 +546,9 @@ run_npd_3cmpt_iv <- function(dat,
 
 run_npd_1cmpt_oral <- function(dat,
                              est.method="nls",
-                             input.ka=1,
-                             input.cl=1,
-                             input.vd=1,
+                             input.ka= exp(1),
+                             input.cl= exp(1),
+                             input.vd= exp(1),
                              input.add=1) {
   start.time <- Sys.time()
   npd.list <-NA
@@ -681,12 +681,12 @@ run_npd_1cmpt_oral <- function(dat,
 #' @export
 run_npd_1cmpt_mm_oral <- function(dat,
                                 est.method="nls",
-                                input.ka=1,
-                                input.vmax=1,
-                                input.km=1,
-                                input.cl=1,
-                                input.vd=1,
-                                km_threshold=T) {
+                                input.ka=exp(1),
+                                input.vmax= exp(1),
+                                input.km= exp(1),
+                                input.cl= exp(1),
+                                input.vd= exp(1),
+                                km_threshold=F) {
   start.time <- Sys.time()
   estvmax<-input.vmax
   estkm<-input.km
@@ -825,12 +825,12 @@ run_npd_1cmpt_mm_oral <- function(dat,
 
 run_npd_2cmpt_oral <- function(dat,
                              est.method="nls",
-                             input.ka=1,
-                             input.cl=1,
-                             input.vc2cmpt=1,
-                             input.vp2cmpt=1,
-                             input.q2cmpt=1,
-                             input.add=1) {
+                             input.ka= exp(1),
+                             input.cl= exp(1),
+                             input.vc2cmpt= exp(1),
+                             input.vp2cmpt= exp(1),
+                             input.q2cmpt= exp(1),
+                             input.add= 1) {
   start.time <- Sys.time()
   npd.list.2cmpt<-NA
   npd_results_2cmpt <-
@@ -956,13 +956,13 @@ run_npd_2cmpt_oral <- function(dat,
 
 run_npd_3cmpt_oral <- function(dat,
                              est.method="nls",
-                             input.ka=1,
-                             input.cl=1,
-                             input.vc3cmpt = 1,
-                             input.vp3cmpt = 1,
-                             input.vp23cmpt =1,
-                             input.q3cmpt =  1,
-                             input.q23cmpt = 1,
+                             input.ka= exp(1),
+                             input.cl= exp(1),
+                             input.vc3cmpt = exp(1),
+                             input.vp3cmpt = exp(1),
+                             input.vp23cmpt = exp(1),
+                             input.q3cmpt =  exp(1),
+                             input.q23cmpt =  exp(1),
                              input.add=1) {
   start.time <- Sys.time()
   npd.list.3cmpt <-NA
