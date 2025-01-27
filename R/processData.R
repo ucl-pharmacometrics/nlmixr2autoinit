@@ -78,7 +78,7 @@ evid_message2<-NULL
 
 if ("CENS" %in% colnames(dat)) {
   if (max(dat$CENS)==1){
-  message(black(paste(" 'nlm' does not work with censored data, cens column has been removed, insteadly DV=0 after Tmax was set as NA (EVID=2) ")))
+  message(black(paste("Warning: 'cens' column is detected, the current version will ignore censored data for initial estimate analysis.")))
     dat[dat$CENS==1,]$EVID=2
    dat$CENS<-0
   }
@@ -91,7 +91,7 @@ if (!"EVID" %in% colnames(dat)) {
   }
 
   if ("MDV" %in% colnames(dat)) {
-    evid_message1<- paste0("Warning: No EVID column found in the dataset. impute it based on MDV column")
+    evid_message1<- paste0("Warning: No EVID column detected in the dataset. Impute EVID based on the MDV column.")
 
     dat$EVID<-0
     dat[dat$MDV==1 & !is.na(dat$DV),]$EVID=1
@@ -107,7 +107,7 @@ if (!"EVID" %in% colnames(dat)) {
 
 # Check if any row contains EVID=2 and issue a warning if found
 if (2 %in% dat$EVID) {
-  evid_message2<-paste0("Warning: EVID=2 found in the dataset. Rows with EVID=2 will be removed for the entire analysis.")
+  evid_message2<-paste0("Warning: EVID=2 found in the dataset. Rows with EVID=2 are removed for the entire analysis.")
   dat <- dat %>% filter(EVID != 2)
 }
 

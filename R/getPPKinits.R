@@ -656,7 +656,7 @@ cat(message_text, "\n")
 ################# Simulation-based Vmax and Km analysis#######################
 
   message(black(
-    paste0("Run simulation-based sensitivity analysis on nonlinear eliminiation kinetics PK parameters",strrep(".", 20))))
+    paste0("Run parameter sweeping on nonlinear eliminiation kinetics PK parameters",strrep(".", 20))))
   # max.dose <-
   #     max(dat[dat$EVID %in% c(1, 4, 101) & dat$AMT > 0, ]$dose)[1]
 
@@ -706,7 +706,7 @@ cat(message_text, "\n")
 
   ########### Simulation-based Multi-Compartmental Model Parameter Analysis#####
   message(black(
-    paste0("Run simulation-based sensitivity analysis on multi-compartmental PK parameters",strrep(".", 20))))
+    paste0("Run parameter sweeping on multi-compartmental PK parameters",strrep(".", 20))))
 
   # Collect identified vc from single-point extra and base.best.vd
 
