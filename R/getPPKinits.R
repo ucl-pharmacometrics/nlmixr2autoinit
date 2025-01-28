@@ -1,6 +1,6 @@
 #' Get initial estimates for a population pharmacokinetic modelling
 #'
-#' Computes initial values of pharmacokinetic parameters using integrated pipeline which includes single-point method, non-compartmental analysis, graphical methods, simulation-based analysis and parameter estimation with naive pooled data approach compartmental analysis if specified.
+#' Computes initial values of pharmacokinetic parameters using integrated pipeline which includes adaptive single-point method, non-compartmental analysis, graphical methods, parameter sweeping and parameter estimation with naive pooled data approach compartmental analysis if specified.
 #' @param dat A data frame containing the pharmacokinetic data.
 #' @param run.option Integer value indicating which methods to use. It has three possible values:
 #' \itemize{
@@ -49,7 +49,7 @@ getPPKinits<- function(dat,
 
   function.params <- data.frame(
     Parameter = c(
-      "Run option (0= only run pipeline, 1= only run NPD compartmental analysis, 3= run both)",
+      "Run option (0= only run pipeline, 1= only run NPD compartmental analysis)",
       "Half-life (User-defined half-life used as a reference for single-point calculation)",
       "Number of last points (Points used for linear regression during terminal elimination phase slope estimation)",
       "Number of bins (Number of time windows derived from quantile-based partitioning of the time variable in the dataset)",
@@ -72,8 +72,8 @@ getPPKinits<- function(dat,
 
   colnames(function.params)<-c("Settings","Values")
   # Display the initials setting
-  message(magenta( paste(capture.output(knitr::kable(function.params, format = "simple")), collapse = "\n")))
-  message(magenta(paste0("---------------------------------------------------------------------------------------------------------------------  -------")))
+  # message(magenta( paste(capture.output(knitr::kable(function.params, format = "simple")), collapse = "\n")))
+  # message(magenta(paste0("---------------------------------------------------------------------------------------------------------------------  -------")))
   ################## Data processing and information summary#################
   message(black(
     paste0("Processing data", strrep(".", 20))
@@ -130,12 +130,12 @@ getPPKinits<- function(dat,
 
 
 ########################### Pipeline part ##################################
-  if (run.option<2){
+  if (run.option==0){
 
 ####################Single point method ################################
 
 message(black(
-  paste0("Run single-point method to calculate PK parameters",strrep(".", 20))))
+  paste0("Run adaptive single-point method to calculate PK parameters",strrep(".", 20))))
 # Half-life estimated
 
    half_life_out<-half_life_estimated(dat = dat,
@@ -1201,11 +1201,11 @@ cat(message_text, "\n")
                  NA,
                  npd.3cmpt_results$q2),
 
-        simAPE = c(npd.1cmpt.APE, npd.1cmpt.mm.APE, npd.2cmpt.APE, npd.3cmpt.APE),
-        simMAE = c(npd.1cmpt.MAE, npd.1cmpt.mm.MAE, npd.2cmpt.MAE, npd.3cmpt.MAE),
-        simMAPE = c(npd.1cmpt.MAPE, npd.1cmpt.mm.MAPE, npd.2cmpt.MAPE, npd.3cmpt.MAPE),
-        simRMSE = c(npd.1cmpt.RMSE, npd.1cmpt.mm.RMSE, npd.2cmpt.RMSE, npd.3cmpt.RMSE),
-        simrRMSE = c(npd.1cmpt.rRMSE, npd.1cmpt.mm.rRMSE, npd.2cmpt.rRMSE, npd.3cmpt.rRMSE),
+        APE = c(npd.1cmpt.APE, npd.1cmpt.mm.APE, npd.2cmpt.APE, npd.3cmpt.APE),
+        MAE = c(npd.1cmpt.MAE, npd.1cmpt.mm.MAE, npd.2cmpt.MAE, npd.3cmpt.MAE),
+        MAPE = c(npd.1cmpt.MAPE, npd.1cmpt.mm.MAPE, npd.2cmpt.MAPE, npd.3cmpt.MAPE),
+        RMSE = c(npd.1cmpt.RMSE, npd.1cmpt.mm.RMSE, npd.2cmpt.RMSE, npd.3cmpt.RMSE),
+        rRMSE = c(npd.1cmpt.rRMSE, npd.1cmpt.mm.rRMSE, npd.2cmpt.rRMSE, npd.3cmpt.rRMSE),
 
         time.spent = c(
           npd.1cmpt_results$timespent,
@@ -1219,7 +1219,7 @@ cat(message_text, "\n")
 
   ######################## Finally selection########################################
 
-  if (run.option<2){
+  if (run.option==0){
    # Part 1. ka,cl,vd.
     f_init_ka <- base.best$`Calculated Ka`[1]
     f_init_cl <- base.best$`Calculated CL`[1]
@@ -1240,7 +1240,7 @@ cat(message_text, "\n")
     # vmax.km
     f_init_vmax <- recommended_vmax_init
     f_init_km <- recommended_km_init
-    sel.method.vmax.km <- "Simulation-based analysis "
+    sel.method.vmax.km <- "Parameter sweeping"
 
     # Multi-compartmental parameters
     f_init_vc2cmpt <-  recommended_vc2cmpt_init
@@ -1252,7 +1252,7 @@ cat(message_text, "\n")
     f_init_q3cmpt <- recommended_q3cmpt_init
     f_init_q23cmpt <-recommended_q23cmpt_init
 
-    sel.method.multi <- "Simulation-based analysis "
+    sel.method.multi <- "Parameter sweeping"
     sel.method.ka<-"Wanger-nelson method"
 
     if (sel.method.ka.cl.vd== "Single-point method" & oral_flag==1 ){
@@ -1488,7 +1488,7 @@ cat(message_text, "\n")
   output_env$Parameter.descriptions <- params.descriptions
   }
 
-  if (run.option==2){
+  if (run.option==1){
 
     init.history <- list(
       npd_1cmpt_out =npd_1cmpt_out,
