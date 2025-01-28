@@ -5,26 +5,24 @@
 #' @param dat A data frame containing intravenous pharmacokinetic data. It should include
 #' columns such as `ID`, `EVID`, `DV`, `dose`, and `AMT` and other necessary variables.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is 1.
-#' @param input.vd A numeric value for the initial estimate of volume of distribution (Vd). Default is 1.
-#' @param input.add A numeric value for the additive error model. Default is 1.
+#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is exp(1).
+#' @param input.vd A numeric value for the initial estimate of volume of distribution (Vd). Default is exp(1).
+#' @param input.add A numeric value for the additive error model. Default is Default is 1.
 #'
 #' @details
-#' This function fits the 1-compartment IV model to the given dataset using
-#' the specified estimation methods. It excludes rows where `EVID == 2`, as these
-#' represent non-observation events. After fitting the model, the function returns
-#' the estimated CL and Vd along with the APE (absolute prediction error) and MAPE
-#' (mean absolute percentage error) to assess model fit.
-#'
-#' The function also applies penalties to the results if certain conditions are
-#' met, such as high relative standard error (`%RSE > 50`) or if the fitting method
-#' does not converge successfully for the `focei` method.
+#' This function fits the one-compartment IV model to the given dataset using
+#' the specified estimation methods. It excludes rows where `EVID == 2`.
+#' After fitting the model, the function returns the estimated CL and Vd along
+#' with metrics to assess model fit.
 #'
 #' @return A list containing the following elements:
 #' \item{npd.1cmpt_results}{A data frame with the estimated CL and Vd, as well
 #' as the time spent during estimation.}
 #' \item{npd.1cmpt.APE}{The absolute prediction error (APE).}
+#' \item{npd.1cmpt.MAE}{The mean absolute error (MAE).}
 #' \item{npd.1cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{npd.1cmpt.RMSE}{The root mean square error (RMSE).}
+#' \item{npd.1cmpt.rRMSE}{The relative root mean square error (rRMSE).}
 #' \item{nnpd.1cmpt.list}{The full output list from the `Fit_1cmpt_iv` function.}
 #'
 #' @importFrom dplyr %>% mutate if_else group_by ungroup
@@ -77,19 +75,6 @@ run_npd_1cmpt_iv <- function(dat,
   npd.RMSE <-  round(metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[4],1)
   npd.rRMSE  <- round( metrics.(pred.x = npd.list$cp, obs.y = npd.list$DV  )[5],1)
 
-  # # add penalty of rse
-  # if (max(npd.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
-  #   npd.APE <- Inf
-  #   npd.MAPE <- Inf
-  # }
-  #
-  # # Filter out failed runs
-  # if (npd.list$message != "relative convergence (4)" &
-  #     est.method == "focei") {
-  #   npd.APE <- Inf
-  #   npd.MAPE <- Inf
-  # }
-
   return(
     list(
       npd.1cmpt_results = npd_results,
@@ -110,16 +95,16 @@ run_npd_1cmpt_iv <- function(dat,
 #'
 #' Estimates the pharmacokinetic parameters (Vmax, Km, Vd) for a
 #' 1-compartment Michaelis-Menten IV (Intravenous) model by fitting.
-#' Optionally, an initial estimate of Km is based on the
+#' Optionally, an initial estimate of Km is set based on the
 #' maximum concentration in the dataset (if `km_threshold = TRUE`).
 #'
 #' @param dat A data frame containing pharmacokinetic data. Must include columns
 #' such as `ID`, `EVID`, `DV`, `dose`, and `AMT`.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param npdmm_inputvmax A numeric value for the initial estimate of Vmax.
-#' @param npdmm_inputkm A numeric value for the initial estimate of Km.
-#' @param npdmm_inputcl A numeric value for the clearance.
-#' @param npdmm_inputvd A numeric value for the initial estimate of volume of distribution (Vd).
+#' @param npdmm_inputvmax A numeric value for the initial estimate of Vmax. Default is exp(1).
+#' @param npdmm_inputkm A numeric value for the initial estimate of Km. Default is exp(1).
+#' @param npdmm_inputcl A numeric value for the clearance. Default is exp(1).
+#' @param npdmm_inputvd A numeric value for the initial estimate of volume of distribution (Vd). Default is exp(1).
 #' @param km_threshold A logical value (`TRUE` or `FALSE`). If `TRUE`,
 #' initial estimates for \eqn{V_{max}} and \eqn{K_m} will be set based on the
 #' observed maximum concentration in the dataset and referenced clearance.
@@ -136,8 +121,11 @@ run_npd_1cmpt_iv <- function(dat,
 #' \describe{
 #'   \item{npd.1cmpt.mm_results}{A data frame with the estimated values of \eqn{V_{max}},
 #'   \eqn{K_m}, and \eqn{V_d}, as well as the time taken for the estimation.}
-#'   \item{npd.1cmpt.mm.APE}{The absolute prediction error (APE).}
-#'   \item{npd.1cmpt.mm.MAPE}{The mean absolute percentage error (MAPE).}
+#'   \item{npd.1cmpt.mm..APE}{The absolute prediction error (APE).}
+#'   \item{npd.1cmpt.mm..MAE}{The mean absolute error (MAE).}
+#'   \item{npd.1cmpt.mm..MAPE}{The mean absolute percentage error (MAPE).}
+#'   \item{npd.1cmpt.mm..RMSE}{The root mean square error (RMSE).}
+#'   \item{npd.1cmpt.mm.rRMSE}{The relative root mean square error (rRMSE).}
 #'   \item{npd.1cmpt.mm.list}{The full output list from the `Fit_1cmpt_mm_iv` function.}
 #' }
 #'
@@ -160,6 +148,7 @@ run_npd_1cmpt_mm_iv <- function(dat,
                                 npdmm_inputkm=exp(1),
                                 npdmm_inputcl=exp(1),
                                 npdmm_inputvd=exp(1),
+                                input.add=1,
                                 km_threshold=F) {
   start.time <- Sys.time()
   estvmax<-npdmm_inputvmax
@@ -196,7 +185,7 @@ run_npd_1cmpt_mm_iv <- function(dat,
     est.method = est.method,
     input.vmax =  estvmax,
     input.km = estkm,
-    input.add = 1,
+    input.add = input.add,
     input.vd =   npdmm_inputvd
   )
 
@@ -216,25 +205,6 @@ run_npd_1cmpt_mm_iv <- function(dat,
   npd.RMSE <-  round(metrics.(pred.x = npdmm.list$cp, obs.y = npdmm.list$DV  )[4],1)
   npd.rRMSE <- round( metrics.(pred.x =npdmm.list$cp, obs.y = npdmm.list$DV  )[5],1)
 
-  # npdmm.APE <- sum(abs(npdmm.list$IRES), na.rm = T)
-  # npdmm.MAPE <-
-  #   sum(abs(npdmm.list$IRES) / npdmm.list$DV) / nrow(npdmm.list) * 100
-
-  # countna <- is.na(npdmm.list$IRES)
-  # if (sum(countna) > (nrow(npdmm.list) / 2)) {
-  #   npdmm.APE <- Inf
-  #   npdmm.MAPE <- Inf
-  # }
-
-  # if (max(npdmm.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
-  #   npdmm.APE <- Inf
-  #   npdmm.MAPE <- Inf
-  # }
-  # if (npdmm.list$message != "relative convergence (4)" &
-  #     est.method == "focei") {
-  #   npdmm.APE <- Inf
-  #   npdmm.MAPE <- Inf
-  # }
 
   return(
     list(
@@ -256,28 +226,26 @@ run_npd_1cmpt_mm_iv <- function(dat,
 #' @param dat A data frame containing intravenous pharmacokinetic data. It should include
 #' columns such as `ID`, `EVID`, `DV`, `dose`, and `AMT` and other necessary variables.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is 1.
-#' @param input.vc2cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is 1.
-#' @param input.vp2cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.
-#' @param input.q2cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.
+#' @param input.cl A numeric value for the initial estimate of the clearance (CL). Default is exp(1).
+#' @param input.vc2cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is exp(1).
+#' @param input.vp2cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is exp(1).
+#' @param input.q2cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is exp(1).
 #' @param input.add A numeric value for the additive error model. Default is 1.
 #'
 #' @details
 #' This function fits the two-compartment IV model to the given dataset using
-#' the specified estimation method. It excludes rows where `EVID == 2`, as these
-#' represent non-observation events. After fitting the model, the function returns
-#' the estimated CL, Vc, Vp, and Q along with the APE (absolute prediction error)
-#' and MAPE (mean absolute percentage error) to assess model fit.
-#'
-#' The function also applies penalties to the results if certain conditions are
-#' met, such as high relative standard error (`%RSE > 50`) or if the fitting method
-#' does not converge successfully for the `focei` method.
+#' the specified estimation methods. It excludes rows where `EVID == 2`.
+#' After fitting the model, the function returns the estimated CL and Vd along
+#' with metrics to assess model fit.
 #'
 #' @return A list containing the following elements:
 #' \item{npd.2cmpt_results}{A data frame with the estimated CL, Vc, Vp, Q, and
 #' the time spent during estimation.}
 #' \item{npd.2cmpt.APE}{The absolute prediction error (APE).}
+#' \item{npd.2cmpt.MAE}{The mean absolute error (MAE).}
 #' \item{npd.2cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{npd.2cmpt.RMSE}{The root mean square error (RMSE).}
+#' \item{npd.2cmpt.rRMSE}{The relative root mean square error (rRMSE).}
 #' \item{npd.list.2cmpt}{The full output list from the `Fit_2cmpt_iv` function.}
 #'
 #' @examples
@@ -346,17 +314,6 @@ run_npd_2cmpt_iv <- function(dat,
   npd.RMSE <-  round(metrics.(pred.x = npd.list.2cmpt$cp, obs.y = npd.list.2cmpt$DV  )[4],1)
   npd.rRMSE <- round( metrics.(pred.x = npd.list.2cmpt$cp, obs.y = npd.list.2cmpt$DV  )[5],1)
 
-
-  # if (max(npd.list.2cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
-  #   npd.2cmpt.APE <- Inf
-  #   npd.2cmpt.MAPE <- Inf
-  # }
-  # if (npd.list.2cmpt$message != "relative convergence (4)" &
-  #     est.method == "focei") {
-  #   npd.2cmpt.APE <- Inf
-  #   npd.2cmpt.MAPE <- Inf
-  # }
-
   return(
     list(
       npd.2cmpt_results = npd_results_2cmpt,
@@ -378,30 +335,28 @@ run_npd_2cmpt_iv <- function(dat,
 #' @param dat A data frame containing intravenous pharmacokinetic data. It should include
 #' columns such as `ID`, `EVID`, `DV`, `dose`, and `AMT` and other necessary variables.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is 1.
-#' @param input.vc3cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is 1.
-#' @param input.vp3cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.
-#' @param input.q3cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.
-#' @param input.vp23cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.
-#' @param input.q23cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.
+#' @param input.cl A numeric value for the initial estimate of log-transformed clearance (CL). Default is exp(1).
+#' @param input.vc3cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is exp(1).
+#' @param input.vp3cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is exp(1).
+#' @param input.q3cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is exp(1).
+#' @param input.vp23cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp2). Default is exp(1).
+#' @param input.q23cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q2). Default is exp(1).
 #' @param input.add A numeric value for the additive error model. Default is 1.
 #'
 #' @details
 #' This function fits the three-compartment IV model to the given dataset using
-#' the specified estimation method. It excludes rows where `EVID == 2`, as these
-#' represent non-observation events. After fitting the model, the function returns
-#' the estimated CL, Vc, Vp, Vp2, Q and Q2 along with the APE (absolute prediction error)
-#' and MAPE (mean absolute percentage error) to assess model fit.
-#'
-#' The function also applies penalties to the results if certain conditions are
-#' met, such as high relative standard error (`%RSE > 50`) or if the fitting method
-#' does not converge successfully for the `focei` method.
+#' the specified estimation methods. It excludes rows where `EVID == 2`.
+#' After fitting the model, the function returns the estimated CL and Vd along
+#' with metrics to assess model fit.
 #'
 #' @return A list containing the following elements:
 #' \item{npd.3cmpt_results}{A data frame with the estimated CL, Vc, Vp, Q, and
 #' the time spent during estimation.}
 #' \item{npd.3cmpt.APE}{The absolute prediction error (APE).}
+#' \item{npd.3cmpt.MAE}{The mean absolute error (MAE).}
 #' \item{npd.3cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{npd.3cmpt.RMSE}{The root mean square error (RMSE).}
+#' \item{npd.3cmpt.rRMSE}{The relative root mean square error (rRMSE).}
 #' \item{npd.list.3cmpt}{The full output list from the `Fit_3cmpt_iv` function.}
 #'
 #' @examples
@@ -480,15 +435,6 @@ run_npd_3cmpt_iv <- function(dat,
   npd.RMSE <-  round(metrics.(pred.x =  npd.list.3cmpt$cp, obs.y = npd.list.3cmpt$DV  )[4],1)
   npd.rRMSE <- round( metrics.(pred.x =  npd.list.3cmpt$cp, obs.y = npd.list.3cmpt$DV  )[5],1)
 
-  # if (max(npd.list.3cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
-  #   npd.3cmpt.APE <- Inf
-  #   npd.3cmpt.MAPE  <- Inf
-  # }
-  # if (npd.list.3cmpt$message != "relative convergence (4)" &
-  #     est.method == "focei") {
-  #   npd.3cmpt.APE <- Inf
-  #   npd.3cmpt.MAPE <- Inf
-  # }
 
   return(
     list(
@@ -511,27 +457,25 @@ run_npd_3cmpt_iv <- function(dat,
 #' @param dat A data frame containing intravenous pharmacokinetic data. It should include
 #' columns such as `ID`, `EVID`, `DV`, `dose`, and `AMT` and other necessary variables.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.ka A numeric value for the initial estimate of absorption rate constant. Default is 1.
-#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is 1.
-#' @param input.vd A numeric value for the initial estimate of volume of distribution (Vd). Default is 1.
+#' @param input.ka A numeric value for the initial estimate of the absorption rate constant. Default is exp(1).
+#' @param input.cl A numeric value for the initial estimate of the clearance (CL). Default is exp(1).
+#' @param input.vd A numeric value for the initial estimate of the volume of distribution (Vd). Default is exp(1).
 #' @param input.add A numeric value for the additive error model. Default is 1.
 #'
 #' @details
-#' This function fits the 1-compartment IV model to the given dataset using
-#' the specified estimation methods. It excludes rows where `EVID == 2`, as these
-#' represent non-observation events. After fitting the model, the function returns
-#' the estimated CL and Vd along with the APE (absolute prediction error) and MAPE
-#' (mean absolute percentage error) to assess model fit.
-#'
-#' The function also applies penalties to the results if certain conditions are
-#' met, such as high relative standard error (`%RSE > 50`) or if the fitting method
-#' does not converge successfully for the `focei` method.
+#' This function fits the one-compartment oral model to the given dataset using
+#' the specified estimation methods. It excludes rows where `EVID == 2`.
+#' After fitting the model, the function returns the estimated CL and Vd
+#' along with the metrics to assess model fit.
 #'
 #' @return A list containing the following elements:
 #' \item{npd.1cmpt_results}{A data frame with the estimated CL and Vd, as well
 #' as the time spent during estimation.}
 #' \item{npd.1cmpt.APE}{The absolute prediction error (APE).}
+#' \item{npd.1cmpt.MAE}{The mean absolute error (MAE).}
 #' \item{npd.1cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{npd.1cmpt.RMSE}{The root mean square error (RMSE).}
+#' \item{npd.1cmpt.rRMSE}{The relative root mean square error (rRMSE).}
 #' \item{nnpd.1cmpt.list}{The full output list from the `Fit_1cmpt_oral` function.}
 #'
 #' @importFrom dplyr %>% mutate if_else group_by ungroup
@@ -591,19 +535,6 @@ run_npd_1cmpt_oral <- function(dat,
   npd.RMSE <-  round(metrics.(pred.x =  npd.list$cp, obs.y = npd.list$DV  )[4],1)
   npd.rRMSE <- round( metrics.(pred.x =  npd.list$cp, obs.y = npd.list$DV  )[5],1)
 
-  # # add penalty of rse
-  # if (max(npd.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
-  #   npd.APE <- Inf
-  #   npd.MAPE <- Inf
-  # }
-  #
-  # # Filter out failed runs
-  # if (npd.list$message != "relative convergence (4)" &
-  #     est.method == "focei") {
-  #   npd.APE <- Inf
-  #   npd.MAPE <- Inf
-  # }
-
   return(
     list(
       npd.1cmpt_results = npd_results,
@@ -632,14 +563,13 @@ run_npd_1cmpt_oral <- function(dat,
 #' @param dat A data frame containing pharmacokinetic data. Must include columns
 #' such as `ID`, `EVID`, `DV`, `dose`, and `AMT`.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.ka A numeric value for the initial estimate of absorption rate constant. Default is 1.
-#' @param npdmm_inputvmax A numeric value for the initial estimate of Vmax.
-#' @param npdmm_inputkm A numeric value for the initial estimate of Km.
-#' @param npdmm_inputcl A numeric value for the clearance.
-#' @param npdmm_inputvd A numeric value for the initial estimate of volume of distribution (Vd).
+#' @param input.ka A numeric value for the initial estimate of the log-transformed absorption rate constant. Default is 1.
+#' @param npdmm_inputvmax A numeric value for the initial estimate of the Vmax. Default is 1.
+#' @param npdmm_inputkm A numeric value for the initial estimate of the Km. Default is 1.
+#' @param npdmm_inputcl A numeric value for clearance for Vmax and Km calculation when km_threshold is set to True.
+#' @param npdmm_inputvd A numeric value for the initial estimate of the volume of distribution (Vd). Default is 1.
+#' @param input.add A numeric value for the additive error model. Default is Default is 1.
 #' @param km_threshold A logical value (`TRUE` or `FALSE`). If `TRUE`,
-#' initial estimates of Vmax and Km are adjusted based on a threshold related
-#' to the maximum observed concentration in the data.
 #'
 #' @details
 #' If `km_threshold = TRUE`, this function first calculates initial estimates for \eqn{V_{max}} and \eqn{K_m}
@@ -653,8 +583,11 @@ run_npd_1cmpt_oral <- function(dat,
 #' \describe{
 #'   \item{npd.1cmpt.mm_results}{A data frame with the estimated values of  \eqn{K_a},\eqn{V_{max}},
 #'   \eqn{K_m}, and \eqn{V_d}, as well as the time taken for the estimation.}
-#'   \item{npd.1cmpt.mm.APE}{The absolute prediction error (APE).}
-#'   \item{npd.1cmpt.mm.MAPE}{The mean absolute percentage error (MAPE).}
+#'   \item{npd.1cmpt.mm..APE}{The absolute prediction error (APE).}
+#'   \item{npd.1cmpt.mm..MAE}{The mean absolute error (MAE).}
+#'   \item{npd.1cmpt.mm..MAPE}{The mean absolute percentage error (MAPE).}
+#'   \item{npd.1cmpt.mm..RMSE}{The root mean square error (RMSE).}
+#'   \item{npd.1cmpt.mm.rRMSE}{The relative root mean square error (rRMSE).}
 #'   \item{npd.1cmpt.mm.list}{The full output list from the `Fit_1cmpt_mm_oral` function.}
 #' }
 #'
@@ -686,6 +619,7 @@ run_npd_1cmpt_mm_oral <- function(dat,
                                 input.km= exp(1),
                                 input.cl= exp(1),
                                 input.vd= exp(1),
+                                input.add= 1,
                                 km_threshold=F) {
   start.time <- Sys.time()
   estvmax<-input.vmax
@@ -727,7 +661,7 @@ run_npd_1cmpt_mm_oral <- function(dat,
     input.ka = input.ka,
     input.vmax =  estvmax,
     input.km = estkm,
-    input.add = 1,
+    input.add =  input.add,
     input.vd =   input.vd
   )
 
@@ -747,22 +681,6 @@ run_npd_1cmpt_mm_oral <- function(dat,
   npd.MAPE <- round( metrics.(pred.x =  npdmm.list$cp, obs.y =npdmm.list$DV  )[3],1)
   npd.RMSE <-  round(metrics.(pred.x =  npdmm.list$cp, obs.y = npdmm.list$DV  )[4],1)
   npd.rRMSE <- round( metrics.(pred.x =  npdmm.list$cp, obs.y = npdmm.list$DV  )[5],1)
-
-  # countna <- is.na(npdmm.list$IRES)
-  # if (sum(countna) > (nrow(npdmm.list) / 2)) {
-  #   npdmm.APE <- Inf
-  #   npdmm.MAPE <- Inf
-  # }
-  #
-  # if (max(npdmm.list$parFixedDf$`%RSE`, na.rm = T) > 50) {
-  #   npdmm.APE <- Inf
-  #   npdmm.MAPE <- Inf
-  # }
-  # if (npdmm.list$message != "relative convergence (4)" &
-  #     est.method == "focei") {
-  #   npdmm.APE <- Inf
-  #   npdmm.MAPE <- Inf
-  # }
 
   return(
     list(
@@ -784,29 +702,28 @@ run_npd_1cmpt_mm_oral <- function(dat,
 #' @param dat A data frame containing intravenous pharmacokinetic data. It should include
 #' columns such as `ID`, `EVID`, `DV`, `dose`, and `AMT` and other necessary variables.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.ka A numeric value for the initial estimate of absorption rate constant. Default is 1.
-#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is 1.
-#' @param input.vc2cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is 1.
-#' @param input.vp2cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.
-#' @param input.q2cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.
+#' @param input.ka A numeric value for the initial estimate of absorption rate constant. Default is exp(1).
+#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is exp(1).
+#' @param input.vc2cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is exp(1).
+#' @param input.vp2cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is exp(1).
+#' @param input.q2cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is exp(1).
 #' @param input.add A numeric value for the additive error model. Default is 1.
 #'
 #' @details
-#' This function fits the two-compartment IV model to the given dataset using
-#' the specified estimation method. It excludes rows where `EVID == 2`, as these
-#' represent non-observation events. After fitting the model, the function returns
-#' the estimated CL, Vc, Vp, and Q along with the APE (absolute prediction error)
-#' and MAPE (mean absolute percentage error) to assess model fit.
+#' This function fits the two-compartment oral model to the given dataset using
+#' the specified estimation method. It excludes rows where `EVID == 2`
+#' After fitting the model, the function returns the estimated CL, Vc, Vp, and Q
+#' along with metrics to assess model fit.
 #'
-#' The function also applies penalties to the results if certain conditions are
-#' met, such as high relative standard error (`%RSE > 50`) or if the fitting method
-#' does not converge successfully for the `focei` method.
 #'
 #' @return A list containing the following elements:
 #' \item{npd.2cmpt_results}{A data frame with the estimated CL, Vc, Vp, Q, and
 #' the time spent during estimation.}
 #' \item{npd.2cmpt.APE}{The absolute prediction error (APE).}
+#' \item{npd.2cmpt.MAE}{The mean absolute error (MAE).}
 #' \item{npd.2cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{npd.2cmpt.RMSE}{The root mean square error (RMSE).}
+#' \item{npd.2cmpt.rRMSE}{The relative root mean square error (rRMSE).}
 #' \item{npd.list.2cmpt}{The full output list from the `Fit_2cmpt_oral` function.}
 #'
 #' @examples
@@ -879,16 +796,6 @@ run_npd_2cmpt_oral <- function(dat,
   npd.RMSE <-  round(metrics.(pred.x =   npd.list.2cmpt$cp, obs.y =  npd.list.2cmpt$DV  )[4],1)
   npd.rRMSE <- round( metrics.(pred.x =   npd.list.2cmpt$cp, obs.y =  npd.list.2cmpt$DV  )[5],1)
 
-  # if (max(npd.list.2cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
-  #   npd.2cmpt.APE <- Inf
-  #   npd.2cmpt.MAPE <- Inf
-  # }
-  # if (npd.list.2cmpt$message != "relative convergence (4)" &
-  #     est.method == "focei") {
-  #   npd.2cmpt.APE <- Inf
-  #   npd.2cmpt.MAPE <- Inf
-  # }
-
   return(
     list(
       npd.2cmpt_results = npd_results_2cmpt,
@@ -910,31 +817,30 @@ run_npd_2cmpt_oral <- function(dat,
 #' @param dat A data frame containing intravenous pharmacokinetic data. It should include
 #' columns such as `ID`, `EVID`, `DV`, `dose`, and `AMT` and other necessary variables.
 #' @param est.method The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".
-#' @param input.ka A numeric value for the initial estimate of absorption rate constant. Default is 1.
-#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is 1.
-#' @param input.vc3cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is 1.
-#' @param input.vp3cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.
-#' @param input.q3cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.
-#' @param input.vp23cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.
-#' @param input.q23cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.
+#' @param input.ka A numeric value for the initial estimate of absorption rate constant. Default is exp(1).
+#' @param input.cl A numeric value for the initial estimate of clearance (CL). Default is exp(1).
+#' @param input.vc3cmpt A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is exp(1).
+#' @param input.vp3cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is exp(1).
+#' @param input.q3cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is exp(1).
+#' @param input.vp23cmpt A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is exp(1).
+#' @param input.q23cmpt A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is exp(1).
 #' @param input.add A numeric value for the additive error model. Default is 1.
 #'
 #' @details
-#' This function fits the three-compartment IV model to the given dataset using
-#' the specified estimation method. It excludes rows where `EVID == 2`, as these
-#' represent non-observation events. After fitting the model, the function returns
-#' the estimated CL, Vc, Vp, Vp2, Q and Q2 along with the APE (absolute prediction error)
-#' and MAPE (mean absolute percentage error) to assess model fit.
+#' This function fits the three-compartment oral model to the given dataset using
+#' the specified estimation method. It excludes rows where `EVID == 2`
+#' After fitting the model, the function returns the estimated CL, Vc, Vp, Vp2, Q
+#' and Q2 along with metrics to assess model fit.
 #'
-#' The function also applies penalties to the results if certain conditions are
-#' met, such as high relative standard error (`%RSE > 50`) or if the fitting method
-#' does not converge successfully for the `focei` method.
 #'
 #' @return A list containing the following elements:
 #' \item{npd.3cmpt_results}{A data frame with the estimated CL, Vc, Vp, Q, and
 #' the time spent during estimation.}
 #' \item{npd.3cmpt.APE}{The absolute prediction error (APE).}
+#' \item{npd.3cmpt.MAE}{The mean absolute error (MAE).}
 #' \item{npd.3cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+#' \item{npd.3cmpt.RMSE}{The root mean square error (RMSE).}
+#' \item{npd.3cmpt.rRMSE}{The relative root mean square error (rRMSE).}
 #' \item{npd.list.3cmpt}{The full output list from the `Fit_3cmpt_oral` function.}
 #'
 #' @examples
@@ -1018,15 +924,6 @@ run_npd_3cmpt_oral <- function(dat,
   npd.RMSE <-  round(metrics.(pred.x =   npd.list.3cmpt$cp, obs.y =  npd.list.3cmpt$DV  )[4],1)
   npd.rRMSE <- round( metrics.(pred.x =   npd.list.3cmpt$cp, obs.y =  npd.list.3cmpt$DV  )[5],1)
 
-  # if (max(npd.list.3cmpt$parFixedDf$`%RSE`, na.rm = T) > 50) {
-  #   npd.3cmpt.APE <- Inf
-  #   npd.3cmpt.MAPE  <- Inf
-  # }
-  # if (npd.list.3cmpt$message != "relative convergence (4)" &
-  #     est.method == "focei") {
-  #   npd.3cmpt.APE <- Inf
-  #   npd.3cmpt.MAPE <- Inf
-  # }
 
   return(
     list(
