@@ -469,12 +469,10 @@ single_point_extra <- function(single_point_base.lst,
       is.na(trimmed_mean_vd) == T & is.na(half_life) == F) {
     message(black(
       paste0(
-        "Insufficient data points to support Vd calculation (single-dose IV or oral); derived from clearance and estimated half-life instead.",
+        "Insufficient data points to support Vd calculation; derived from clearance and estimated half-life instead.",
         strrep(".", 20)
       )
     ))
-
-    # individual_mean_vd <- tryCatch( aggregate(cl* half_life/log(2) ~ ID, data = dat.ss.obs, FUN = trimmed_geom_mean),error=function(e) {NA})
 
     trimmed_mean_vd <-  signif(trimmed_mean_cl * half_life / log(2), 3)
     single_point.message <-
