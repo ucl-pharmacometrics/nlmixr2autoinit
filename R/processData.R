@@ -107,7 +107,7 @@ if (!"EVID" %in% colnames(dat)) {
 
 # Check if any row contains EVID=2 and issue a warning if found
 if (2 %in% dat$EVID) {
-  evid_message2<-paste0("Note: EVID=2 found in the dataset. Rows with EVID=2 are removed for the entire analysis.")
+  evid_message2<-paste0("Note: EVID=2 found in the dataset. Rows with EVID=2 are removed")
   dat <- dat %>% filter(EVID != 2)
 }
 
