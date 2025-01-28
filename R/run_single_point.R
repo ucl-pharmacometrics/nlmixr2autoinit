@@ -308,11 +308,8 @@ single_point_base <- function(dat,
                  dat$dose_number == 1 & dat$tad < half_life * 0.2 & dat$iiobs==0,]) > 0) {
 
       dat$C_first_flag <- 0
-      # dat[dat$EVID == 0 &
-      #       dat$dose_number == 1 & dat$tad < half_life * 0.2 & dat$iiobs==0,]$C_first_flag <- 1
-
       # only retain the first point per ID with C_first_flag = 1
-      dat <- dat %>%
+      dat <- suppressWarnings(dat %>%
         mutate(
           C_first_flag = ifelse(
             EVID == 0 & dose_number == 1 & tad < half_life * 0.2 & iiobs == 0, 1, 0
@@ -320,9 +317,10 @@ single_point_base <- function(dat,
         ) %>%
         group_by(ID) %>%
         mutate(
+          # Warning from the min() function when no rows meet the C_first_flag condition is removed
           C_first_flag = ifelse(C_first_flag == 1 & TIME == min(TIME[C_first_flag == 1], na.rm = TRUE), 1, 0)
         ) %>%
-        ungroup()
+        ungroup())
 
     dat.fd.obs <- dat[dat$C_first_flag == 1, ]
 
