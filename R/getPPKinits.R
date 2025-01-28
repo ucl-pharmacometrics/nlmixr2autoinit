@@ -35,7 +35,7 @@
 #'
 
 getPPKinits<- function(dat,
-                       run.option=0,
+                       run.option=1,
                        getinitsControl=initsControl()) {
 
   # Get function settings
@@ -49,7 +49,7 @@ getPPKinits<- function(dat,
 
   function.params <- data.frame(
     Parameter = c(
-      "Run option (0= only run pipeline, 1= only run NPD compartmental analysis)",
+      "Run option (1= only run pipeline, 2= only run NPD compartmental analysis)",
       "Half-life (User-defined half-life used as a reference for single-point calculation)",
       "Number of last points (Points used for linear regression during terminal elimination phase slope estimation)",
       "Number of bins (Number of time windows derived from quantile-based partitioning of the time variable in the dataset)",
@@ -130,7 +130,7 @@ getPPKinits<- function(dat,
 
 
 ########################### Pipeline part ##################################
-  if (run.option==0){
+  if (run.option==1){
 
 ####################Single point method ################################
 
@@ -653,7 +653,7 @@ message_text <- paste0("Base PK parameter analysis finished. Estimated ka: ", ba
 cat(message_text, "\n")
 
 
-################# Simulation-based Vmax and Km analysis#######################
+################# Parameter Sweeping on Vmax and Km #######################
 
   message(black(
     paste0("Run parameter sweeping on nonlinear eliminiation kinetics PK parameters",strrep(".", 20))))
@@ -704,7 +704,7 @@ cat(message_text, "\n")
   # message(black(
   #   paste0("Nonlinear elimination parameter analysis finished. Estimated Vmax : ",   recommended_vmax_init, ", estimated km : ", recommended_km_init  )))
 
-  ########### Simulation-based Multi-Compartmental Model Parameter Analysis#####
+  ########### Parameter Sweeping on Multi-Compartmental Model Parameters#####
   message(black(
     paste0("Run parameter sweeping on multi-compartmental PK parameters",strrep(".", 20))))
 
@@ -864,7 +864,7 @@ cat(message_text, "\n")
   }
 
 #################### Naive pooled data approach compartmental analysis #######
-  if (run.option>0){
+  if (run.option==2){
 
    dat<-rawdat  # recover raw data for compartmental analysis
 
@@ -1219,7 +1219,7 @@ cat(message_text, "\n")
 
   ######################## Finally selection########################################
 
-  if (run.option==0){
+  if (run.option==1){
    # Part 1. ka,cl,vd.
     f_init_ka <- base.best$`Calculated Ka`[1]
     f_init_cl <- base.best$`Calculated CL`[1]
@@ -1488,7 +1488,7 @@ cat(message_text, "\n")
   output_env$Parameter.descriptions <- params.descriptions
   }
 
-  if (run.option==1){
+  if (run.option==2){
 
     init.history <- list(
       npd_1cmpt_out =npd_1cmpt_out,
