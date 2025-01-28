@@ -90,6 +90,9 @@ inits.out
 
 ## Example 2 (Oral case)
 ``` r
+library(nlmixr2autoinit)
+inits.out<-getPPKinits(dat = Oral_1CPT)
+
 # Processing data....................
 # Administration site detected to differ from measurement site; extravascular (oral) administration assumed.
 # 
