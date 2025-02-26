@@ -17,6 +17,11 @@
 #'   \item \code{0}: Set as \code{1}.
 #'   \item \code{1}: Set as pipeline-recommended values.
 #' }
+#' @param enable_ka_fallback Logical, default is \code{TRUE}. Controls whether to replace invalid absorption rate constant (ka) values with a default:
+#' \itemize{
+#'   \item \code{TRUE}: Replaces invalid ka values (e.g., \code{NA} or negative) with a predefined default (e.g., 1).
+#'   \item \code{FALSE}: Retains original ka values, even if invalid.
+#' }
 #'
 #' @return A list containing:
 #' \itemize{
@@ -27,6 +32,7 @@
 #'   \item \code{est.method}: The method used for PK parameter estimation.
 #'   \item \code{selection.criteria}: The selection criteria for parameter values.
 #'   \item \code{npdcmpt.inits.strategy}: The strategy for initializing the NPD compartment analysis.
+#'   \item \code{enable_ka_fallback}: Logical flag to replace invalid ka values (NA or negative) with a default (e.g., 1) when TRUE; retains original values when FALSE.
 #' }
 #'
 #' @examples
@@ -41,7 +47,8 @@ initsControl<-function( half_life = NA,
                         nbins = 10,
                         est.method = "nls",
                         selection.criteria="rRMSE",
-                        npdcmpt.inits.strategy= 0){
+                        npdcmpt.inits.strategy= 0,
+                        enable_ka_fallback=TRUE){
 
   return(  list(half_life =  half_life ,
                 nlastpoints =   nlastpoints,
@@ -49,7 +56,8 @@ initsControl<-function( half_life = NA,
                 nbins = nbins,
                 est.method=   est.method,
                 selection.criteria=   selection.criteria,
-                npdcmpt.inits.strategy=  npdcmpt.inits.strategy))
+                npdcmpt.inits.strategy=  npdcmpt.inits.strategy,
+                enable_ka_fallback=enable_ka_fallback))
 }
 
 
