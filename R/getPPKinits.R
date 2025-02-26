@@ -201,8 +201,8 @@ message(black(
 
   ka_nca_fixed<- 0
    if(enable_ka_fallback){
-      if (is.na(ka_nca_out_fd) || (!is.na(ka_nca_out_fd) && ka_nca_out_fd < 0)) {
-        ka_nca_out_fd<- 1
+      if (is.na(ka_nca_fd) || (!is.na(ka_nca_fd) && ka_nca_fd < 0)) {
+        ka_nca_fd<- 1
         ka_nca_fixed <- 1  # a flag for ka setting
       }
     }
