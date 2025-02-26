@@ -46,6 +46,7 @@ getPPKinits<- function(dat,
   est.method <-getinitsControl$ est.method
   selection.criteria<-getinitsControl$ selection.criteria
   npdcmpt.inits.strategy<-getinitsControl$npdcmpt.inits.strategy
+  enable_ka_fallback<-getinitsControl$enable_ka_fallback
 
   function.params <- data.frame(
     Parameter = c(
@@ -56,7 +57,8 @@ getPPKinits<- function(dat,
       "Trapezoidal rule for AUC (1=linear,2=Linear-up log-down )",
       "Method used for naive pooled data compartmental analysis",
       "Selection criteria used for evaluating and selecting parameter values",
-      "NPD compartmental analysis initial setting strategy (0 = set as 1, 1 = set from pipeline recommended values) "
+      "NPD compartmental analysis initial setting strategy (0 = set as 1, 1 = set from pipeline recommended values) ",
+      "Enable ka fallback (TRUE = automatically replace invalid ka values (NA or negative) with a preset default value; FALSE = retain original ka values, even if invalid)"
     ),
     Value = c(
       run.option,
@@ -66,7 +68,8 @@ getPPKinits<- function(dat,
       trapezoidal.rule,
       est.method,
       selection.criteria,
-      npdcmpt.inits.strategy
+      npdcmpt.inits.strategy,
+      enable_ka_fallback
     )
   )
 
@@ -153,6 +156,14 @@ message(black(
     half_life = half_life)
 
  single.point.out <- single.point.lst$singlepoint.results
+
+ ka_single_point_fixed <- 0
+ if(enable_ka_fallback){
+   if (is.na( single.point.out$ka) || (!is.na(single.point.out$ka) && single.point.out$ka < 0)) {
+     single.point.out$ka <- 1
+     ka_single_point_fixed <- 1  # a flag for ka setting
+   }
+ }
  dat<-single.point.lst$dat
 
 ################# Naive pooled Non-compartmental analysis ##################################
@@ -172,12 +183,9 @@ message(black(
 
  # Determine absorption rate of constant
  # Wanger nelson method (needs more than one data in the absorption phase)
-    ka_method_1_fd=NA
-    ka_method_1_out_fd=NA
-    ka_method_1_efd=NA
-    ka_method_1_out_efd=NA
-    ka_method_1_all=NA
-    ka_method_1_out_all=NA
+
+    ka_nca_fd=NA
+    ka_nca_out_fd=NA
     ka_wanger_nelson_result="No ka calculation using the Wagner-Nelson method was performed."
 
   if (oral_flag==1 & length(nca.results$datpooled_fd)==2 ){
@@ -186,38 +194,20 @@ message(black(
                       nlastpoints = nlastpoints,
                       nca.out = unlist(nca.results$nca.fd.results, use.names = FALSE))
 
-     ka_method_1_fd <-signif(ka_wanger_nelson_result$ka,3)
-     ka_method_1_out_fd<-ka_wanger_nelson_result$dat_out_wanger_nelson
+     ka_nca_fd <-signif(ka_wanger_nelson_result$ka,3)
+     ka_nca_out_fd<-ka_wanger_nelson_result$dat_out_wanger_nelson
      }
   }
 
-  # Not applicable for multiple doses.
-  # if (oral_flag==1 & length(nca.results$datpooled_efd)==2){
-  #   if (is.na(nca.results$nca.efd.results$cl)==F & is.na(nca.results$nca.efd.results$vd)==F){
-  #     ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_efd$test.pool.normalised,
-  #                                               nlastpoints = nlastpoints,
-  #                                               nca.out = unlist(nca.results$nca.efd.results, use.names = FALSE))
-  #     ka_method_1_efd <-signif(ka_wanger_nelson_result$ka,3)
-  #     ka_method_1_out_efd<-ka_wanger_nelson_result$dat_out_wanger_nelson
-  #   }
-  #   }
-
-  # if (oral_flag==1 & length(nca.results$datpooled_all)==2){
-  #     if (is.na(nca.results$nca.all.results$cl)==F & is.na(nca.results$nca.all.results$vd)==F){
-  #     ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_all$test.pool.normalised,
-  #                                               nlastpoints = nlastpoints,
-  #                                               nca.out = unlist(nca.results$nca.all.results, use.names = FALSE))
-  #     ka_method_1_all <-signif(ka_wanger_nelson_result$ka,3)
-  #     ka_method_1_out_all<-ka_wanger_nelson_result$dat_out_wanger_nelson
-  #     }
-  #  }
-
-    # can be used for later hybrid method
-    ka_values<-c(ka_method_1_fd, ka_method_1_efd, ka_method_1_all)
-    # Remove negative numbers
-    positive_ka_values <-  ka_values[   ka_values > 0 &  is.na(ka_values)==F]
-    ka_median <- round(median(positive_ka_values),2)
-
+  ka_nca_fixed<- 0
+   if(enable_ka_fallback){
+      if (is.na(ka_nca_out_fd) || (!is.na(ka_nca_out_fd) && ka_nca_out_fd < 0)) {
+        ka_nca_out_fd<- 1
+        ka_nca_fixed <- 1  # a flag for ka setting
+      }
+    }
+  ka_nca_efd <-ka_nca_fd
+  ka_nca_all <-ka_nca_fd
  ############################ Graphic analysis#################################
    message(black(
      paste0("Run graphical analysis on naive pooling data only after the first dose", strrep(".", 20))
@@ -235,15 +225,21 @@ message(black(
    graph_fd.RMSE <- NA
    graph_fd.rRMSE <- NA
 
-   graph.results_fd <- run_graphcal(
+   graph.results_fd <- suppressWarnings(suppressMessages( run_graphcal(
      dat = dat,
      route =   route ,
      nbins = nbins,
      nlastpoints = nlastpoints,
      fdobsflag=fdobsflag
-   )
+   )))
 
-
+   ka_graph_fixed <- 0
+   if(enable_ka_fallback){
+     if (is.na(graph.fd.results$ka) || (!is.na(graph.fd.results$ka) && graph.fd.results$ka < 0)) {
+       graph.fd.results$ka<- 1
+       ka_graph_fixed <- 1
+     }
+   }
 ######### Predictive performance evaluation (one-compartmental parameter)#######
 # default setting
    simpcal.APE <- NA
@@ -345,7 +341,6 @@ message(black(
       rm(nca_fd_sim)
       gc()
 
-
     }
   }
 
@@ -367,7 +362,6 @@ message(black(
 
       rm( nca_efd_sim )
       gc()
-
 
     }
   }
@@ -398,7 +392,7 @@ message(black(
 
 #================================== for oral case================================#
   if (oral_flag==1){
-    ka=  c(single.point.out$ka,graph.results_fd$ka,ka_method_1_fd,ka_method_1_efd,ka_method_1_all)
+    ka=  c(single.point.out$ka,graph.results_fd$ka,ka_nca_fd,ka_nca_efd,ka_nca_all)
     # single-point method
     if (is.na(single.point.out$cl)==F & is.na(single.point.out$vd)==F & is.na(  single.point.out$ka)==F) {
       if (single.point.out$cl > 0 & single.point.out$vd > 0 & single.point.out$ka>0 ) {
@@ -427,12 +421,12 @@ message(black(
     nca.results_fd <- nca.results$nca.fd.results
     nca.results_efd <- nca.results$nca.efd.results
 
-    if (is.na(nca.results_all$cl)==F & is.na(nca.results_all$vd)==F & is.na(ka_method_1_all)==F) {
-    if (nca.results_all$cl > 0 & nca.results_all$vd > 0 &  ka_method_1_all>0 ) {
+    if (is.na(nca.results_all$cl)==F & is.na(nca.results_all$vd)==F & is.na(ka_nca_all)==F) {
+    if (nca.results_all$cl > 0 & nca.results_all$vd > 0 &  ka_nca_all>0 ) {
       nca_sim <- Fit_1cmpt_oral(
         data = dat[dat$EVID != 2,],
         est.method = "rxSolve",
-        input.ka = ka_method_1_all,
+        input.ka = ka_nca_all,
         input.cl = nca.results_all$cl,
         input.vd = nca.results_all$vd,
         input.add = 0
@@ -450,12 +444,12 @@ message(black(
     }
     }
 
-    if (is.na(nca.results_fd$cl)==F & is.na(nca.results_fd$vd)==F & is.na(ka_method_1_fd)==F) {
-      if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0  &  ka_method_1_fd>0 ) {
+    if (is.na(nca.results_fd$cl)==F & is.na(nca.results_fd$vd)==F & is.na(ka_nca_fd)==F) {
+      if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0  &  ka_nca_fd>0 ) {
         nca_fd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
-          input.ka = ka_method_1_fd,
+          input.ka = ka_nca_fd,
           input.cl = nca.results_fd$cl,
           input.vd = nca.results_fd$vd,
           input.add = 0
@@ -472,12 +466,12 @@ message(black(
       }
     }
 
-    if (is.na(nca.results_efd$cl)==F & is.na(nca.results_efd$vd)==F &  is.na(ka_method_1_efd)==F) {
-      if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0 &  ka_method_1_efd>0) {
+    if (is.na(nca.results_efd$cl)==F & is.na(nca.results_efd$vd)==F &  is.na(ka_nca_efd)==F) {
+      if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0 &  ka_nca_efd>0) {
         nca_efd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
-          input.ka = ka_method_1_efd,
+          input.ka = ka_nca_efd,
           input.cl = nca.results_efd$cl,
           input.vd = nca.results_efd$vd,
           input.add = 0
