@@ -291,27 +291,33 @@ if (nrow(dat[dat$rateobs!=0,])>0){
   dat$duration_obs <- dat[dat$rateobs!=0,]$dose / dat[dat$rateobs!=0,]$rateobs
 }
 
+
+# dat <- dat %>%
+#   mutate(original_EVID = EVID) %>%  # Create a backup column for EVID
+#   group_by(ID, dose_number) %>%  # Group by ID and dose_number to work within each dose cycle
+#   mutate(
+#     # Calculate Tmax within each ID and dose_number group where EVID == 0
+#     Tmax = ifelse(any(EVID == 0), TIME[which.max(DV[EVID == 0])], NA_real_),
+#     # Set EVID to 2 for rows where EVID == 0, TIME > Tmax, and DV == 0 within each ID and dose_number group
+#     # Only set if Tmax is not NA
+#     EVID = if_else(EVID == 0 & !is.na(Tmax) & TIME > Tmax & DV == 0, 2, EVID),
+#     # Set DV to NA for rows where EVID is set to 2
+#     DV = if_else(EVID == 2, 0, DV)
+#   ) %>%
+#   ungroup()
+
+# dat <- select(dat, -Tmax)
+# dat<-as.data.frame(dat)
 dat <- dat %>%
   mutate(original_EVID = EVID) %>%  # Create a backup column for EVID
-  group_by(ID, dose_number) %>%  # Group by ID and dose_number to work within each dose cycle
   mutate(
-    # Calculate Tmax within each ID and dose_number group where EVID == 0
-    Tmax = ifelse(any(EVID == 0), TIME[which.max(DV[EVID == 0])], NA_real_),
-    # Set EVID to 2 for rows where EVID == 0, TIME > Tmax, and DV == 0 within each ID and dose_number group
-    # Only set if Tmax is not NA
-    EVID = if_else(EVID == 0 & !is.na(Tmax) & TIME > Tmax & DV == 0, 2, EVID),
-    # Set DV to NA for rows where EVID is set to 2
-    DV = if_else(EVID == 2, 0, DV)
-  ) %>%
-  ungroup()
-
-dat <- select(dat, -Tmax)
-dat<-as.data.frame(dat)
-
+    # Set EVID to 2 for rows where original_EVID == 0 and DV == 0
+    EVID = if_else(original_EVID == 0 & DV == 0, 2, EVID)
+  )
 
 # Check if any EVID was changed from 0 to 2
 if (any(dat$original_EVID == 0 & dat$EVID == 2)) {
-  message(black("Some rows have been updated: EVID set to 2 for DV=0 after Tmax, and they will be removed for the entire analysis."))
+  message(black("Rows with DV=0 have been assigned EVID=2 and will be excluded from subsequent analyses."))
   # Check if any row contains EVID=2 and issue a warning if found
   if (2 %in% dat$EVID) {
     dat <- dat %>% filter(EVID != 2)
