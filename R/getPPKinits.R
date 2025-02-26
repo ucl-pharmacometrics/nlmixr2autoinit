@@ -225,7 +225,7 @@ message(black(
    graph_fd.RMSE <- NA
    graph_fd.rRMSE <- NA
 
-   graph.results_fd <- suppressWarnings(suppressMessages( run_graphcal(
+   graph.results_fd <- suppressWarnings(suppressMessages(run_graphcal(
      dat = dat,
      route =   route ,
      nbins = nbins,
@@ -235,8 +235,8 @@ message(black(
 
    ka_graph_fixed <- 0
    if(enable_ka_fallback){
-     if (is.na(graph.fd.results$ka) || (!is.na(graph.fd.results$ka) && graph.fd.results$ka < 0)) {
-       graph.fd.results$ka<- 1
+     if (is.na(graph.results_fd$ka) || (!is.na(graph.results_fd$ka) && graph.results_fd$ka < 0)) {
+       graph.results_fd$ka<- 1
        ka_graph_fixed <- 1
      }
    }
@@ -1250,11 +1250,21 @@ cat(message_text, "\n")
     sel.method.ka<-"Wanger-nelson method"
 
     if (sel.method.ka.cl.vd== "Single-point method" & oral_flag==1 ){
-      sel.method.ka<-"Single-point method"
+         sel.method.ka<-"Single-point method"
+      if (ka_single_point_fixed==1 ){
+        sel.method.ka<-"Predefined value"
+      }
     }
 
     if (sel.method.ka.cl.vd== "Graphic analysis"){
       sel.method.ka<-"Methods of residuals"
+      if (ka_graph_fixed==1 ){
+        sel.method.ka<-"Predefined value"
+      }
+    }
+
+    if (ka_nca_fixed==1 ){
+      sel.method.ka<-"Predefined value"
     }
 
     init.params.out.ka <- data.frame(method = sel.method.ka,
