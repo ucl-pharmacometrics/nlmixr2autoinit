@@ -158,7 +158,7 @@ message(black(
  single.point.out <- single.point.lst$singlepoint.results
 
  ka_single_point_fixed <- 0
- if(enable_ka_fallback){
+ if(enable_ka_fallback & oral_flag==1){
    if (is.na( single.point.out$ka) || (!is.na(single.point.out$ka) && single.point.out$ka < 0)) {
      single.point.out$ka <- 1
      ka_single_point_fixed <- 1  # a flag for ka setting
@@ -200,7 +200,7 @@ message(black(
   }
 
   ka_nca_fixed<- 0
-   if(enable_ka_fallback){
+   if(enable_ka_fallback & oral_flag==1){
       if (is.na(ka_nca_fd) || (!is.na(ka_nca_fd) && ka_nca_fd < 0)) {
         ka_nca_fd<- 1
         ka_nca_fixed <- 1  # a flag for ka setting
@@ -234,7 +234,7 @@ message(black(
    )))
 
    ka_graph_fixed <- 0
-   if(enable_ka_fallback){
+   if(enable_ka_fallback & oral_flag==1){
      if (is.na(graph.results_fd$ka) || (!is.na(graph.results_fd$ka) && graph.results_fd$ka < 0)) {
        graph.results_fd$ka<- 1
        ka_graph_fixed <- 1
