@@ -665,9 +665,9 @@ single_point_extra <- function(single_point_base.lst,
 approx.vc <- function(dat,
                       half_life,
                       single_point_base.lst) {
-  # if (missing(half_life) || is.na(half_life) || is.null(half_life)) {
-  #   stop("No half life provided for approximate central volume of distribution calculation")
-  # }
+  if (missing(half_life) || is.na(half_life) || is.null(half_life)) {
+    stop("No half life provided for approximate central volume of distribution calculation")
+  }
 
   if (missing(single_point_base.lst)) {
     single_point_base.lst <- single_point_base(dat, half_life)
