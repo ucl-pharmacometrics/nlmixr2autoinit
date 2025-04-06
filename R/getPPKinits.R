@@ -47,7 +47,7 @@ getPPKinits<- function(dat,
   selection.criteria<-getinitsControl$ selection.criteria
   npdcmpt.inits.strategy<-getinitsControl$npdcmpt.inits.strategy
   enable_ka_fallback<-getinitsControl$enable_ka_fallback
-  param.sweep.mode.q <-  param.sweep.mode.q
+  param.sweep.mode.q <-  getinitsControl$param.sweep.mode.q
 
   function.params <- data.frame(
     Parameter = c(
