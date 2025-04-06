@@ -159,7 +159,8 @@ sim_sens_2cmpt <- function(dat,
                            sim_q_list = NA,
                            estcl,
                            estka = NA,
-                           noniv_flag = 0) {
+                           noniv_flag = 0,
+                           mode_sim_q = 1) {
 
  start.time <- Sys.time()
 
@@ -170,7 +171,6 @@ sim_sens_2cmpt <- function(dat,
   if (missing(sim_vc_list)) {
     stop("Error: vc provided for simulation analysis")
   }
-
 
   sim_vc_list <- na.omit(sim_vc_list)
   sim_vc_list <- sort(sim_vc_list)
@@ -205,20 +205,27 @@ sim_sens_2cmpt <- function(dat,
 
     colnames(combs_df) <- c("estvc", "vc_vp_ratio", "estvp")
 
-    sim_q_list <- c(1, 10, estcl)
-
-    base_values <-
-      sim_q_list[-length(sim_q_list)]  # The other base values (1 and 10)
-
-    # Check if `estcl` is within 20% of any base value
-    remove_estcl <-
-      any(abs(estcl - base_values) / base_values <= 0.2)
-
-    # Remove `estcl` if it is within 20% of any base value
-    if (remove_estcl) {
-      sim_q_list <- base_values  # Remove the `estcl` value
+    # if Mode 1: Use the combination 2/cl, cl, 2*cl, 2*cl
+    if (mode_sim_q==1){
+      sim_q_list <- c(estcl/2, estcl, estcl*2)
     }
 
+    # if Mode 2: Use empirical setting 1, cl, 10
+    if (mode_sim_q ==2){
+      sim_q_list <- c(1, 10, estcl)
+
+      base_values <-
+        sim_q_list[-length(sim_q_list)]  # The other base values (1 and 10)
+
+      # Check if `estcl` is within 20% of any base value
+      remove_estcl <-
+        any(abs(estcl - base_values) / base_values <= 0.2)
+
+      # Remove `estcl` if it is within 20% of any base value
+      if (remove_estcl) {
+        sim_q_list <- base_values  # Remove the `estcl` value
+      }
+    }
   }
 
   sim.2cmpt.results.all <- NULL
@@ -330,7 +337,8 @@ sim_sens_3cmpt <- function(dat,
                            sim_q_list=NA,
                            estcl,
                            estka=NA,
-                           noniv_flag=0) {
+                           noniv_flag=0,
+                           mode_sim_q=1) {
 
 # generate the default parameter list
   start.time <- Sys.time()
@@ -384,7 +392,13 @@ sim_sens_3cmpt <- function(dat,
     combs_df <-  combs_df %>%
       distinct(estvc,estvp,estvp2, .keep_all = TRUE)
 
+    # if Mode 1: Use the combination 2/cl, cl, 2*cl, 2*cl
+    if (mode_sim_q==1){
+      sim_q_list <- c(estcl/2, estcl, estcl*2)
+    }
 
+    # if Mode 2: Use empirical setting 1, cl, 10
+    if (mode_sim_q ==2){
     sim_q_list <- c(1, 10, estcl)
 
       base_values <-
@@ -398,7 +412,7 @@ sim_sens_3cmpt <- function(dat,
       if (remove_estcl) {
         sim_q_list <- base_values  # Remove the `estcl` value
       }
-
+     }
 
   }
 
