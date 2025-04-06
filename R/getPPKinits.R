@@ -47,6 +47,7 @@ getPPKinits<- function(dat,
   selection.criteria<-getinitsControl$ selection.criteria
   npdcmpt.inits.strategy<-getinitsControl$npdcmpt.inits.strategy
   enable_ka_fallback<-getinitsControl$enable_ka_fallback
+  param.sweep.mode.q <-  param.sweep.mode.q
 
   function.params <- data.frame(
     Parameter = c(
@@ -58,7 +59,8 @@ getPPKinits<- function(dat,
       "Method used for naive pooled data compartmental analysis",
       "Selection criteria used for evaluating and selecting parameter values",
       "NPD compartmental analysis initial setting strategy (0 = set as 1, 1 = set from pipeline recommended values) ",
-      "Enable ka fallback (TRUE = automatically replace invalid ka values (NA or negative) with a preset default value; FALSE = retain original ka values, even if invalid)"
+      "Enable ka fallback (TRUE = automatically replace invalid ka values (NA or negative) with a preset default value; FALSE = retain original ka values, even if invalid)",
+      "Parameter sweep mode (1 = use the combination 2/cl, cl, 2*cl, 2*cl; 2 = use empirical setting 1, cl, 10)"
     ),
     Value = c(
       run.option,
@@ -69,7 +71,8 @@ getPPKinits<- function(dat,
       est.method,
       selection.criteria,
       npdcmpt.inits.strategy,
-      enable_ka_fallback
+      enable_ka_fallback,
+      param.sweep.mode.q
     )
   )
 
@@ -712,7 +715,8 @@ cat(message_text, "\n")
   if (bolus_flag==1 || infusion_flag==1){
     sim.2cmpt.results.all.i <- sim_sens_2cmpt(dat = dat,
                                               estcl = base.cl.best,
-                                              sim_vc_list = c( approx.vc.value, base.vd.best))
+                                              sim_vc_list = c( approx.vc.value, base.vd.best),
+                                              mode_sim_q =  param.sweep.mode.q)
     sim.2cmpt.results.all <-
       rbind(sim.2cmpt.results.all, sim.2cmpt.results.all.i)
     rownames(sim.2cmpt.results.all) <-
@@ -724,7 +728,8 @@ cat(message_text, "\n")
                                                 estcl = base.cl.best,
                                                 sim_vc_list = c( approx.vc.value, base.vd.best),
                                                 estka = base.ka.best,
-                                                noniv_flag = 1)
+                                                noniv_flag = 1,
+                                                mode_sim_q =  param.sweep.mode.q)
       sim.2cmpt.results.all <-
         rbind(sim.2cmpt.results.all, sim.2cmpt.results.all.i)
       rownames(sim.2cmpt.results.all) <-
@@ -740,7 +745,8 @@ cat(message_text, "\n")
 
     sim.3cmpt.results.all.i <- sim_sens_3cmpt(dat = dat,
                                               estcl = base.cl.best,
-                                              sim_vc_list = c( approx.vc.value, base.vd.best))
+                                              sim_vc_list = c( approx.vc.value, base.vd.best),
+                                              mode_sim_q =  param.sweep.mode.q)
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results.all.i)
     rownames(sim.3cmpt.results.all) <-
@@ -749,12 +755,12 @@ cat(message_text, "\n")
 
 
   if (oral_flag==1){
-
     sim.3cmpt.results.all.i <- sim_sens_3cmpt(dat = dat,
                                               estcl = base.cl.best,
                                               sim_vc_list = c( approx.vc.value, base.vd.best),
                                               estka = base.ka.best,
-                                              noniv_flag = 1)
+                                              noniv_flag = 1,
+                                              mode_sim_q =  param.sweep.mode.q)
     sim.3cmpt.results.all <-
       rbind(sim.3cmpt.results.all, sim.3cmpt.results.all.i)
     rownames(sim.3cmpt.results.all) <-
