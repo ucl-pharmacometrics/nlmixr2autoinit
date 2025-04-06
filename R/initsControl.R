@@ -33,6 +33,11 @@
 #'   \item \code{selection.criteria}: The selection criteria for parameter values.
 #'   \item \code{npdcmpt.inits.strategy}: The strategy for initializing the NPD compartment analysis.
 #'   \item \code{enable_ka_fallback}: Logical flag to replace invalid ka values (NA or negative) with a default (e.g., 1) when TRUE; retains original values when FALSE.
+#'   \item \code{param.sweep.mode.q}: Mode selection for parameter sweep.
+#'     \enumerate{
+#'       \item Mode 1: Uses the combination \code{2/cl}, \code{cl}, \code{2*cl}, \code{2*cl}.
+#'       \item Mode 2: Uses an empirical setting with parameters \code{1}, \code{cl}, \code{10}.
+#'   }
 #' }
 #'
 #' @examples
@@ -48,7 +53,8 @@ initsControl<-function( half_life = NA,
                         est.method = "nls",
                         selection.criteria="rRMSE",
                         npdcmpt.inits.strategy= 0,
-                        enable_ka_fallback=TRUE){
+                        enable_ka_fallback=TRUE,
+                        param.sweep.mode.q=1){
 
   return(  list(half_life =  half_life ,
                 nlastpoints =   nlastpoints,
@@ -57,7 +63,8 @@ initsControl<-function( half_life = NA,
                 est.method=   est.method,
                 selection.criteria=   selection.criteria,
                 npdcmpt.inits.strategy=  npdcmpt.inits.strategy,
-                enable_ka_fallback=enable_ka_fallback))
+                enable_ka_fallback=enable_ka_fallback,
+                param.sweep.mode.q=param.sweep.mode.q ))
 }
 
 
