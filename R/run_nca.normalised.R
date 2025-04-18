@@ -252,7 +252,7 @@ nca.iv.normalised <- function(dat,
                                trapezoidal.rule=1,
                               ss=0,
                               nlastpoints=3,
-                              route=route) {
+                              route="bolus") {
 
   cl=NA
   vd=NA

@@ -29,6 +29,7 @@
 #' @importFrom knitr kable
 #' @examples
 #' inits.out<-getPPKinits(dat = Infusion_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
+#' inits.out<-getPPKinits(dat = Oral_1CPT)
 #' inits.out
 #'
 #' @export
@@ -47,7 +48,7 @@ getPPKinits<- function(dat,
   selection.criteria<-getinitsControl$ selection.criteria
   npdcmpt.inits.strategy<-getinitsControl$npdcmpt.inits.strategy
   enable_ka_fallback<-getinitsControl$enable_ka_fallback
-  param.sweep.mode.q <-  getinitsControl$param.sweep.mode.q
+  param.sweep.mode.q <-getinitsControl$param.sweep.mode.q
 
   function.params <- data.frame(
     Parameter = c(
