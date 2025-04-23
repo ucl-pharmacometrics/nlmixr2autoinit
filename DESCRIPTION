@@ -19,7 +19,9 @@ Imports:
     nlmixr2est,
     tidyr,
     crayon,
-    purrr
+    purrr,
+    knitr,
+    magrittr
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
