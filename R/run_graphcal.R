@@ -61,7 +61,7 @@ run_graphcal <- function(dat,
     if (fdobsflag==1){
 
     dat_fd <- dat[dat$dose_number == 1,]
-    datpooled_fd <- pk.time.binning(testdat = dat_fd,
+    datpooled_fd <- pk.time.binning(dat = dat_fd,
                                     nbins = nbins)
 
     graph.fd.output <-
@@ -94,7 +94,7 @@ run_graphcal <- function(dat,
       start.time <- Sys.time()
 
       dat_fd <- dat[dat$dose_number == 1,]
-      datpooled_fd <- pk.time.binning(testdat = dat_fd,
+      datpooled_fd <- pk.time.binning(dat = dat_fd,
                                       nbins = nbins)
 
       graph.fd.output <-
