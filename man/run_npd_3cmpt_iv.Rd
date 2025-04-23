@@ -7,12 +7,12 @@
 run_npd_3cmpt_iv(
   dat,
   est.method = "nls",
-  input.cl = 1,
-  input.vc3cmpt = 1,
-  input.vp3cmpt = 1,
-  input.vp23cmpt = 1,
-  input.q3cmpt = 1,
-  input.q23cmpt = 1,
+  input.cl = exp(1),
+  input.vc3cmpt = exp(1),
+  input.vp3cmpt = exp(1),
+  input.vp23cmpt = exp(1),
+  input.q3cmpt = exp(1),
+  input.q23cmpt = exp(1),
   input.add = 1
 )
 }
@@ -22,17 +22,17 @@ columns such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT} a
 
 \item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
 
-\item{input.cl}{A numeric value for the initial estimate of clearance (CL). Default is 1.}
+\item{input.cl}{A numeric value for the initial estimate of log-transformed clearance (CL). Default is exp(1).}
 
-\item{input.vc3cmpt}{A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is 1.}
+\item{input.vc3cmpt}{A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is exp(1).}
 
-\item{input.vp3cmpt}{A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.}
+\item{input.vp3cmpt}{A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is exp(1).}
 
-\item{input.vp23cmpt}{A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is 1.}
+\item{input.vp23cmpt}{A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp2). Default is exp(1).}
 
-\item{input.q3cmpt}{A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.}
+\item{input.q3cmpt}{A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is exp(1).}
 
-\item{input.q23cmpt}{A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is 1.}
+\item{input.q23cmpt}{A numeric value for the initial estimate of the intercompartmental clearance (Q2). Default is exp(1).}
 
 \item{input.add}{A numeric value for the additive error model. Default is 1.}
 }
@@ -41,7 +41,10 @@ A list containing the following elements:
 \item{npd.3cmpt_results}{A data frame with the estimated CL, Vc, Vp, Q, and
 the time spent during estimation.}
 \item{npd.3cmpt.APE}{The absolute prediction error (APE).}
+\item{npd.3cmpt.MAE}{The mean absolute error (MAE).}
 \item{npd.3cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+\item{npd.3cmpt.RMSE}{The root mean square error (RMSE).}
+\item{npd.3cmpt.rRMSE}{The relative root mean square error (rRMSE).}
 \item{npd.list.3cmpt}{The full output list from the \code{Fit_3cmpt_iv} function.}
 }
 \description{
@@ -49,14 +52,9 @@ Perform parameter estimation with naive pooled data approach analysis for a thre
 }
 \details{
 This function fits the three-compartment IV model to the given dataset using
-the specified estimation method. It excludes rows where \code{EVID == 2}, as these
-represent non-observation events. After fitting the model, the function returns
-the estimated CL, Vc, Vp, Vp2, Q and Q2 along with the APE (absolute prediction error)
-and MAPE (mean absolute percentage error) to assess model fit.
-
-The function also applies penalties to the results if certain conditions are
-met, such as high relative standard error (\verb{\%RSE > 50}) or if the fitting method
-does not converge successfully for the \code{focei} method.
+the specified estimation methods. It excludes rows where \code{EVID == 2}.
+After fitting the model, the function returns the estimated CL and Vd along
+with metrics to assess model fit.
 }
 \examples{
 \dontrun{

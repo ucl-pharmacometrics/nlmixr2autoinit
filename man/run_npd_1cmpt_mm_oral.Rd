@@ -8,12 +8,13 @@ Perform parameter estimation on naive pooled data for a one-compartment Michaeli
 run_npd_1cmpt_mm_oral(
   dat,
   est.method = "nls",
-  input.ka = 1,
-  input.vmax = 1,
-  input.km = 1,
-  input.cl = 1,
-  input.vd = 1,
-  km_threshold = T
+  input.ka = exp(1),
+  input.vmax = exp(1),
+  input.km = exp(1),
+  input.cl = exp(1),
+  input.vd = exp(1),
+  input.add = 1,
+  km_threshold = F
 )
 }
 \arguments{
@@ -22,27 +23,30 @@ such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT}.}
 
 \item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
 
-\item{input.ka}{A numeric value for the initial estimate of absorption rate constant. Default is 1.}
+\item{input.ka}{A numeric value for the initial estimate of the log-transformed absorption rate constant. Default is 1.}
 
-\item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},
-initial estimates of Vmax and Km are adjusted based on a threshold related
-to the maximum observed concentration in the data.}
+\item{input.add}{A numeric value for the additive error model. Default is Default is 1.}
 
-\item{npdmm_inputvmax}{A numeric value for the initial estimate of Vmax.}
+\item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},}
 
-\item{npdmm_inputkm}{A numeric value for the initial estimate of Km.}
+\item{npdmm_inputvmax}{A numeric value for the initial estimate of the Vmax. Default is 1.}
 
-\item{npdmm_inputcl}{A numeric value for the clearance.}
+\item{npdmm_inputkm}{A numeric value for the initial estimate of the Km. Default is 1.}
 
-\item{npdmm_inputvd}{A numeric value for the initial estimate of volume of distribution (Vd).}
+\item{npdmm_inputcl}{A numeric value for clearance for Vmax and Km calculation when km_threshold is set to True.}
+
+\item{npdmm_inputvd}{A numeric value for the initial estimate of the volume of distribution (Vd). Default is 1.}
 }
 \value{
 A list with the following elements:
 \describe{
 \item{npd.1cmpt.mm_results}{A data frame with the estimated values of  \eqn{K_a},\eqn{V_{max}},
 \eqn{K_m}, and \eqn{V_d}, as well as the time taken for the estimation.}
-\item{npd.1cmpt.mm.APE}{The absolute prediction error (APE).}
-\item{npd.1cmpt.mm.MAPE}{The mean absolute percentage error (MAPE).}
+\item{npd.1cmpt.mm..APE}{The absolute prediction error (APE).}
+\item{npd.1cmpt.mm..MAE}{The mean absolute error (MAE).}
+\item{npd.1cmpt.mm..MAPE}{The mean absolute percentage error (MAPE).}
+\item{npd.1cmpt.mm..RMSE}{The root mean square error (RMSE).}
+\item{npd.1cmpt.mm.rRMSE}{The relative root mean square error (rRMSE).}
 \item{npd.1cmpt.mm.list}{The full output list from the \code{Fit_1cmpt_mm_oral} function.}
 }
 }

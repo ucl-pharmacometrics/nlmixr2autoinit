@@ -8,11 +8,12 @@ Perform parameter estimation on naive pooled data for a one-compartment Michaeli
 run_npd_1cmpt_mm_iv(
   dat,
   est.method = "nls",
-  npdmm_inputvmax = 1,
-  npdmm_inputkm = 1,
-  npdmm_inputcl = 1,
-  npdmm_inputvd = 1,
-  km_threshold = T
+  npdmm_inputvmax = exp(1),
+  npdmm_inputkm = exp(1),
+  npdmm_inputcl = exp(1),
+  npdmm_inputvd = exp(1),
+  input.add = 1,
+  km_threshold = F
 )
 }
 \arguments{
@@ -21,13 +22,13 @@ such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT}.}
 
 \item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
 
-\item{npdmm_inputvmax}{A numeric value for the initial estimate of Vmax.}
+\item{npdmm_inputvmax}{A numeric value for the initial estimate of Vmax. Default is exp(1).}
 
-\item{npdmm_inputkm}{A numeric value for the initial estimate of Km.}
+\item{npdmm_inputkm}{A numeric value for the initial estimate of Km. Default is exp(1).}
 
-\item{npdmm_inputcl}{A numeric value for the clearance.}
+\item{npdmm_inputcl}{A numeric value for the clearance. Default is exp(1).}
 
-\item{npdmm_inputvd}{A numeric value for the initial estimate of volume of distribution (Vd).}
+\item{npdmm_inputvd}{A numeric value for the initial estimate of volume of distribution (Vd). Default is exp(1).}
 
 \item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},
 initial estimates for \eqn{V_{max}} and \eqn{K_m} will be set based on the
@@ -38,15 +39,18 @@ A list with the following elements:
 \describe{
 \item{npd.1cmpt.mm_results}{A data frame with the estimated values of \eqn{V_{max}},
 \eqn{K_m}, and \eqn{V_d}, as well as the time taken for the estimation.}
-\item{npd.1cmpt.mm.APE}{The absolute prediction error (APE).}
-\item{npd.1cmpt.mm.MAPE}{The mean absolute percentage error (MAPE).}
+\item{npd.1cmpt.mm..APE}{The absolute prediction error (APE).}
+\item{npd.1cmpt.mm..MAE}{The mean absolute error (MAE).}
+\item{npd.1cmpt.mm..MAPE}{The mean absolute percentage error (MAPE).}
+\item{npd.1cmpt.mm..RMSE}{The root mean square error (RMSE).}
+\item{npd.1cmpt.mm.rRMSE}{The relative root mean square error (rRMSE).}
 \item{npd.1cmpt.mm.list}{The full output list from the \code{Fit_1cmpt_mm_iv} function.}
 }
 }
 \description{
 Estimates the pharmacokinetic parameters (Vmax, Km, Vd) for a
 1-compartment Michaelis-Menten IV (Intravenous) model by fitting.
-Optionally, an initial estimate of Km is based on the
+Optionally, an initial estimate of Km is set based on the
 maximum concentration in the dataset (if \code{km_threshold = TRUE}).
 }
 \details{

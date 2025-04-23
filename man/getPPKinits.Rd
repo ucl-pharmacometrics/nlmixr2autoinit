@@ -4,7 +4,7 @@
 \alias{getPPKinits}
 \title{Get initial estimates for a population pharmacokinetic modelling}
 \usage{
-getPPKinits(dat, run.option = 0, getinitsControl = initsControl())
+getPPKinits(dat, run.option = 1, getinitsControl = initsControl())
 }
 \arguments{
 \item{dat}{A data frame containing the pharmacokinetic data.}
@@ -34,13 +34,11 @@ If any of these settings are not provided, default values will be used.}
 A list containing data information, initial parameter estimates, messages, and run history.
 }
 \description{
-Computes initial values of pharmacokinetic parameters using integrated pipeline which includes single-point method, non-compartmental analysis, graphical methods, simulation-based analysis and parameter estimation with naive pooled data approach compartmental analysis if specified.
+Computes initial values of pharmacokinetic parameters using integrated pipeline which includes adaptive single-point method, non-compartmental analysis, graphical methods, parameter sweeping and parameter estimation with naive pooled data approach compartmental analysis if specified.
 }
 \examples{
-inits.out<-getPPKinits(dat = Infusion_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
+inits.out<-getPPKinits(dat = Bolus_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
+inits.out<-getPPKinits(dat = Oral_1CPT)
 inits.out
-
-
-
 
 }

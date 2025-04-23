@@ -12,7 +12,8 @@ sim_sens_3cmpt(
   sim_q_list = NA,
   estcl,
   estka = NA,
-  noniv_flag = 0
+  noniv_flag = 0,
+  mode_sim_q = 1
 )
 }
 \arguments{

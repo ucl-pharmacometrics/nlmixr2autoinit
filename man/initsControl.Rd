@@ -10,8 +10,10 @@ initsControl(
   trapezoidal.rule = 1,
   nbins = 10,
   est.method = "nls",
-  selection.criteria = "APE",
-  npdcmpt.inits.strategy = 0
+  selection.criteria = "rRMSE",
+  npdcmpt.inits.strategy = 0,
+  enable_ka_fallback = TRUE,
+  param.sweep.mode.q = 1
 )
 }
 \arguments{
@@ -36,6 +38,12 @@ initsControl(
 \item \code{0}: Set as \code{1}.
 \item \code{1}: Set as pipeline-recommended values.
 }}
+
+\item{enable_ka_fallback}{Logical, default is \code{TRUE}. Controls whether to replace invalid absorption rate constant (ka) values with a default:
+\itemize{
+\item \code{TRUE}: Replaces invalid ka values (e.g., \code{NA} or negative) with a predefined default (e.g., 1).
+\item \code{FALSE}: Retains original ka values, even if invalid.
+}}
 }
 \value{
 A list containing:
@@ -47,6 +55,12 @@ A list containing:
 \item \code{est.method}: The method used for PK parameter estimation.
 \item \code{selection.criteria}: The selection criteria for parameter values.
 \item \code{npdcmpt.inits.strategy}: The strategy for initializing the NPD compartment analysis.
+\item \code{enable_ka_fallback}: Logical flag to replace invalid ka values (NA or negative) with a default (e.g., 1) when TRUE; retains original values when FALSE.
+\item \code{param.sweep.mode.q}: Mode selection for parameter sweep.
+\enumerate{
+\item Mode 1: Uses the combination \code{2/cl}, \code{cl}, \code{2*cl}, \code{2*cl}.
+\item Mode 2: Uses an empirical setting with parameters \code{1}, \code{cl}, \code{10}.
+}
 }
 }
 \description{

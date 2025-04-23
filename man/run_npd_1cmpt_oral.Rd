@@ -7,9 +7,9 @@
 run_npd_1cmpt_oral(
   dat,
   est.method = "nls",
-  input.ka = 1,
-  input.cl = 1,
-  input.vd = 1,
+  input.ka = exp(1),
+  input.cl = exp(1),
+  input.vd = exp(1),
   input.add = 1
 )
 }
@@ -19,11 +19,11 @@ columns such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT} a
 
 \item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
 
-\item{input.ka}{A numeric value for the initial estimate of absorption rate constant. Default is 1.}
+\item{input.ka}{A numeric value for the initial estimate of the absorption rate constant. Default is exp(1).}
 
-\item{input.cl}{A numeric value for the initial estimate of clearance (CL). Default is 1.}
+\item{input.cl}{A numeric value for the initial estimate of the clearance (CL). Default is exp(1).}
 
-\item{input.vd}{A numeric value for the initial estimate of volume of distribution (Vd). Default is 1.}
+\item{input.vd}{A numeric value for the initial estimate of the volume of distribution (Vd). Default is exp(1).}
 
 \item{input.add}{A numeric value for the additive error model. Default is 1.}
 }
@@ -32,22 +32,20 @@ A list containing the following elements:
 \item{npd.1cmpt_results}{A data frame with the estimated CL and Vd, as well
 as the time spent during estimation.}
 \item{npd.1cmpt.APE}{The absolute prediction error (APE).}
+\item{npd.1cmpt.MAE}{The mean absolute error (MAE).}
 \item{npd.1cmpt.MAPE}{The mean absolute percentage error (MAPE).}
+\item{npd.1cmpt.RMSE}{The root mean square error (RMSE).}
+\item{npd.1cmpt.rRMSE}{The relative root mean square error (rRMSE).}
 \item{nnpd.1cmpt.list}{The full output list from the \code{Fit_1cmpt_oral} function.}
 }
 \description{
 Perform parameter estimation with naive pooled data approach analysis for a one-compartment oral model, and evaluate the model fitting performance by the absolute prediction error (APE) and mean absolute prediction error (MAPE).
 }
 \details{
-This function fits the 1-compartment IV model to the given dataset using
-the specified estimation methods. It excludes rows where \code{EVID == 2}, as these
-represent non-observation events. After fitting the model, the function returns
-the estimated CL and Vd along with the APE (absolute prediction error) and MAPE
-(mean absolute percentage error) to assess model fit.
-
-The function also applies penalties to the results if certain conditions are
-met, such as high relative standard error (\verb{\%RSE > 50}) or if the fitting method
-does not converge successfully for the \code{focei} method.
+This function fits the one-compartment oral model to the given dataset using
+the specified estimation methods. It excludes rows where \code{EVID == 2}.
+After fitting the model, the function returns the estimated CL and Vd
+along with the metrics to assess model fit.
 }
 \examples{
 \dontrun{

@@ -28,7 +28,7 @@
 #' @import crayon
 #' @importFrom knitr kable
 #' @examples
-#' inits.out<-getPPKinits(dat = Infusion_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
+#' inits.out<-getPPKinits(dat = Bolus_1CPT,run.option = 2,getinitsControl = initsControl(est.method = "nls"))
 #' inits.out<-getPPKinits(dat = Oral_1CPT)
 #' inits.out
 #'
@@ -44,6 +44,7 @@ getPPKinits<- function(dat,
   nlastpoints <- getinitsControl$nlastpoints
   trapezoidal.rule <- getinitsControl$trapezoidal.rule
   nbins <-getinitsControl$nbins
+  # bin.method
   est.method <-getinitsControl$ est.method
   selection.criteria<-getinitsControl$ selection.criteria
   npdcmpt.inits.strategy<-getinitsControl$npdcmpt.inits.strategy
@@ -134,11 +135,20 @@ getPPKinits<- function(dat,
     route<-"oral"
   }
 
+  if (fdobsflag==1 & sdflag==1){
+    data_type <- "first_dose"
+  }
 
+  if (fdobsflag==1 & sdflag==0){
+    data_type <- "combined_doses"
+  }
+
+  if (fdobsflag==0 & sdflag==0){
+      data_type <- "repeated_doses"
+  }
 
 ########################### Pipeline part ##################################
   if (run.option==1){
-
 ####################Single point method ################################
 
 message(black(
@@ -175,14 +185,14 @@ message(black(
     paste0("Run non-compartmental analysis on naive pooling data", strrep(".", 20))
   ))
 
- nca.results <- run_nca.normalised(
+ nca.results <- run_pooled_nca(
     dat = dat,
     nlastpoints = nlastpoints,
     trapezoidal.rule = trapezoidal.rule,
     nbins = nbins,
-    fdobsflag = fdobsflag,
-    sdflag=sdflag,
+    data_type = data_type,
     route=route
+    # bin.method ="jenks"
   )
 
  # Determine absorption rate of constant
@@ -193,7 +203,7 @@ message(black(
     ka_wanger_nelson_result="No ka calculation using the Wagner-Nelson method was performed."
 
   if (oral_flag==1 & length(nca.results$datpooled_fd)==2 ){
-     if (is.na(nca.results$nca.fd.results$cl)==F & is.na(nca.results$nca.fd.results$vd)==F){
+     if (is.na(nca.results$nca.fd.results$clobs)==F & is.na(nca.results$nca.fd.results$vzobs)==F){
      ka_wanger_nelson_result<-ka_wanger_nelson(dat = nca.results$datpooled_fd$test.pool.normalised,
                       nlastpoints = nlastpoints,
                       nca.out = unlist(nca.results$nca.fd.results, use.names = FALSE))
@@ -306,13 +316,13 @@ message(black(
   nca.results_fd <- nca.results$nca.fd.results
   nca.results_efd <- nca.results$nca.efd.results
 
-  if (is.na(nca.results_all$cl)==F & is.na(nca.results_all$vd )==F) {
-  if (nca.results_all$cl > 0 & nca.results_all$vd > 0) {
+  if (is.na(nca.results_all$clobs)==F & is.na(nca.results_all$vzobs)==F) {
+    if (nca.results_all$clobs > 0 & nca.results_all$vzobs > 0) {
     nca_sim <- Fit_1cmpt_iv(
       data = dat[dat$EVID != 2,],
       est.method = "rxSolve",
-      input.cl = nca.results_all$cl,
-      input.vd = nca.results_all$vd,
+      input.cl = nca.results_all$clobs,
+      input.vd = nca.results_all$vzobs,
       input.add = 0
     )
     nca.APE <-  round(metrics.(pred.x = nca_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
@@ -326,13 +336,13 @@ message(black(
   }
   }
 
-  if (is.na(nca.results_fd$cl)==F & is.na(nca.results_fd$vd)==F) {
-    if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0) {
+  if (is.na(nca.results_fd$clobs)==F & is.na(nca.results_fd$vzobs)==F) {
+    if (nca.results_fd$clobs > 0 & nca.results_fd$vzobs > 0) {
       nca_fd_sim <- Fit_1cmpt_iv(
         data = dat[dat$EVID != 2,],
         est.method = "rxSolve",
-        input.cl = nca.results_fd$cl,
-        input.vd = nca.results_fd$vd,
+        input.cl = nca.results_fd$clobs,
+        input.vd = nca.results_fd$vzobs,
         input.add = 0
       )
 
@@ -348,13 +358,13 @@ message(black(
     }
   }
 
-  if (is.na(nca.results_efd$cl)==F & is.na(nca.results_efd$vd)==F) {
-    if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0) {
+  if (is.na(nca.results_efd$clobs)==F & is.na(nca.results_efd$vzobs)==F) {
+    if (nca.results_efd$clobs > 0 & nca.results_efd$vzobs > 0) {
       nca_efd_sim <- Fit_1cmpt_iv(
         data = dat[dat$EVID != 2,],
         est.method = "rxSolve",
-        input.cl = nca.results_efd$cl,
-        input.vd = nca.results_efd$vd,
+        input.cl = nca.results_efd$clobs,
+        input.vd = nca.results_efd$vzobs,
         input.add = 0
       )
 
@@ -425,14 +435,14 @@ message(black(
     nca.results_fd <- nca.results$nca.fd.results
     nca.results_efd <- nca.results$nca.efd.results
 
-    if (is.na(nca.results_all$cl)==F & is.na(nca.results_all$vd)==F & is.na(ka_nca_all)==F) {
-    if (nca.results_all$cl > 0 & nca.results_all$vd > 0 &  ka_nca_all>0 ) {
+    if (is.na(nca.results_all$clobs)==F & is.na(nca.results_all$vzobs)==F & is.na(ka_nca_all)==F) {
+    if (nca.results_all$clobs > 0 & nca.results_all$vzobs > 0 &  ka_nca_all>0 ) {
       nca_sim <- Fit_1cmpt_oral(
         data = dat[dat$EVID != 2,],
         est.method = "rxSolve",
         input.ka = ka_nca_all,
-        input.cl = nca.results_all$cl,
-        input.vd = nca.results_all$vd,
+        input.cl = nca.results_all$clobs,
+        input.vd = nca.results_all$vzobs,
         input.add = 0
       )
 
@@ -448,14 +458,14 @@ message(black(
     }
     }
 
-    if (is.na(nca.results_fd$cl)==F & is.na(nca.results_fd$vd)==F & is.na(ka_nca_fd)==F) {
-      if (nca.results_fd$cl > 0 & nca.results_fd$vd > 0  &  ka_nca_fd>0 ) {
+    if (is.na(nca.results_fd$clobs)==F & is.na(nca.results_fd$vzobs)==F & is.na(ka_nca_fd)==F) {
+      if (nca.results_fd$clobs > 0 & nca.results_fd$vzobs > 0  &  ka_nca_fd>0 ) {
         nca_fd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
           input.ka = ka_nca_fd,
-          input.cl = nca.results_fd$cl,
-          input.vd = nca.results_fd$vd,
+          input.cl = nca.results_fd$clobs,
+          input.vd = nca.results_fd$vzobs,
           input.add = 0
         )
         nca_fd.APE <-  round(metrics.(pred.x = nca_fd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
@@ -470,14 +480,14 @@ message(black(
       }
     }
 
-    if (is.na(nca.results_efd$cl)==F & is.na(nca.results_efd$vd)==F &  is.na(ka_nca_efd)==F) {
-      if (nca.results_efd$cl > 0 & nca.results_efd$vd > 0 &  ka_nca_efd>0) {
+    if (is.na(nca.results_efd$clobs)==F & is.na(nca.results_efd$vzobs)==F &  is.na(ka_nca_efd)==F) {
+      if (nca.results_efd$clobs > 0 & nca.results_efd$vzobs > 0 &  ka_nca_efd>0) {
         nca_efd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2,],
           est.method = "rxSolve",
           input.ka = ka_nca_efd,
-          input.cl = nca.results_efd$cl,
-          input.vd = nca.results_efd$vd,
+          input.cl = nca.results_efd$clobs,
+          input.vd = nca.results_efd$vzobs,
           input.add = 0
         )
         nca_efd.APE <-  round(metrics.(pred.x = nca_efd_sim$cp ,obs.y =dat[dat$EVID == 0,]$DV )[1],3)
@@ -533,17 +543,17 @@ all.out <- data.frame(
     cl = c(
       single.point.out$cl,
       graph.results_fd$cl,
-      nca.results_fd$cl,
-      nca.results_efd$cl,
-      nca.results_all$cl
+      nca.results_fd$clobs,
+      nca.results_efd$clobs,
+      nca.results_all$clobs
     ),
 
     vd = c(
       single.point.out$vd,
       graph.results_fd$vd,
-      nca.results_fd$vd,
-      nca.results_efd$vd,
-      nca.results_all$vd
+      nca.results_fd$vzobs,
+      nca.results_efd$vzobs,
+      nca.results_all$vzobs
     ),
 
     simAPE = c(simpcal.APE,
@@ -582,9 +592,9 @@ all.out <- data.frame(
     time.spent = c(
       single.point.out$time.spent,
       graph.results_fd$time.spent,
-      nca.results_fd$time.spent,
-      nca.results_efd$time.spent,
-      nca.results_all$time.spent
+      nca.results$time.spent,
+      nca.results$time.spent,
+      nca.results$time.spent
     )
 
   )
