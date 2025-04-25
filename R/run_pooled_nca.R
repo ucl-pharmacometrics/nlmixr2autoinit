@@ -69,9 +69,48 @@ run_pooled_nca <- function(dat,
 
   # Initialize results structure with NA placeholders
   results <- list(
-    nca.fd.results = NA,
-    nca.efd.results = NA,
-    nca.all.results = NA
+    nca.fd.results = list(
+      clobs = NA,
+      vzobs = NA,
+      half_life = NA,
+      auct = NA,
+      auc0_inf = NA,
+      C_last = NA,
+      lamdaz = NA,
+      aumc_0_inf = NA,
+      used_points = NA,
+      adj.r.squared = NA,
+      messages = NA,
+      time.spent = NA
+    ),
+    nca.efd.results = list(
+      clobs = NA,
+      vzobs = NA,
+      half_life = NA,
+      auct = NA,
+      auc0_inf = NA,
+      C_last = NA,
+      lamdaz = NA,
+      aumc_0_inf = NA,
+      used_points = NA,
+      adj.r.squared = NA,
+      messages = NA,
+      time.spent = NA
+    ),
+    nca.all.results = list(
+      clobs = NA,
+      vzobs = NA,
+      half_life = NA,
+      auct = NA,
+      auc0_inf = NA,
+      C_last = NA,
+      lamdaz = NA,
+      aumc_0_inf = NA,
+      used_points = NA,
+      adj.r.squared = NA,
+      messages = NA,
+      time.spent = NA
+    )
   )
 
   # Generate pooled data if not already supplied
