@@ -74,7 +74,7 @@ find_best_lambdaz <- function(time,
 
   if (route == "bolus"){
     search_start <-  tmax_idx + 1
-  } else {tmax_idx}
+  } else {search_start <- tmax_idx}
 
   # search_start<-tmax_idx
   max_possible_points <- n_points - search_start + 1
