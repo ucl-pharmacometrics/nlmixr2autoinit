@@ -44,8 +44,8 @@ getPPKinits<- function(dat,
   nlastpoints <- getinitsControl$nlastpoints
   trapezoidal.rule <- getinitsControl$trapezoidal.rule
   nbins <-getinitsControl$nbins
-  # bin.method
-  est.method <-getinitsControl$ est.method
+  bin.method<-getinitsControl$bin.method
+  est.method <-getinitsControl$est.method
   selection.criteria<-getinitsControl$ selection.criteria
   npdcmpt.inits.strategy<-getinitsControl$npdcmpt.inits.strategy
   enable_ka_fallback<-getinitsControl$enable_ka_fallback
