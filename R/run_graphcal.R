@@ -13,9 +13,8 @@
 #' extrapolated concentration, and for oral data, absorption rate constant.
 #'
 #' @seealso \code{\link{graphcal_iv}}, \code{\link{graphcal_oral}}, \code{\link{get_pooled_data}}
-#' @export
-
 #'
+#' @examples
 #' # Example 1 (iv case)
 #' dat <- Bolus_1CPT
 #' dat <- processData(dat)$dat

@@ -2,22 +2,60 @@
 % Please edit documentation in R/run_graphcal.R
 \name{graphcal_oral}
 \alias{graphcal_oral}
-\title{Graphical calculation of clearance and volume of distribution for oral case}
+\title{Graphical calculation of PK parameters for oral administration}
 \usage{
-graphcal_oral(dat, nlastpoints)
+graphcal_oral(dat, dose = 1, ...)
 }
 \arguments{
-\item{dat}{A data frame with oral pharmacokinetic data, at least containing TIME and DV these two columns}
+\item{dat}{A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).}
 
-\item{nlastpoints}{Number of last points to use for the linear regression of terminal slope}
+\item{dose}{Administered dose amount (default is \code{1}).}
+
+\item{...}{Additional arguments passed to \code{\link{find_best_lambdaz}}, such as \code{nlastpoints}.}
 }
 \value{
-A named vector containing the calculated clearance (cl), volume of distribution (vd), slope of terminal phase (slope), and concentration at the time 0 (C0).
+A list containing:
+\describe{
+\item{\code{ka}}{Estimated absorption rate constant (1/h)}
+\item{\code{kel}}{Estimated elimination rate constant (1/h)}
+\item{\code{slope}}{Negative terminal phase slope (lambda_z)}
+\item{\code{C0}}{Extrapolated concentration at the start of elimination phase}
+\item{\code{cl}}{Estimated clearance normalized by bioavailability (Cl/F)}
+\item{\code{vd}}{Estimated apparent volume of distribution normalized by bioavailability (Vd/F)}
+\item{\code{method}}{Method used for terminal phase slope estimation ("find_best_lambdaz" or "fallback_regression")}
+\item{\code{time.spent}}{Elapsed computation time in seconds}
+}
 }
 \description{
-Graphic calculation for clearance and volume of distribution from the provided data.
+Calculates key pharmacokinetic parameters from oral pharmacokinetic data using graphical methods,
+including absorption rate constant (ka), elimination rate constant (kel), terminal slope,
+extrapolated concentration (C0), apparent volume of distribution (Vd/F), and clearance (Cl/F).
+}
+\details{
+The function first attempts to identify the elimination phase using \code{\link{find_best_lambdaz}},
+based on adjusted R-squared criteria. If a valid elimination phase cannot be identified,
+it falls back to simple linear regressions using decreasing numbers of points (from \code{n-1} down to 2).
+
+The extrapolated intercept (C0) from the log-linear regression represents the concentration at the start
+of the elimination phase. The apparent volume of distribution (Vd/F) and clearance (Cl/F) are estimated
+under the assumption of complete absorption (F=1) and based on the relationship:
+
+\deqn{
+Vd/F = \frac{Dose \times ka}{C_0 \times (ka - kel)}
+}
+
+\deqn{
+Cl/F = kel \times Vd/F
+}
+
+where \code{ka} is estimated separately using residual analysis of the absorption phase.
 }
 \examples{
-dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10), DV = c(1, 2, 5, 3, 2, 1.5, 1 ))
-graphcal_oral(dat, nlastpoints = 3)
+dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
+                 DV = c(1, 2, 5, 3, 2, 1.5, 1))
+graphcal_oral(dat, dose = 100)
+
+}
+\seealso{
+\code{\link{find_best_lambdaz}}
 }

@@ -2,22 +2,49 @@
 % Please edit documentation in R/run_graphcal.R
 \name{graphcal_iv}
 \alias{graphcal_iv}
-\title{Graphical calculation of clearance and volume of distribution}
+\title{Graphical Calculation of Clearance and Volume of Distribution (IV Route)}
 \usage{
-graphcal_iv(dat, nlastpoints = 3)
+graphcal_iv(dat, dose = 1, ...)
 }
 \arguments{
-\item{dat}{A data frame with intravenous pharmacokinetic data, at least containing TIME and DV these two columns}
+\item{dat}{A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).}
 
-\item{nlastpoints}{Numeric value specifying the number of last data points used for linear regression to obtain the slope in the terminal phase. (default is \code{3} in the graphical analysis).}
+\item{...}{Additional arguments passed to \code{\link{find_best_lambdaz}}, such as
+\code{nlastpoints}, \code{adj_r_squared_threshold}, and \code{tolerance}.}
 }
 \value{
-A named vector containing the calculated clearance (cl), volume of distribution (vd), slope of terminal phase (slope), and concentration at the time 0 (C0).
+A list containing the following elements:
+\describe{
+\item{\code{cl}}{Estimated clearance (CL)}
+\item{\code{vd}}{Estimated volume of distribution (Vd)}
+\item{\code{slope}}{Estimated negative terminal phase slope (lambda_z)}
+\item{\code{C0}}{Extrapolated concentration at time zero}
+}
+If sufficient valid data points are not available, returned values will be \code{NA}.
 }
 \description{
-Graphic calculation for clearance and volume of distribution from the provided data.
+Performs graphical calculation of pharmacokinetic parameters including clearance (CL),
+volume of distribution (Vd), slope of terminal phase, and extrapolated concentration at time zero (C0)
+based on intravenous (IV) pharmacokinetic data.
+}
+\details{
+The function applies a two-step fallback strategy to estimate terminal phase parameters:
+\enumerate{
+\item It first attempts to identify the optimal elimination phase using \code{\link{find_best_lambdaz}}.
+If a valid slope (lambda_z) is found, the intercept from the regression is used to calculate C0, and Vd and CL are derived accordingly.
+\item If no valid lambda_z is found (i.e., \code{NA}), and if there are at least 2 data points available after \code{Tmax},
+the function falls back to simple linear regressions, starting from \code{n-1} points down to 2 points.
+It sequentially attempts to fit log-linear regressions; the first successful fit with a negative slope is accepted
+for recalculating lambda_z, C0, Vd, and CL.
+\item If fewer than 2 points are available, or no valid regression is found, the function returns \code{NA} for all parameters.
+}
 }
 \examples{
-dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10), DV = c(12, 8, 5, 3, 2, 1.5, 1 ))
-graphcal_iv(dat, nlastpoints = 3)
+dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
+               DV = c(12, 8, 5, 3, 2, 1.5, 1))
+graphcal_iv(dat,dose=100)
+
+}
+\seealso{
+\code{\link{find_best_lambdaz}}
 }

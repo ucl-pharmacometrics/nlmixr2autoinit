@@ -2,28 +2,30 @@
 % Please edit documentation in R/run_graphcal.R
 \name{run_graphcal}
 \alias{run_graphcal}
-\title{Graphical calculation of pharmacokinetic parameters}
+\title{Run graphical analysis of PK Parameters}
 \usage{
-run_graphcal(dat, route, nbins = 8, nlastpoints = 3, fdobsflag = 1)
+run_graphcal(dat, route, data_type = "first_dose", pooled = NULL, ...)
 }
 \arguments{
-\item{dat}{A data frame containing the pharmacokinetic data.}
+\item{dat}{A data frame containing pharmacokinetic data.}
 
-\item{route}{A character string specifying the route of administration. It can be "bolus",
-"infusion", or "oral". The function will adapt its calculations based on the specified route.}
+\item{route}{Administration route, must be one of \code{"bolus"}, \code{"infusion"}, or \code{"oral"}.}
 
-\item{nbins}{An integer specifying the number of bins used to divide the time points for naive pooling of the data. The default is 8.}
+\item{data_type}{Type of dataset to use for binning (default: \code{"first_dose"}).}
 
-\item{nlastpoints}{Numeric value specifying the number of last data points used for linear regression to obtain the slope in the terminal phase. (default is \code{3} in the graphical analysis).}
+\item{pooled}{Optional externally provided pooled data. If \code{NULL}, the data will be pooled internally.}
+
+\item{...}{Additional arguments passed to \code{bin.time} or to the graphical calculation functions.}
 }
 \value{
-A data frame with calculated clearance, volume of distribution, slope, and time spent for the calculation.
+A list containing graphical estimation results, including clearance, volume of distribution, terminal slope,
+extrapolated concentration, and for oral data, absorption rate constant.
 }
 \description{
-Performs a graphical calculation of clearance and volume of distribution based on provided pharmacokinetic data with concentration normalised by dose
+Performs graphical estimation of pharmacokinetic parameters based on the input data and route of administration,
+returning detailed results in a list format.
 }
 \examples{
-
 # Example 1 (iv case)
 dat <- Bolus_1CPT
 dat <- processData(dat)$dat
@@ -31,16 +33,17 @@ run_graphcal(dat, route="bolus")
 
 # Example 2 (oral case)
 dat <- Oral_1CPT
-dat <- nmpkconvert(dat)
-dat <- calculate_tad(dat)
+dat <- processData(dat)$dat
 run_graphcal(dat, route="oral")
 
 # Example 3 (infusion case).
 Approximate calculation. only use when the infusion duration is very short
 
 dat <- Infusion_1CPT
-dat <- nmpkconvert(dat)
-dat <- calculate_tad(dat)
+dat <- processData(dat)$dat
 run_graphcal(dat, route="infusion")
 
+}
+\seealso{
+\code{\link{graphcal_iv}}, \code{\link{graphcal_oral}}, \code{\link{get_pooled_data}}
 }
