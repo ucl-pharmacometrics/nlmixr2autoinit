@@ -245,15 +245,15 @@ message(black(
    graph_fd.RMSE <- NA
    graph_fd.rRMSE <- NA
 
-   graph.results_fd <- suppressWarnings(suppressMessages(run_graphcal(
+   graph.results_fd <- run_graphcal(
      dat = dat,
      route =   route ,
      nbins = nbins,
-     nlastpoints = nlastpoints,
-     fdobsflag=fdobsflag
-   )))
+     nlastpoints = nlastpoints
+   )
 
    ka_graph_fixed <- 0
+
    if(enable_ka_fallback & oral_flag==1){
      if (is.na(graph.results_fd$ka) || (!is.na(graph.results_fd$ka) && graph.results_fd$ka < 0)) {
        graph.results_fd$ka<- 1
