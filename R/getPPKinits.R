@@ -155,10 +155,16 @@ message(black(
   paste0("Run adaptive single-point method to calculate PK parameters",strrep(".", 20))))
 # Half-life estimated
 
-   half_life_out<-half_life_estimated(dat = dat,
-                                  nlastpoints = nlastpoints,
-                                  nbins=nbins,
-                                  route=route)
+   pooled <- get_pooled_data(dat,
+                             data_type = data_type,
+                             nbins=nbins,
+                             bin.method=bin.method)
+
+   half_life_out<-get_hf(dat = dat,
+                          nlastpoints = nlastpoints,
+                          data_type = data_type,
+                          pooled = pooled,
+                          route=route)
 
    half_life<-  half_life_out$half_life_median
 
@@ -592,9 +598,9 @@ all.out <- data.frame(
     time.spent = c(
       single.point.out$time.spent,
       graph.results_fd$time.spent,
-      nca.results$time.spent,
-      nca.results$time.spent,
-      nca.results$time.spent
+      nca.results_fd$time.spent,
+      nca.results_efd$time.spent,
+      nca.results_all$time.spent
     )
 
   )

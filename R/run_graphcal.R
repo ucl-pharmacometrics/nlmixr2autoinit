@@ -1,16 +1,20 @@
-#' Graphical calculation of pharmacokinetic parameters
+#' Run graphical analysis of PK Parameters
 #'
-#' Performs a graphical calculation of clearance and volume of distribution based on provided pharmacokinetic data with concentration normalised by dose
+#' Performs graphical estimation of pharmacokinetic parameters based on the input data and route of administration,
+#' returning detailed results in a list format.
 #'
-#' @param dat A data frame containing the pharmacokinetic data.
-#' @param route A character string specifying the route of administration. It can be "bolus",
-#' "infusion", or "oral". The function will adapt its calculations based on the specified route.
-#' @param nbins An integer specifying the number of bins used to divide the time points for naive pooling of the data. The default is 8.
-#' @param nlastpoints Numeric value specifying the number of last data points used for linear regression to obtain the slope in the terminal phase. (default is \code{3} in the graphical analysis).
-#' @return A data frame with calculated clearance, volume of distribution, slope, and time spent for the calculation.
-#' @importFrom dplyr %>% mutate if_else group_by ungroup
-#' @import nlmixr2
-#' @examples
+#' @param dat A data frame containing pharmacokinetic data.
+#' @param route Administration route, must be one of \code{"bolus"}, \code{"infusion"}, or \code{"oral"}.
+#' @param data_type Type of dataset to use for binning (default: \code{"first_dose"}).
+#' @param pooled Optional externally provided pooled data. If \code{NULL}, the data will be pooled internally.
+#' @param ... Additional arguments passed to \code{bin.time} or to the graphical calculation functions.
+#'
+#' @return A list containing graphical estimation results, including clearance, volume of distribution, terminal slope,
+#' extrapolated concentration, and for oral data, absorption rate constant.
+#'
+#' @seealso \code{\link{graphcal_iv}}, \code{\link{graphcal_oral}}, \code{\link{get_pooled_data}}
+#' @export
+
 #'
 #' # Example 1 (iv case)
 #' dat <- Bolus_1CPT
@@ -19,255 +23,380 @@
 #'
 #' # Example 2 (oral case)
 #' dat <- Oral_1CPT
-#' dat <- nmpkconvert(dat)
-#' dat <- calculate_tad(dat)
+#' dat <- processData(dat)$dat
 #' run_graphcal(dat, route="oral")
 #'
 #' # Example 3 (infusion case).
 #' Approximate calculation. only use when the infusion duration is very short
 #'
 #' dat <- Infusion_1CPT
-#' dat <- nmpkconvert(dat)
-#' dat <- calculate_tad(dat)
+#' dat <- processData(dat)$dat
 #' run_graphcal(dat, route="infusion")
 #'
 #' @export
 
 run_graphcal <- function(dat,
                          route,
-                         nbins=8,
-                         nlastpoints=3,
-                         fdobsflag=1) {
+                         data_type = "first_dose",
+                         pooled = NULL,
+                         ...) {
 
-  if (missing(route)){
-    stop("Error, no dosing route was specified, please set it using the route option.")
+  dots <- list(...)
+  bin_args <- dots[names(dots) %in% names(formals(bin.time))]
+  graph_args <- dots[names(dots) %in% names(formals(graphcal_iv))]
+
+  if (is.null(pooled)) {
+    pooled <- do.call(get_pooled_data,
+                      c(list(dat = dat, data_type = data_type),
+                        bin_args))
   }
 
-  if (!1 %in% dat$dose_number){
-    stop("Error. no sampling point in the first dosing interval was detected")
-  }
+  # Initialize default output
+  if (route == "bolus" || route == "infusion") {
 
-  if (route=="bolus"|| route=="infusion"){
+    if (!is.null(pooled$datpooled_fd) &&
+        "binned.df" %in% names(pooled$datpooled_fd)) {
 
-  start.time <- Sys.time()
-
-    graph.fd.results <- data.frame(
-      cl = NA,
-      vd = NA,
-      slope = NA,
-      time.spent = 0
-    )
-
-    if (fdobsflag==1){
-
-    dat_fd <- dat[dat$dose_number == 1,]
-    datpooled_fd <- pk.time.binning(dat = dat_fd,
-                                    nbins = nbins)
-
-    graph.fd.output <-
-      graphcal_iv(dat = datpooled_fd$test.pool.normalised,
-               nlastpoints = nlastpoints)
-
-    end.time <- Sys.time()
-    time.spent <- round(difftime(end.time, start.time), 4)
-
-    graph.fd.results <- data.frame(
-      cl = signif(graph.fd.output[1], 3),
-      vd = signif(graph.fd.output[2], 3),
-      slope = signif(graph.fd.output[3], 3),
-      time.spent = time.spent
-    )
+      graph.fd.output <- do.call(graphcal_iv, c(
+        list(dat = pooled$datpooled_fd$binned.df, dose = 1),
+        graph_args
+      ))
     }
   }
 
-  if (route=="oral"){
+  if (route == "oral") {
 
-    graph.fd.results <- data.frame(
-      ka=NA,
-      cl = NA,
-      vd = NA,
-      slope = NA,
-      time.spent = 0
-    )
+    if (!is.null(pooled$datpooled_fd) &&
+        "binned.df" %in% names(pooled$datpooled_fd)) {
 
-    if (fdobsflag==1){
-      start.time <- Sys.time()
-
-      dat_fd <- dat[dat$dose_number == 1,]
-      datpooled_fd <- pk.time.binning(dat = dat_fd,
-                                      nbins = nbins)
-
-      graph.fd.output <-
-        graphcal_oral(dat = datpooled_fd$test.pool.normalised,
-                    nlastpoints = nlastpoints)
-
-      end.time <- Sys.time()
-      time.spent <- round(difftime(end.time, start.time), 4)
-
-      graph.fd.results <- data.frame(
-        ka = signif(graph.fd.output[1], 3),
-        cl = signif(graph.fd.output[2], 3),
-        vd = signif(graph.fd.output[3], 3),
-        slope = signif(graph.fd.output[4], 3),
-        time.spent = time.spent
-      )
-      }
+      graph.fd.output <- do.call(graphcal_oral, c(
+        list(dat = pooled$datpooled_fd$binned.df, dose = 1),
+        graph_args
+      ))
+    }
   }
 
-  return(graph.fd.results)
-
+  return(graph.fd.output)
 }
 
 
-#' Graphical calculation of clearance and volume of distribution
+
+
+#' Graphical Calculation of Clearance and Volume of Distribution (IV Route)
 #'
-#' Graphic calculation for clearance and volume of distribution from the provided data.
-#' @param dat A data frame with intravenous pharmacokinetic data, at least containing TIME and DV these two columns
-#' @param nlastpoints Numeric value specifying the number of last data points used for linear regression to obtain the slope in the terminal phase. (default is \code{3} in the graphical analysis).
-#' @return A named vector containing the calculated clearance (cl), volume of distribution (vd), slope of terminal phase (slope), and concentration at the time 0 (C0).
+#' Performs graphical calculation of pharmacokinetic parameters including clearance (CL),
+#' volume of distribution (Vd), slope of terminal phase, and extrapolated concentration at time zero (C0)
+#' based on intravenous (IV) pharmacokinetic data.
+#'
+#' @param dat A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).
+#' @param ... Additional arguments passed to \code{\link{find_best_lambdaz}}, such as
+#'   \code{nlastpoints}, \code{adj_r_squared_threshold}, and \code{tolerance}.
+#'
+#' @return A list containing the following elements:
+#' \describe{
+#'   \item{\code{cl}}{Estimated clearance (CL)}
+#'   \item{\code{vd}}{Estimated volume of distribution (Vd)}
+#'   \item{\code{slope}}{Estimated negative terminal phase slope (lambda_z)}
+#'   \item{\code{C0}}{Extrapolated concentration at time zero}
+#' }
+#' If sufficient valid data points are not available, returned values will be \code{NA}.
+#'
+#' @details
+#' The function applies a two-step fallback strategy to estimate terminal phase parameters:
+#' \enumerate{
+#'   \item It first attempts to identify the optimal elimination phase using \code{\link{find_best_lambdaz}}.
+#'         If a valid slope (lambda_z) is found, the intercept from the regression is used to calculate C0, and Vd and CL are derived accordingly.
+#'   \item If no valid lambda_z is found (i.e., \code{NA}), and if there are at least 2 data points available after \code{Tmax},
+#'         the function falls back to simple linear regressions, starting from \code{n-1} points down to 2 points.
+#'         It sequentially attempts to fit log-linear regressions; the first successful fit with a negative slope is accepted
+#'         for recalculating lambda_z, C0, Vd, and CL.
+#'   \item If fewer than 2 points are available, or no valid regression is found, the function returns \code{NA} for all parameters.
+#' }
+#'
 #' @examples
-#' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10), DV = c(12, 8, 5, 3, 2, 1.5, 1 ))
-#' graphcal_iv(dat, nlastpoints = 3)
+#' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
+#'                DV = c(12, 8, 5, 3, 2, 1.5, 1))
+
+#' graphcal_iv(dat,dose=100)
+#'
+#' @seealso \code{\link{find_best_lambdaz}}
 #' @export
 #'
-
 graphcal_iv <- function(dat,
-                        nlastpoints=3) {
+                        dose = 1,
+                        ...) {
+  start.time <- Sys.time()
+
+  dots <- list(...)
+  slope_args <-
+    dots[names(dots) %in% names(formals(find_best_lambdaz))]
+
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
 
-  cl = NA
-  vd = NA
-  slope = NA
-  C0 = NA
+  cl <- NA
+  vd <- NA
+  slope <- NA
+  C0 <- NA
 
-  # Identify the index of Tmax
+  # Identify Tmax
   max_index <- which.max(dat$DV)
+  temp1 <- dat[max_index:nrow(dat),]
 
-  temp1 <-dat[max_index:nrow(dat),] # Subset data points after Tmax
-
-  # Loop to adjust nlastpoints if there are insufficient points
-  while (nlastpoints > 1 && nrow(temp1) < nlastpoints) {
-    nlastpoints <- nlastpoints - 1
-  }
-
-  # If fewer than 2 points are available after the loop, exit as calculation is invalid
-  if (nlastpoints < 2) {
-    return(c(
-      cl = cl,
-      vd = vd,
-      slope = slope,
-      C0 = C0
+  if (nrow(temp1) >= 2) {
+    # Step 1: Try find_best_lambdaz
+    result <- do.call(find_best_lambdaz, c(
+      list(
+        time = temp1$TIME,
+        conc = temp1$DV,
+        route = "bolus"
+      ),
+      slope_args
     ))
+    kel <- result$lamdaz
+
+    if (!is.na(kel)) {
+      # Step 2: kel found successfully
+      method <- "find_best_lambdaz"
+      slope <- -kel
+      if (!is.null(result$slopefit)) {
+        Intercept <- summary(result$slopefit)[[4]][[1]]
+        C0 <- exp(Intercept)
+      } else {
+        C0 <- NA
+      }
+      if (!is.na(C0) && C0 > 0) {
+        vd <- dose / C0
+        cl <- kel * vd
+      }
+
+    } else {
+      # Step 3: Fallback - try from (nrow(temp1)-1) down to 2 points
+      fallback_success <- FALSE
+
+      for (k in seq(nrow(temp1) - 1, 2, by = -1)) {
+        fallback_points <- tail(temp1, k)
+        fit <-
+          try(lm(log(fallback_points$DV) ~ fallback_points$TIME),
+              silent = TRUE)
+
+        if (inherits(fit, "try-error"))
+          next
+
+        coefs <- summary(fit)[[4]]
+        slope_val <- coefs[2]
+        Intercept <- coefs[1]
+
+        if (!is.na(slope_val) && slope_val < 0) {
+          method <- "fallback_regression"
+          slope <- slope_val
+          kel <- -slope_val
+          C0 <- exp(Intercept)
+
+          if (!is.na(C0) && C0 > 0) {
+            vd <- dose / C0
+            cl <- kel * vd
+
+            fallback_success <- TRUE
+            break
+          }
+        }
+      }
+    }
   }
 
-  temp1 <- tail(dat, n = nlastpoints)
+  end.time <- Sys.time()
+  time.spent <-
+    round(as.numeric(difftime(end.time, start.time, units = "secs")), 3)
 
-  # linear regression for slope of log of DVs
-  abc <- lm(log(temp1$DV) ~ temp1$TIME)
-  slope <- summary(abc)[[4]][[2]]
-
-  if (slope<0){
-  Intercept <- summary(abc)[[4]][[1]]
-  kel <- -slope
-  C0 <- exp(Intercept)
-  vd <- 1 / C0
-  cl = kel * vd
-  }
-
-  return(c(
+  return(list(
     cl = cl,
     vd = vd,
     slope = slope,
-    C0 = C0
+    C0 = C0,
+    method = method,
+    time.spent = time.spent
   ))
 }
 
-#' Graphical calculation of clearance and volume of distribution for oral case
+
+#' Graphical calculation of PK parameters for oral administration
 #'
-#' Graphic calculation for clearance and volume of distribution from the provided data.
-#' @param dat A data frame with oral pharmacokinetic data, at least containing TIME and DV these two columns
-#' @param nlastpoints Number of last points to use for the linear regression of terminal slope
-#' @return A named vector containing the calculated clearance (cl), volume of distribution (vd), slope of terminal phase (slope), and concentration at the time 0 (C0).
+#' Calculates key pharmacokinetic parameters from oral pharmacokinetic data using graphical methods,
+#' including absorption rate constant (ka), elimination rate constant (kel), terminal slope,
+#' extrapolated concentration (C0), apparent volume of distribution (Vd/F), and clearance (Cl/F).
+#'
+#' @param dat A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).
+#' @param dose Administered dose amount (default is \code{1}).
+#' @param ... Additional arguments passed to \code{\link{find_best_lambdaz}}, such as \code{nlastpoints}.
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{\code{ka}}{Estimated absorption rate constant (1/h)}
+#'   \item{\code{kel}}{Estimated elimination rate constant (1/h)}
+#'   \item{\code{slope}}{Negative terminal phase slope (lambda_z)}
+#'   \item{\code{C0}}{Extrapolated concentration at the start of elimination phase}
+#'   \item{\code{cl}}{Estimated clearance normalized by bioavailability (Cl/F)}
+#'   \item{\code{vd}}{Estimated apparent volume of distribution normalized by bioavailability (Vd/F)}
+#'   \item{\code{method}}{Method used for terminal phase slope estimation ("find_best_lambdaz" or "fallback_regression")}
+#'   \item{\code{time.spent}}{Elapsed computation time in seconds}
+#' }
+#'
+#' @details
+#' The function first attempts to identify the elimination phase using \code{\link{find_best_lambdaz}},
+#' based on adjusted R-squared criteria. If a valid elimination phase cannot be identified,
+#' it falls back to simple linear regressions using decreasing numbers of points (from \code{n-1} down to 2).
+#'
+#' The extrapolated intercept (C0) from the log-linear regression represents the concentration at the start
+#' of the elimination phase. The apparent volume of distribution (Vd/F) and clearance (Cl/F) are estimated
+#' under the assumption of complete absorption (F=1) and based on the relationship:
+#'
+#' \deqn{
+#' Vd/F = \frac{Dose \times ka}{C_0 \times (ka - kel)}
+#' }
+#'
+#' \deqn{
+#' Cl/F = kel \times Vd/F
+#' }
+#'
+#' where \code{ka} is estimated separately using residual analysis of the absorption phase.
+#'
 #' @examples
-#' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10), DV = c(1, 2, 5, 3, 2, 1.5, 1 ))
-#' graphcal_oral(dat, nlastpoints = 3)
-#' @export
+#' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
+#'                  DV = c(1, 2, 5, 3, 2, 1.5, 1))
+#' graphcal_oral(dat, dose = 100)
 #'
+#' @seealso \code{\link{find_best_lambdaz}}
+#' @export
+
 
 graphcal_oral <- function(dat,
-                          nlastpoints) {
+                          dose = 1,
+                          ...) {
+  start.time <- Sys.time()
+
+  dots <- list(...)
+  slope_args <-
+    dots[names(dots) %in% names(formals(find_best_lambdaz))]
 
   colnames(dat)[1] <- "TIME"
   colnames(dat)[2] <- "DV"
 
-  ka = NA
-  cl = NA
-  vd = NA
-  slope = NA
-  C0 = NA
+  ka <- NA
+  kel <- NA
+  slope <- NA
+  C0 <- NA
+  vd <- NA
+  cl <- NA
+  method <- "NA"
 
-  # Identify the index of Tmax
+  # Identify Tmax
   max_index <- which.max(dat$DV)
-  temp1 <-dat[(max_index+1) :nrow(dat),] # Subset data points after Tmax (not include Tmax)
+  temp1 <-
+    dat[(max_index + 1):nrow(dat), ]  # After Tmax (exclude Tmax)
 
-  # Loop to adjust nlastpoints if there are insufficient points
-  while (nlastpoints > 1 && nrow(temp1) < nlastpoints) {
-    nlastpoints <- nlastpoints - 1
+  if (nrow(temp1) >= 2) {
+    # Step 1: Try find_best_lambdaz
+    result <- do.call(find_best_lambdaz, c(
+      list(
+        time = temp1$TIME,
+        conc = temp1$DV,
+        route = "oral"
+      ),
+      slope_args
+    ))
+    kel <- result$lamdaz
+
+    if (!is.na(kel)) {
+      method <- "find_best_lambdaz"
+      slope <- -kel
+      if (!is.null(result$slopefit)) {
+        Intercept <- summary(result$slopefit)[[4]][[1]]
+        C0exp <- exp(Intercept)
+      } else {
+        C0exp <- NA
+      }
+    } else {
+      # Step 2: Fallback manual regression
+      for (k in seq(nrow(temp1) - 1, 2, by = -1)) {
+        fallback_points <- tail(temp1, k)
+        fit <-
+          try(lm(log(fallback_points$DV) ~ fallback_points$TIME), silent = TRUE)
+        if (inherits(fit, "try-error"))
+          next
+
+        coefs <- summary(fit)[[4]]
+        slope_val <- coefs[2]
+        Intercept <- coefs[1]
+
+        if (!is.na(slope_val) && slope_val < 0) {
+          method <- "fallback_regression"
+          slope <- slope_val
+          kel <- -slope_val
+          C0exp <- exp(Intercept)
+          break
+        }
+      }
+    }
+
+    # Step 3: Estimate ka
+    if (!is.na(kel) && !is.na(C0exp)) {
+      Cmax_point <- which(dat$DV == max(dat$DV), arr.ind = TRUE)
+      absorb_phase <- dat[1:Cmax_point,]
+      absorb_phase <- absorb_phase[absorb_phase$TIME > 0,]
+
+      if (nrow(absorb_phase) > 0) {
+        absorb_phase$IVconc <- C0exp * exp(-kel * absorb_phase$TIME)
+        absorb_phase$residuals <-
+          absorb_phase$IVconc - absorb_phase$DV
+
+        absorb_phase <- rbind(data.frame(
+          TIME = 0,
+          DV = 0,
+          IVconc = C0exp,
+          residuals = C0exp
+        ),
+        absorb_phase)
+
+        # Remove negative or zero residuals
+        absorb_phase <- absorb_phase[absorb_phase$residuals > 0,]
+
+        # Only proceed if enough points remain
+        if (nrow(absorb_phase) >= 2) {
+          abslinear <- lm(log(absorb_phase$residuals) ~ absorb_phase$TIME)
+          slope_ka <- summary(abslinear)[[4]][[2]]
+          if (!is.na(slope_ka)) {
+            ka <- -slope_ka
+          }
+        } else {
+          ka <- NA  # Not enough points left
+        }
+      }
+    }
+
+    # Step 4: Estimate Vd/F and Cl/F if ka estimated
+    if (!is.na(ka) && !is.na(kel) && !is.na(C0exp)) {
+      if (abs(ka - kel) > .Machine$double.eps) {
+        vd <- (dose * ka) / (C0exp * (ka - kel))  # Vd/F
+        cl <- kel * vd                            # Cl/F
+      }
+    }
   }
 
-  # If fewer than 2 points are available after the loop, exit as calculation is invalid
-  if (nlastpoints < 2) {
-    return(c(
+  end.time <- Sys.time()
+  time.spent <-
+    round(as.numeric(difftime(end.time, start.time, units = "secs")), 3)
+
+  return(
+    list(
       ka = ka,
+      kel = kel,
+      slope = slope,
+      C0exp = C0exp,
       cl = cl,
       vd = vd,
-      slope = slope,
-      C0 = C0
-    ))
-  }
-
-  temp1 <- tail(dat, n = nlastpoints)
-  # linear regression for slope of log of DVs
-  abc <- lm(log(temp1$DV) ~ temp1$TIME)
-  slope <- summary(abc)[[4]][[2]]
-
-  if (slope<0){
-  Intercept <- summary(abc)[[4]][[1]]
-  kel <- -slope
-  C0 <- exp(Intercept)
-  vd <- 1 / C0
-  cl = kel * vd
-  # Identify Cmax point
-  Cmax_point <- which(dat$DV == max(dat$DV), arr.ind = T)
-
-  absorb_phase <- dat[1:Cmax_point, ]
-  absorb_phase <- absorb_phase[absorb_phase$TIME > 0, ]
-
-  # At least 1 points for ka slope regression (Intercept is considered in the residual line)
-
-  if (nrow(absorb_phase) < 1) {
-    ka = NA
-  }
-
-  if (nrow(absorb_phase) > 0) {
-    absorb_phase$IVconc <- exp( -kel * absorb_phase$TIME + Intercept)
-     absorb_phase$residuals <-
-      absorb_phase$IVconc - absorb_phase$DV
-
-    absorb_phase<-rbind(data.frame(TIME=0,DV=0,IVconc=exp(Intercept),residuals=exp(Intercept)),absorb_phase)
-    abslinear <- lm(log(absorb_phase$residuals) ~ absorb_phase$TIME)
-    slope_ka <- summary(abslinear)[[4]][[2]]
-    ka =  -slope_ka
-
-  }
-  }
-
-  return(c(
-    ka = ka,
-    cl = cl,
-    vd = vd,
-    slope = slope,
-    C0 = C0
-  ))
+      method = method,
+      time.spent = time.spent
+    )
+  )
 }
