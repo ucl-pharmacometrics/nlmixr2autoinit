@@ -551,7 +551,8 @@ single_point_extra <- function(single_point_base.lst,
 
   end.time <- Sys.time()
 
-  time.spent <- round(difftime(end.time, start.time), 4)
+  time.spent <-
+    round(as.numeric(difftime(end.time, start.time, units = "secs")), 3)
 
   # Only selected the key columns
   singlepoint.results <- data.frame(

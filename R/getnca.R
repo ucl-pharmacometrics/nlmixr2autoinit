@@ -182,7 +182,8 @@ getnca <- function(x,
   }
 
   end.time <- Sys.time()
-  time.spent <- round(difftime(end.time, start.time), 4)
+  time.spent <-
+    round(as.numeric(difftime(end.time, start.time, units = "secs")), 3)
 
   # Return structured results
   list(
