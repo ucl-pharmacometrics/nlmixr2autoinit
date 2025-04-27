@@ -32,13 +32,8 @@ including absorption rate constant (ka), elimination rate constant (kel), termin
 extrapolated concentration (C0), apparent volume of distribution (Vd/F), and clearance (Cl/F).
 }
 \details{
-The function first attempts to identify the elimination phase using \code{\link{find_best_lambdaz}},
-based on adjusted R-squared criteria. If a valid elimination phase cannot be identified,
-it falls back to simple linear regressions using decreasing numbers of points (from \code{n-1} down to 2).
-
-The extrapolated intercept (C0) from the log-linear regression represents the concentration at the start
-of the elimination phase. The apparent volume of distribution (Vd/F) and clearance (Cl/F) are estimated
-under the assumption of complete absorption (F=1) and based on the relationship:
+Estimation of the terminal elimination slope (lambda_z) is performed using the \code{\link{force_find_lambdaz}} function,
+which applies a two-step strategy combining optimal phase selection and fallback regression if necessary.
 
 \deqn{
 Vd/F = \frac{Dose \times ka}{C_0 \times (ka - kel)}
@@ -52,8 +47,8 @@ where \code{ka} is estimated separately using residual analysis of the absorptio
 }
 \examples{
 dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
-                 DV = c(1, 2, 5, 3, 2, 1.5, 1))
-graphcal_oral(dat, dose = 100)
+                DV = c(1, 2, 5, 3, 2, 1.5, 1))
+graphcal_oral(dat, dose = 100,route="oral")
 
 }
 \seealso{

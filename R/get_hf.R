@@ -33,19 +33,17 @@
 #' \enumerate{
 #'   \item Generating (or using) pooled data using \code{\link{get_pooled_data}}, which applies
 #'         time binning to normalize the time-course concentration data.
-#'   \item Estimating the terminal elimination slope (\code{lamdaz}) using \code{\link{find_best_lambdaz}}.
-#'   \item Computing the terminal half-life as \code{log(2) / lamdaz} for each data subset.
+#'   \item Estimating the terminal elimination slope (\code{lambdaz}) using \code{\link{find_best_lambdaz}}.
+#'   \item Computing the terminal half-life as \code{log(2) / lambdaz} for each data subset.
 #'   \item Returning the median of all valid (positive, non-missing) half-life estimates.
 #' }
 #'
 #' @examples
+#'
 #' \dontrun{
 #' # Example: half-life estimation from a combined profile (first + repeated doses)
 #' dat <- Bolus_1CPT
 #' dat <- processData(dat)$dat
-#'
-#' # For half-life estimation, the number of terminal points for regression can start from 2.
-#' # (NCA methods use 3 or more points.)
 #' get_hf(dat, data_type = "combined_doses", nlastpoints = 3)
 #'
 #' # Using externally pooled data
@@ -83,42 +81,42 @@ get_hf <- function(dat,
   # First dose
   if (!is.null(pooled$datpooled_fd) &&
       "binned.df" %in% names(pooled$datpooled_fd)) {
-    slope_results <- do.call(find_best_lambdaz, c(
+    slope_results <- do.call(force_find_lambdaz, c(
       list(
         time = pooled$datpooled_fd$binned.df$Time,
         conc = pooled$datpooled_fd$binned.df$Conc
       ),
       slope_args
     ))
-    ke <- slope_results$lamdaz
+    ke <- slope_results$lambdaz
     half_life_fd <- ifelse(ke > 0, log(2) / ke, NA)
   }
 
   # Repeated doses
   if (!is.null(pooled$datpooled_efd) &&
       "binned.df" %in% names(pooled$datpooled_efd)) {
-    slope_results <- do.call(find_best_lambdaz, c(
+    slope_results <- do.call(force_find_lambdaz, c(
       list(
         time = pooled$datpooled_efd$binned.df$Time,
         conc = pooled$datpooled_efd$binned.df$Conc
       ),
       slope_args
     ))
-    ke <- slope_results$lamdaz
+    ke <- slope_results$lambdaz
     half_life_md <- ifelse(ke > 0, log(2) / ke, NA)
   }
 
   # Combined
   if (!is.null(pooled$datpooled_all) &&
       "binned.df" %in% names(pooled$datpooled_all)) {
-    slope_results <-  do.call(find_best_lambdaz, c(
+    slope_results <-  do.call(force_find_lambdaz, c(
       list(
         time = pooled$datpooled_all$binned.df$Time,
         conc = pooled$datpooled_all$binned.df$Conc
       ),
       slope_args
     ))
-    ke <- slope_results$lamdaz
+    ke <- slope_results$lambdaz
     half_life_all <- ifelse(ke > 0, log(2) / ke, NA)
   }
 
@@ -137,7 +135,9 @@ get_hf <- function(dat,
       half_life_median = half_life_median,
       half_life_fd = half_life_fd,
       half_life_md = half_life_md,
-      half_life_all = half_life_all
+      half_life_all = half_life_all,
+      slope_results=slope_results
     )
   )
 }
+

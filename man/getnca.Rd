@@ -50,7 +50,7 @@ A list containing:
 \item auct - AUC₀→last
 \item auc0_inf - AUC₀→∞
 \item C_last - Last measurable concentration
-\item lamdaz - Terminal slope (λ_z)
+\item lambdaz - Terminal slope (λ_z)
 \item aumc_0_inf - AUMC₀→∞
 \item used_points - Number of points used for terminal slope
 \item adj.r.squared - Adjusted R² for terminal slope

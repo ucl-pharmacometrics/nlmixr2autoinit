@@ -33,7 +33,7 @@ equivalent (default = 1e-4). Used when selecting between fits with similar goodn
 \value{
 A list containing:
 \itemize{
-\item \code{Lamdaz}: Estimated terminal elimination rate constant (λ_z), or NA if no valid fit
+\item \code{lambdaz}: Estimated terminal elimination rate constant (λ_z), or NA if no valid fit
 \item \code{UsedPoints}: Number of data points used in the optimal fit
 \item \code{adj.r.squared}: Adjusted R-squared value of the optimal regression
 \item \code{message}: Character vector containing diagnostic messages/warnings

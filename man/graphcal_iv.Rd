@@ -9,8 +9,9 @@ graphcal_iv(dat, dose = 1, ...)
 \arguments{
 \item{dat}{A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).}
 
-\item{...}{Additional arguments passed to \code{\link{find_best_lambdaz}}, such as
-\code{nlastpoints}, \code{adj_r_squared_threshold}, and \code{tolerance}.}
+\item{dose}{Administered dose amount (default is \code{1}).}
+
+\item{...}{Additional arguments passed to \code{\link{force_find_lambdaz}}, such as \code{nlastpoints}, \code{adj_r_squared_threshold}, and \code{tolerance}.}
 }
 \value{
 A list containing the following elements:
@@ -19,32 +20,26 @@ A list containing the following elements:
 \item{\code{vd}}{Estimated volume of distribution (Vd)}
 \item{\code{slope}}{Estimated negative terminal phase slope (lambda_z)}
 \item{\code{C0}}{Extrapolated concentration at time zero}
+\item{\code{method}}{Slope estimation method used ("find_best_lambdaz" or "fallback_regression")}
+\item{\code{time.spent}}{Elapsed computation time (in seconds)}
 }
 If sufficient valid data points are not available, returned values will be \code{NA}.
 }
 \description{
 Performs graphical calculation of pharmacokinetic parameters including clearance (CL),
-volume of distribution (Vd), slope of terminal phase, and extrapolated concentration at time zero (C0)
+volume of distribution (Vd), terminal slope (lambda_z), and extrapolated concentration at time zero (C0)
 based on intravenous (IV) pharmacokinetic data.
 }
 \details{
-The function applies a two-step fallback strategy to estimate terminal phase parameters:
-\enumerate{
-\item It first attempts to identify the optimal elimination phase using \code{\link{find_best_lambdaz}}.
-If a valid slope (lambda_z) is found, the intercept from the regression is used to calculate C0, and Vd and CL are derived accordingly.
-\item If no valid lambda_z is found (i.e., \code{NA}), and if there are at least 2 data points available after \code{Tmax},
-the function falls back to simple linear regressions, starting from \code{n-1} points down to 2 points.
-It sequentially attempts to fit log-linear regressions; the first successful fit with a negative slope is accepted
-for recalculating lambda_z, C0, Vd, and CL.
-\item If fewer than 2 points are available, or no valid regression is found, the function returns \code{NA} for all parameters.
-}
+Estimation of the terminal elimination slope (lambda_z) is performed using the \code{\link{force_find_lambdaz}} function,
+which applies a two-step strategy combining optimal phase selection and fallback regression if necessary.
 }
 \examples{
 dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
-               DV = c(12, 8, 5, 3, 2, 1.5, 1))
-graphcal_iv(dat,dose=100)
+                  DV = c(12, 8, 5, 3, 2, 1.5, 1))
+graphcal_iv(dat, dose = 100)
 
 }
 \seealso{
-\code{\link{find_best_lambdaz}}
+\code{\link{force_find_lambdaz}}
 }

@@ -30,7 +30,7 @@
 #'   \item auct - AUC₀→last
 #'   \item auc0_inf - AUC₀→∞
 #'   \item C_last - Last measurable concentration
-#'   \item lamdaz - Terminal slope (λ_z)
+#'   \item lambdaz - Terminal slope (λ_z)
 #'   \item aumc_0_inf - AUMC₀→∞
 #'   \item used_points - Number of points used for terminal slope
 #'   \item adj.r.squared - Adjusted R² for terminal slope
@@ -63,7 +63,7 @@ getnca <- function(x,
   # Initialize parameters and messages
   cl <-
     vz <-
-    lamdaz <-
+    lambdaz <-
     half_life <- auct <- auc0_inf <- C_last <- aumc_0_inf <- NA
   messages <- character(0)
 
@@ -143,7 +143,7 @@ getnca <- function(x,
   )
 
   # Process slope results
-  ke <- slope_result$lamdaz
+  ke <- slope_result$lambdaz
   half_life <- ifelse(ke > 0, log(2) / ke, NA)
   C_last <- tail(dat$DV[dat$DV > 0], 1)
   t_last <- tail(dat$TIME[dat$DV > 0], 1)
@@ -193,7 +193,7 @@ getnca <- function(x,
     auct = auct,
     auc0_inf = auc0_inf,
     C_last = C_last,
-    lamdaz = slope_result$lamdaz,
+    lambdaz = slope_result$lambdaz,
     aumc_0_inf = aumc_0_inf,
     used_points = slope_result$UsedPoints,
     adj.r.squared = slope_result$adj.r.squared,

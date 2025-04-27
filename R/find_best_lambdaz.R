@@ -17,7 +17,7 @@
 #'
 #' @return A list containing:
 #' \itemize{
-#'   \item \code{Lamdaz}: Estimated terminal elimination rate constant (λ_z), or NA if no valid fit
+#'   \item \code{lambdaz}: Estimated terminal elimination rate constant (λ_z), or NA if no valid fit
 #'   \item \code{UsedPoints}: Number of data points used in the optimal fit
 #'   \item \code{adj.r.squared}: Adjusted R-squared value of the optimal regression
 #'   \item \code{message}: Character vector containing diagnostic messages/warnings
@@ -63,7 +63,7 @@ find_best_lambdaz <- function(time,
                        nlastpoints = 3,
                        tolerance = 1e-4) {
   # Initialize variables
-  best_lamdaz <- NA
+  best_lambdaz <- NA
   best_points <- NULL
   best_r2 <- -Inf
   last_best_msg <- NULL
@@ -83,7 +83,7 @@ find_best_lambdaz <- function(time,
   if (n_points < nlastpoints) {
     return(
       list(
-        lamdaz = NA,
+        lambdaz = NA,
         UsedPoints = NULL,
         adj.r.squared = NA,
         message = "ERROR: Insufficient data points",
@@ -95,7 +95,7 @@ find_best_lambdaz <- function(time,
   if (max_possible_points < nlastpoints) {
     return(
       list(
-        lamdaz = NA,
+        lambdaz = NA,
         UsedPoints = NULL,
         adj.r.squared = NA,
         message = "ERROR: Insufficient terminal phase points",
@@ -149,7 +149,7 @@ find_best_lambdaz <- function(time,
     }
 
     if (update) {
-      best_lamdaz <- as.numeric(-current_slope)
+      best_lambdaz <- as.numeric(-current_slope)
       best_points <- point_count
       best_r2 <- current_r2
       best_fit <- fit
@@ -158,7 +158,7 @@ find_best_lambdaz <- function(time,
         point_count,
         reason,
         current_r2,
-        as.numeric(best_lamdaz)
+        as.numeric(best_lambdaz)
       )
     }
   }
@@ -169,7 +169,7 @@ find_best_lambdaz <- function(time,
     final_msgs <- c(final_msgs, last_best_msg)
   final_msgs <- c(final_msgs, warn_msgs)
 
-  if (is.na(best_lamdaz)) {
+  if (is.na(best_lambdaz)) {
     final_msgs <-
       c(final_msgs, "ERROR: No valid elimination phase found")
   } else if (best_r2 < adj_r_squared_threshold) {
@@ -184,13 +184,11 @@ find_best_lambdaz <- function(time,
   }
 
   list(
-    lamdaz = best_lamdaz,
+    lambdaz = best_lambdaz,
     UsedPoints = best_points,
     adj.r.squared = best_r2,
     message = if (length(final_msgs) > 0) paste(final_msgs, collapse = "\n"),
     slopefit = best_fit
 
   )
-
-
 }

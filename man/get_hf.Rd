@@ -45,19 +45,17 @@ The function works by:
 \enumerate{
 \item Generating (or using) pooled data using \code{\link{get_pooled_data}}, which applies
 time binning to normalize the time-course concentration data.
-\item Estimating the terminal elimination slope (\code{lamdaz}) using \code{\link{find_best_lambdaz}}.
-\item Computing the terminal half-life as \code{log(2) / lamdaz} for each data subset.
+\item Estimating the terminal elimination slope (\code{lambdaz}) using \code{\link{find_best_lambdaz}}.
+\item Computing the terminal half-life as \code{log(2) / lambdaz} for each data subset.
 \item Returning the median of all valid (positive, non-missing) half-life estimates.
 }
 }
 \examples{
+
 \dontrun{
 # Example: half-life estimation from a combined profile (first + repeated doses)
 dat <- Bolus_1CPT
 dat <- processData(dat)$dat
-
-# For half-life estimation, the number of terminal points for regression can start from 2.
-# (NCA methods use 3 or more points.)
 get_hf(dat, data_type = "combined_doses", nlastpoints = 3)
 
 # Using externally pooled data

@@ -9,6 +9,7 @@ initsControl(
   nlastpoints = 3,
   trapezoidal.rule = 1,
   nbins = 10,
+  bin.method = "quantile",
   est.method = "nls",
   selection.criteria = "rRMSE",
   npdcmpt.inits.strategy = 0,
