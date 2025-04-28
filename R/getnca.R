@@ -142,28 +142,33 @@ getnca <- function(x,
     nlastpoints = nlastpoints
   )
 
-  # Process slope results
+  # Terminal Phase Analysis
   ke <- slope_result$lambdaz
-  half_life <- ifelse(ke > 0, log(2) / ke, NA)
-  C_last <- tail(dat$DV[dat$DV > 0], 1)
-  t_last <- tail(dat$TIME[dat$DV > 0], 1)
 
-  #----- PK Parameters -----#
-  if (ke > 0) {
+  if (!is.na(ke) && ke > 0) {
+    half_life <- log(2) / ke
+    C_last <- tail(dat$DV[dat$DV > 0], 1)
+    t_last <- tail(dat$TIME[dat$DV > 0], 1)
+
     auc_inf <- C_last / ke
     auc0_inf <- auct + auc_inf
     cl <- ifelse(ss == 0, dose / auc0_inf, dose / auct)
     vz <- cl / ke
-  } else {
-    messages <- c(messages, "Terminal slope calculation failed")
-  }
 
   #----- AUMC Calculation -----#
-  moment_curve <- dat$TIME * dat$DV
-  aumc0_t <- trapezoidal_linear(dat$TIME, moment_curve)
-  aumct_inf <-
-    ifelse(ke > 0, (C_last * t_last) / ke + C_last / (ke ^ 2), NA)
-  aumc_0_inf <- aumc0_t + aumct_inf
+    moment_curve <- dat$TIME * dat$DV
+    aumc0_t <- trapezoidal_linear(dat$TIME, moment_curve)
+    aumct_inf <- (C_last * t_last) / ke + C_last / (ke ^ 2)
+    aumc_0_inf <- aumc0_t + aumct_inf
+
+  } else {
+    messages <- c(messages, "Terminal slope (lambdaz) is NA or non-positive; unable to calculate terminal parameters.")
+    half_life <- NA
+    auc0_inf <- NA
+    cl <- NA
+    vz <- NA
+    aumc_0_inf <- NA
+  }
 
   #----- Message Consolidation -----#
   # Add slope calculation messages
