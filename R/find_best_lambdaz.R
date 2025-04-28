@@ -67,6 +67,8 @@ find_best_lambdaz <- function(time,
   best_points <- NULL
   best_r2 <- -Inf
   last_best_msg <- NULL
+  best_fit<-NULL
+
   warn_msgs <- character(0)
 
   n_points <- length(time)
