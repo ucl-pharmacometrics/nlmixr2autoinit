@@ -78,26 +78,46 @@ force_find_lambdaz <- function(time, conc, ...) {
       intercept <- summary(slopefit)[[4]][[1]]
     }
   } else {
-    for (k in seq(length(time) - 1, 2, by = -1)) {
-      fallback_points <- tail(data.frame(time = time, conc = conc), k)
-      fit <-
-        try(lm(log(fallback_points$conc) ~ fallback_points$time), silent = TRUE)
-      if (inherits(fit, "try-error"))
-        next
+    if (length(time) == 2) {
+      fallback_points <- data.frame(time = time, conc = conc)
+      fit <- try(lm(log(fallback_points$conc) ~ fallback_points$time), silent = TRUE)
 
-      coefs <- summary(fit)[[4]]
-      slope_val <- coefs[2]
-      intercept_val <- coefs[1]
+      if (!inherits(fit, "try-error")) {
+        coefs <- summary(fit)[[4]]
+        slope_val <- coefs[2]
+        intercept_val <- coefs[1]
 
-      if (!is.na(slope_val) && slope_val < 0) {
-        method <- "fallback_regression"
-        lambdaz <- -slope_val
-        intercept <- intercept_val
-        used_points <- nrow(fallback_points)
-        adj_r2 <- NA  # No adj.r.squared for fallback regression
-        message_text <- "Fallback regression successful."
-        slopefit <- fit
-        break
+        if (!is.na(slope_val) && slope_val < 0) {
+          method <- "fallback_regression"
+          lambdaz <- -slope_val
+          intercept <- intercept_val
+          used_points <- nrow(fallback_points)
+          adj_r2 <- NA
+          message_text <- "Fallback regression successful with 2 points."
+          slopefit <- fit
+        }
+      }
+    } else {
+      for (k in seq(length(time) - 1, 2, by = -1)) {
+        fallback_points <- tail(data.frame(time = time, conc = conc), k)
+        fit <- try(lm(log(fallback_points$conc) ~ fallback_points$time), silent = TRUE)
+        if (inherits(fit, "try-error"))
+          next
+
+        coefs <- summary(fit)[[4]]
+        slope_val <- coefs[2]
+        intercept_val <- coefs[1]
+
+        if (!is.na(slope_val) && slope_val < 0) {
+          method <- "fallback_regression"
+          lambdaz <- -slope_val
+          intercept <- intercept_val
+          used_points <- nrow(fallback_points)
+          adj_r2 <- NA
+          message_text <- "Fallback regression successful."
+          slopefit <- fit
+          break
+        }
       }
     }
   }
