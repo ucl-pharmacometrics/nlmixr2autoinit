@@ -7,62 +7,64 @@
 processData(dat)
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data. Expected columns include:
-\itemize{
-\item \code{ID}: Identifier for each subject.
-\item \code{DV}: Dependent variable (e.g., concentration).
-\item \code{MDV}: Column indicating missing dependent variable values, used to infer \code{EVID} if absent.
-\item \code{DOSE} or \code{dose}: Dose amount administered.
-\item \code{DUR}: Duration of infusion (optional).
-\item \code{RATE}: Infusion rate (optional).
-\item \code{SS}: Steady-state indicator (optional).
-\item \code{CMT}: Compartment for dosing or sampling (optional).
+\item{dat}{A data frame containing raw pharmacokinetic data. Expected (case-insensitive) columns include:
+\describe{
+\item{ID}{Subject identifier}
+\item{TIME}{Time after dose}
+\item{DV}{Dependent variable (e.g., plasma concentration)}
+\item{MDV}{Missing dependent variable indicator}
+\item{EVID}{Event identifier (e.g., dose, observation)}
+\item{AMT}{Dose amount}
+\item{RATE}{Infusion rate (optional)}
+\item{DUR}{Duration of infusion (optional)}
+\item{ADDL}{Additional doses (optional)}
+\item{II}{Interdose interval (optional)}
+\item{SS}{Steady-state indicator (optional)}
+\item{CMT}{Compartment (optional)}
+\item{CENS}{Censoring indicator (optional)}
 }}
 }
 \value{
-A list containing three data frames:
-\itemize{
-\item \code{dat}: The complete processed dataset with additional columns for \code{resetflag}, \code{SSflag},
-\code{route}, \code{dose_number}, and \code{DVstd} (normalized concentration).
-\item \code{fd_data}: Data between the first and second doses.
-\item \code{md_data}: Data after at least two doses have been administered.
+A list with two components:
+\describe{
+\item{dat}{Processed full dataset with standardized variables and derived columns:
+\code{resetflag}, \code{SSflag}, \code{route}, \code{dose_number}, \code{DVstd},
+\code{indiv_lambda_z_eligible}, and others.}
+\item{Datainfo}{A formatted summary table of dataset structure, subject counts, and observation counts for
+first-dose and multiple-dose conditions, with contextual notes.}
 }
 }
 \description{
-Processes a pharmacokinetic dataset to prepare it for analysis.
+Processes a pharmacokinetic (PK) dataset to derive analysis-ready variables and structure.
 }
 \details{
-The function performs the following processing steps:
+This function performs several operations critical for PK data preprocessing:
+\enumerate{
+\item \strong{Standardization}: Converts column names to uppercase; coerces numeric columns to appropriate types.
+\item \strong{Event Processing}: Imputes \code{EVID} from \code{MDV} if missing; handles censored observations; filters invalid \code{EVID=2} records.
+\item \strong{Flag Generation}:
 \itemize{
-\item \strong{Column Verification}: Checks for essential columns (\code{EVID}, \code{MDV}, \code{DOSE}, \code{RATE}, \code{SS}, \code{CMT})
-and imputes \code{EVID} based on \code{MDV} if necessary. Issues warnings if \code{EVID=2} rows are found
-and removes these rows.
-\item \strong{Dosing and Steady-State Flags}: Calculates \code{resetflag} for each \code{ID} group based on \code{EVID=4}
-occurrences and sets \code{SSflag} based on steady-state dosing intervals within each \code{ID}.
-\item \strong{Route Identification}: Identifies dosing route as "oral", "infusion", or "bolus" based on
-\code{CMT} and \code{RATE}.
-\item \strong{Dataset Splits}: Creates subsets for first-dose interval data (\code{fd_data}) and multiple-dose
-data (\code{md_data}), normalizing \code{DV} by dose in each subset.
-\item \strong{Summary Table}: Generates a summary of the dataset, including total subjects, observations,
-and unique counts in each subset. Outputs the summary table and any warnings as console messages.
+\item \code{resetflag}: Identifies segments between distinct dose events or steady-state switches.
+\item \code{SSflag}: Flags rows within steady-state observation windows.
+}
+\item \strong{Infusion and Route Logic}: Calculates \code{RATE} from \code{AMT} and \code{DUR} if needed; classifies administration route (oral, infusion, bolus).
+\item \strong{Compartment Checks}: Ensures a maximum of two unique \code{CMT} values per subject and dosing interval.
+\item \strong{Dose Expansion}: Expands rows using \code{ADDL}/\code{II} if present via \code{nmpkconvert()}.
+\item \strong{Derived Metrics}:
+\itemize{
+\item \code{dose_number}: Count of dose administrations per subject.
+\item \code{tad}: Time after last dose.
+\item \code{DVstd}: Normalized dependent variable (DV/dose).
+\item \code{indiv_lambda_z_eligible}: Eligibility flag for elimination phase based on route and time of maximum DV.
+}
+\item \strong{Summary Generation}: Constructs a summary table of route, subjects, and observations across first- and multiple-dose data.
 }
 }
 \examples{
-# Example usage:
-dat <- Bolus_1CPT
-processed_data <- processData(dat)
-# Access processed full data, first-dose interval, and multiple-dose data
-dat <- processed_data$dat
-Datainfo<-processed_data$Datainfo
 
 dat <- Bolus_1CPT
-dat[1,]$SS=1
-dat[1,]$II=24
-processed_data <- processData(dat)
-dat <- processed_data$dat
-
-dat <-theo_sd
-processed_data <- processData(dat)
-dat <- processed_data$dat
+results <- processData(dat)
+head(results$dat)
+cat(results$Datainfo)
 
 }

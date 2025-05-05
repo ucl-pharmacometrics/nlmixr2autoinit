@@ -7,15 +7,24 @@
 mark_dose_number(dat)
 }
 \arguments{
-\item{dat}{A data frame containing the pharmacokinetic data. The data frame must include columns for ID, TIME, EVID, and AMT.}
+\item{dat}{PK dataset containing columns:
+\itemize{
+\item \strong{Required}: \code{ID}, \code{TIME}, \code{EVID}, \code{AMT}
+\item \strong{Optional}: \code{resetflag} (default=1 if missing), \code{CMT}
+}}
 }
 \value{
-A data frame with an additional column \code{dose_number} indicating the sequential number of each dose event for each subject.
+A modified dataframe with added \code{dose_number} column
 }
 \description{
-Mark the dose number in the dataset by assigning a sequential dose number identified by EVID to each dose event, process dose number within the same resetflag and ID group.
+Marks each dosing event in the dataset with a sequential dose number,
+based on rows identified by \code{EVID}. Dose numbering is performed within
+groups defined by \code{ID} and \code{resetflag}, ensuring numbering restarts
+appropriately for each group.
 }
 \examples{
-dat <-Bolus_1CPT
-mark_dose_number(dat)
+mark_dose_number(Bolus_1CPT)
+mark_dose_number(Infusion_1CPT)
+mark_dose_number(Oral_1CPT)
+
 }
