@@ -1,281 +1,328 @@
 #' Process Pharmacokinetic Dataset for Analysis
 #'
-#' Processes a pharmacokinetic dataset to prepare it for analysis.
+#' Processes a pharmacokinetic (PK) dataset to derive analysis-ready variables and structure.
 #'
-#' @param dat A data frame containing pharmacokinetic data. Expected columns include:
-#'   - `ID`: Identifier for each subject.
-#'   - `DV`: Dependent variable (e.g., concentration).
-#'   - `MDV`: Column indicating missing dependent variable values, used to infer `EVID` if absent.
-#'   - `DOSE` or `dose`: Dose amount administered.
-#'   - `DUR`: Duration of infusion (optional).
-#'   - `RATE`: Infusion rate (optional).
-#'   - `SS`: Steady-state indicator (optional).
-#'   - `CMT`: Compartment for dosing or sampling (optional).
-#'
-#' @return A list containing three data frames:
-#'   \itemize{
-#'     \item `dat`: The complete processed dataset with additional columns for `resetflag`, `SSflag`,
-#'       `route`, `dose_number`, and `DVstd` (normalized concentration).
-#'     \item `fd_data`: Data between the first and second doses.
-#'     \item `md_data`: Data after at least two doses have been administered.
+#' @param dat A data frame containing raw pharmacokinetic data. Expected (case-insensitive) columns include:
+#'   \describe{
+#'     \item{ID}{Subject identifier}
+#'     \item{TIME}{Time after dose}
+#'     \item{DV}{Dependent variable (e.g., plasma concentration)}
+#'     \item{MDV}{Missing dependent variable indicator}
+#'     \item{EVID}{Event identifier (e.g., dose, observation)}
+#'     \item{AMT}{Dose amount}
+#'     \item{RATE}{Infusion rate (optional)}
+#'     \item{DUR}{Duration of infusion (optional)}
+#'     \item{ADDL}{Additional doses (optional)}
+#'     \item{II}{Interdose interval (optional)}
+#'     \item{SS}{Steady-state indicator (optional)}
+#'     \item{CMT}{Compartment (optional)}
+#'     \item{CENS}{Censoring indicator (optional)}
 #'   }
 #'
+#' @return A list with two components:
+#' \describe{
+#'   \item{dat}{Processed full dataset with standardized variables and derived columns:
+#'     \code{resetflag}, \code{SSflag}, \code{route}, \code{dose_number}, \code{DVstd},
+#'     \code{indiv_lambda_z_eligible}, and others.}
+#'   \item{Datainfo}{A formatted summary table of dataset structure, subject counts, and observation counts for
+#'     first-dose and multiple-dose conditions, with contextual notes.}
+#' }
+#'
 #' @details
-#' The function performs the following processing steps:
-#'   - **Column Verification**: Checks for essential columns (`EVID`, `MDV`, `DOSE`, `RATE`, `SS`, `CMT`)
-#'     and imputes `EVID` based on `MDV` if necessary. Issues warnings if `EVID=2` rows are found
-#'     and removes these rows.
-#'   - **Dosing and Steady-State Flags**: Calculates `resetflag` for each `ID` group based on `EVID=4`
-#'     occurrences and sets `SSflag` based on steady-state dosing intervals within each `ID`.
-#'   - **Route Identification**: Identifies dosing route as "oral", "infusion", or "bolus" based on
-#'     `CMT` and `RATE`.
-#'   - **Dataset Splits**: Creates subsets for first-dose interval data (`fd_data`) and multiple-dose
-#'     data (`md_data`), normalizing `DV` by dose in each subset.
-#'   - **Summary Table**: Generates a summary of the dataset, including total subjects, observations,
-#'     and unique counts in each subset. Outputs the summary table and any warnings as console messages.
+#' This function performs several operations critical for PK data preprocessing:
+#' \enumerate{
+#'   \item \strong{Standardization}: Converts column names to uppercase; coerces numeric columns to appropriate types.
+#'   \item \strong{Event Processing}: Imputes \code{EVID} from \code{MDV} if missing; handles censored observations; filters invalid \code{EVID=2} records.
+#'   \item \strong{Flag Generation}:
+#'     \itemize{
+#'       \item \code{resetflag}: Identifies segments between distinct dose events or steady-state switches.
+#'       \item \code{SSflag}: Flags rows within steady-state observation windows.
+#'     }
+#'   \item \strong{Infusion and Route Logic}: Calculates \code{RATE} from \code{AMT} and \code{DUR} if needed; classifies administration route (oral, infusion, bolus).
+#'   \item \strong{Compartment Checks}: Ensures a maximum of two unique \code{CMT} values per subject and dosing interval.
+#'   \item \strong{Dose Expansion}: Expands rows using \code{ADDL}/\code{II} if present via \code{nmpkconvert()}.
+#'   \item \strong{Derived Metrics}:
+#'     \itemize{
+#'       \item \code{dose_number}: Count of dose administrations per subject.
+#'       \item \code{tad}: Time after last dose.
+#'       \item \code{DVstd}: Normalized dependent variable (DV/dose).
+#'       \item \code{indiv_lambda_z_eligible}: Eligibility flag for elimination phase based on route and time of maximum DV.
+#'     }
+#'   \item \strong{Summary Generation}: Constructs a summary table of route, subjects, and observations across first- and multiple-dose data.
+#' }
 #'
 #' @examples
-#' # Example usage:
-#' dat <- Bolus_1CPT
-#' processed_data <- processData(dat)
-#' # Access processed full data, first-dose interval, and multiple-dose data
-#' dat <- processed_data$dat
-#' Datainfo<-processed_data$Datainfo
 #'
 #' dat <- Bolus_1CPT
-#' dat[1,]$SS=1
-#' dat[1,]$II=24
-#' processed_data <- processData(dat)
-#' dat <- processed_data$dat
+#' results <- processData(dat)
+#' head(results$dat)
+#' cat(results$Datainfo)
 #'
-#' dat <-theo_sd
-#' processed_data <- processData(dat)
-#' dat <- processed_data$dat
-#'
-#' @importFrom dplyr group_by mutate ungroup filter select arrange case_when
-#' @importFrom knitr kable
-#' @importFrom crayon magenta red black
-#' @importFrom stats lm
 #' @export
-#'
+
 processData<-function(dat){
 
-column_names <- toupper(colnames(dat))
-colnames(dat) <- toupper(colnames(dat))
+#-------------- STEP 1: Data Standardization -------------------------#
+  # Standardize column names to uppercase
+  column_names <- toupper(colnames(dat))
+  colnames(dat) <- toupper(colnames(dat))
 
-# Convert the values in key columns of input data frame to numeric format
-column.list<-c("TIME","DV","MDV","EVID","RATE","DUR", "AMT","ADDL","II")
+  # Convert key columns to numeric format
+  num_cols <- c("TIME",
+                "DV",
+                "MDV",
+                "EVID",
+                "RATE",
+                "DUR",
+                "AMT",
+                "ADDL",
+                "II",
+                "SS",
+                "CMT")
+  dat <- dat %>%
+    dplyr::mutate(across(any_of(num_cols), as.numeric))
 
-for (testcolumn in colnames(dat)) {
-  if (testcolumn %in% column.list) {
-    dat[[testcolumn]] <- as.numeric(dat[[testcolumn]])
-  }
-}
+  #-------------- STEP 2: Event Flag Processing -------------------------#
+  # Initialize message container
+  evid_messages <- character()
 
-evid_message1<-NULL
-evid_message2<-NULL
+  # Censored data handling
+  if ("CENS" %in% colnames(dat)) {
+    if (max(dat$CENS, na.rm = TRUE) == 1) {
+      msg <- "Note: Censored data (CENS=1) excluded by setting EVID=2"
+      evid_messages <- c(evid_messages, msg)
+      # message(crayon::black(msg))
 
-
-if ("CENS" %in% colnames(dat)) {
-  if (max(dat$CENS)==1){
-  message(black(paste("Warning: 'cens' column is detected, the current version will ignore censored data for initial estimate analysis.")))
-    dat[dat$CENS==1,]$EVID=2
-   dat$CENS<-0
-  }
-}
-
-if (!"EVID" %in% colnames(dat)) {
-
-  if (!"MDV" %in% colnames(dat)) {
-    evid_message1<-stop(red("Error, no EVID or MDV column found"))
-  }
-
-  if ("MDV" %in% colnames(dat)) {
-    evid_message1<- paste0("Note: No EVID column detected in the dataset. Impute EVID based on the MDV column.")
-
-    dat$EVID<-0
-    dat[dat$MDV==1 & !is.na(dat$DV),]$EVID=1
-    dat[dat$MDV==0,]$EVID= 0
-
-  }
-}
-
-# Check if other format of EVID
-  if (101 %in% dat$EVID) {
-  dat[dat$EVID==101,]$EVID<-1
-  }
-
-# Check if any row contains EVID=2 and issue a warning if found
-if (2 %in% dat$EVID) {
-  evid_message2<-paste0("Note: EVID=2 found in the dataset. Rows with EVID=2 are removed")
-  dat <- dat %>% filter(EVID != 2)
-}
-
-if ("DOSE" %in% column_names) {
-  dat$DOSE_PRE <- dat$DOSE
-  dat$dose<-NULL
-}
-
-if ("DUR" %in% colnames(dat)) {
-  if (!"RATE" %in% colnames(dat)) {
-    dat$RATE <- 0
-    dat[dat$DUR > 0,]$RATE <-
-      dat[dat$DUR > 0,]$AMT / dat[dat$DUR > 0,]$DUR
-  }
-
-  else{
-    if (min(dat$RATE)==-2){
-      dat$RATE <- 0
-      dat[dat$DUR > 0,]$RATE <-
-        dat[dat$DUR > 0,]$AMT / dat[dat$DUR > 0,]$DUR
       dat <- dat %>%
-        select(-DUR)
-    }
-  }
-}
-
-if (!"DUR" %in% colnames(dat)) {
-  if (!"RATE" %in% colnames(dat)) {
-    dat$RATE <- 0
-  }
-}
-
-if (!"SS" %in% colnames(dat)) {
-    dat$SS<- 0
-}
-
-# CMT
-
-if (!"CMT" %in% colnames(dat)) {
-  dat$CMT<- 1
-}
-
-if ("CMT" %in% column_names) {
-  if (length(unique(dat$CMT)) == 1) {
-      if (is.character(dat$CMT)){
-        dat$CMT= 1
-        message(black(
-          paste0(
-            "CMT value is a number and has been set to 1 by default."
-          )
-        ))
-      }
-  }
-
-  if (length(unique(dat$CMT)) == 2) {
-    message(black(
-      paste0(
-        "Administration site detected to differ from measurement site; extravascular (oral) administration assumed."
-      )
-    ))
-
-    if (is.character(dat$CMT)){
-
-      cpcmptname<-dat[dat$EVID==0,]$CMT[1]
-      dat[dat$EVID==0,]$CMT=2
-      # iv case
-      if (nrow( dat[dat$EVID %in% c(1,4) & dat$CMT== cpcmptname,])>0){
-      dat[dat$EVID %in% c(1,4) & dat$CMT== cpcmptname,]$CMT=2
-      }
-
-      dat[dat$EVID %in% c(1,4) & dat$CMT!= cpcmptname,]$CMT=1
-
-      message(black(
-        paste0(
-          "CMT value is NOT a number and has been set to 1 (depot) 2 (centre) by default."
+        dplyr::mutate(
+          EVID = dplyr::if_else(.data$CENS == 1, 2L, .data$EVID),
+          CENS = 0L
         )
-      ))
     }
   }
 
-  if (length(unique(dat$CMT)) > 2) {
-    message(black(
-      paste0(
-        "Administration site detected to differ from measurement site; extravascular (oral) administration assumed."
+  # EVID/MDV handling
+  if (!"EVID" %in% colnames(dat)) {
+    if (!"MDV" %in% colnames(dat)) {
+      stop(crayon::red("Error: Missing both EVID and MDV columns"))
+    }
+
+    msg <- "Note: Imputed EVID from MDV (MDV=1 to EVID=1)"
+    evid_messages <- c(evid_messages, msg)
+    # message(crayon::black(msg))
+
+    dat <- dat %>%
+      dplyr::mutate(
+        EVID = dplyr::case_when(
+          .data$MDV == 1 & !is.na(.data$DV) ~ 1L,
+          .data$MDV == 0 ~ 0L,
+          TRUE ~ 0L
+        )
       )
-    ))
+  }
 
-    if (is.character(dat$CMT)){
-       stop("Error: Only cases with CMT values of up to two are supported currently")
+  # Clean EVID values
+  dat <- dat %>%
+    # Convert EVID=101 to 1 with logging
+    dplyr::mutate(
+      EVID = dplyr::if_else(.data$EVID == 101, 1L, .data$EVID)
+    ) %>% {
+      n_101 <- sum(.$EVID == 101, na.rm = TRUE)
+      if(n_101 > 0) {
+        msg <- paste("Converted", n_101, "EVID=101 records to EVID=1")
+        evid_messages <<- c(evid_messages, msg)
+        # message(crayon::black(msg))
+      }
+      .
+    }
+
+  #Reset Flag Calculation #
+  dat <- dat %>%
+    dplyr::group_by(ID) %>%
+    dplyr::mutate(
+      # Identify reset events (EVID=4)
+      reset_event = (.data$EVID == 4 | .data$SS == 1),
+
+      # Calculate resetflag using cumulative sum
+      resetflag = 1L + cumsum(reset_event)
+    ) %>%
+    dplyr::select(-reset_event) %>%
+    dplyr::ungroup()
+
+
+  # Handle LLOQ (DV=0)
+  # remove raw_EVID if it exists
+  if ("raw_evid" %in% colnames(dat)) {
+    dat$raw_evid <- NULL
+  }
+
+  dat <- dat %>%
+    dplyr::mutate(
+      raw_EVID = EVID,  # Backup original EVID
+      EVID = dplyr::if_else(
+        condition = .data$raw_EVID == 0 & .data$DV == 0,
+        true = 2L,
+        false = .data$EVID
+      )
+    ) %>% {
+      # Count rows where EVID was changed from 0 to 2
+      n_converted <- sum(.$raw_EVID == 0 & .$EVID == 2, na.rm = TRUE)
+      if (n_converted > 0) {
+        msg <- paste("Converted", n_converted, "rows with DV=0 from EVID=0 to EVID=2. These are excluded.")
+        evid_messages <<- c(evid_messages, msg)
+        # message(crayon::black(msg))
+      }
+      .  # Return data for further piping
+    }
+
+
+  # Remove EVID=2 with logging
+  dat <- dat %>%
+    dplyr::filter(.data$EVID != 2) %>% {
+      n_removed <- sum(.$EVID == 2, na.rm = TRUE)
+      if(n_removed > 0) {
+        msg <- paste("Removed", n_removed, "EVID=2 records (DV=0)")
+        evid_messages <<- c(evid_messages, msg)
+        # message(crayon::black(msg))
+      }
+      .
+    }
+
+  # Final message output
+  if(length(evid_messages) > 0) {
+    message(crayon::black(paste(evid_messages, collapse = "\n")))
+  }
+
+
+ #-------------- STEP 3: DUR/RATE/SS Processing -----------------------#
+
+  if ("DUR" %in% colnames(dat)) {
+    # Scenario 1: RATE Column Missing
+    if (!"RATE" %in% colnames(dat)) {
+      dat <- dat %>%
+        dplyr::mutate(RATE = dplyr::case_when(# Calculate rate for positive duration values
+          .data$DUR > 0 ~ .data$AMT / .data$DUR,
+          # Default to zero for non-positive durations
+          TRUE ~ 0))
+    }
+
+    # Scenario 2: RATE Exists with Special Flag Value
+    else {
+      # Check if RATE needs reset (using -2 as indicator)
+      if (min(dat$RATE, na.rm = TRUE) == -2) {
+        dat <- dat %>%
+          dplyr::mutate(# Recalculate rate using same logic as Scenario 1
+            RATE = dplyr::case_when(.data$DUR > 0 ~ .data$AMT / .data$DUR,
+                                    TRUE ~ 0)) %>%
+          # Remove DUR column after recalculation
+          dplyr::select(-"DUR")
+      }
     }
   }
-}
 
-# Analyse EVID=4 reset situation and add an reseflag (similar with rxode2 resetno)
-# Apply the resetflag only within each ID group
-# Initialise the resetflag column with 1
-dat$resetflag <- 1
-
-# Loop through each unique ID to apply the resetflag condition separately within each group
-for (id in unique(dat$ID)) {
-  # Subset rows for the current ID
-  id_rows <- which(dat$ID == id)
-
-  for (i in id_rows[-1]) {  # Start from the second row within the ID subset
-    # If EVID equals 4, increment resetflag by 1 from the previous row's value
-    if (dat$EVID[i] == 4) {
-      dat$resetflag[i] <- dat$resetflag[i - 1] + 1
-    } else {
-      # Otherwise, keep resetflag the same as the previous row's value
-      dat$resetflag[i] <- dat$resetflag[i - 1]
-    }
+  # Handle mandatory RATE column creation
+  if (!"DUR" %in% colnames(dat) && !"RATE" %in% colnames(dat)) {
+    dat <- dat %>%
+      dplyr::mutate(RATE = 0)  # Initialize with numeric zeros
   }
-}
 
-# Apply the SSflag condition only within each ID group
-# Initialize the SSflag column with 0
-dat$SSflag <- 0
+#-------------- STEP 4: Reset and SS Flags ---------------------------#
+  dat <- dat %>%
+    # Create SS column if missing and initialize to 0
+    { if (!"SS" %in% names(.)) dplyr::mutate(., SS = 0) else . } %>%
+    # Initialize SSflag column with 0 for all rows
+    dplyr::mutate(SSflag = 0) %>%
+    # Process within each subject ID
+    dplyr::group_by(ID) %>%
+    dplyr::mutate(
+      # Create list of SS event windows: start/end times for SS=1 events
+      SS_events = base::list(
+        base::data.frame(
+          start = TIME[SS == 1],
+          end = TIME[SS == 1] + II[SS == 1]
+        )
+      )
+    ) %>%
+    # Check each row individually
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      # Determine if current time falls within any SS event window
+      SSflag = base::as.integer(
+        base::any(
+          TIME >= SS_events$start & TIME <= SS_events$end
+        )
+      )
+    ) %>%
+    dplyr::ungroup() %>%
+    # Remove temporary event tracking column
+    dplyr::select(-SS_events)
 
-for (id in unique(dat$ID)) {
-  # Identify rows for the current ID
-  id_rows <- which(dat$ID == id)
 
-  for (i in id_rows) {
-    # Check if SS is 1 in the current row
-    if (dat$SS[i] == 1) {
-      # Define the end time by adding hours_to_flag to the current TIME
-      end_time <- dat$TIME[i] + dat$II[i]
-
-      # Find the rows within the same ID that fall within the end_time
-      rows_to_flag <- id_rows[dat$TIME[id_rows] <= end_time & dat$TIME[id_rows] >= dat$TIME[i]]
-
-      # Set SSflag to 1 for the specified range within the same ID
-      dat$SSflag[rows_to_flag] <- 1
-    }
-  }
-}
-
-# Convert the values in key columns of input data frame to numeric format
-column.list<-c("TIME","DV","MDV","EVID","RATE","DUR","AMT","CMT", "ADDL","II")
-
-for (testcolumn in colnames(dat)) {
-  if (testcolumn %in% column.list) {
-    dat[[testcolumn]] <- as.numeric(dat[[testcolumn]])
-  }
-}
-
-# Identify route
+#------------- STEP 4: Compartment Handling & Administration Route ----------#
+# Ensure CMT column exists with default value 1
 dat <- dat %>%
-  group_by(ID, resetflag) %>%
-  mutate(
-    # Identify the CMT of EVID=0 within the group (assume first occurrence of EVID=0 is representative)
-    evid0_cmt = first(CMT[EVID == 0], default = NA_real_),
+  dplyr::mutate(
+    across(any_of(num_cols), as.numeric),
+    CMT = dplyr::coalesce(.data$CMT, 1L)
+  )
 
-    # Determine route based on CMT and RATE
-    route = case_when(
-      EVID %in% c(1,4) & CMT != evid0_cmt ~ "oral",  # If CMT does not match the CMT of EVID=0, set route to "oral"
-      EVID %in% c(1,4) &  CMT == evid0_cmt & RATE > 0 ~ "infusion",  # If CMT matches and RATE > 0, set route to "infusion"
-      EVID %in% c(1,4) &  CMT == evid0_cmt & RATE == 0 ~ "bolus",  # If CMT matches and RATE == 0, set route to "bolus"
-      EVID == 0 ~ NA # Keep existing value in `route` for other rows
+# Process compartment logic per ID/reset group
+dat <- dat %>%
+  dplyr::group_by(ID, resetflag) %>%
+  dplyr::mutate(
+    # Get observation compartment (EVID=0) for current reset group
+    obs_cmt = dplyr::first(CMT[EVID == 0], na_rm = TRUE),
+
+    # Count unique compartments in current group
+    n_unique_cmt = dplyr::n_distinct(CMT)
+  ) %>%
+  dplyr::ungroup() %>%
+  # Route determination logic
+  dplyr::mutate(
+    route = dplyr::case_when(
+      # Single compartment logic
+      n_unique_cmt == 1 &
+        EVID %in% c(1, 4) & RATE > 0 ~ "infusion",
+      n_unique_cmt == 1 & EVID %in% c(1, 4) & RATE == 0 ~ "bolus",
+
+      # Dual compartment logic
+      n_unique_cmt == 2 &
+        EVID %in% c(1, 4) & CMT != obs_cmt ~ "oral",
+      n_unique_cmt == 2 &
+        EVID %in% c(1, 4) & CMT == obs_cmt & RATE > 0 ~ "infusion",
+      n_unique_cmt == 2 &
+        EVID %in% c(1, 4) & CMT == obs_cmt & RATE == 0 ~ "bolus",
+
+      # Default case
+      TRUE ~ NA_character_
     )
   ) %>%
-  ungroup() %>%
-  select(-evid0_cmt)  # Remove temporary column
+  dplyr::select(-obs_cmt,-n_unique_cmt)
 
+# Error handling for unsupported configurations
+invalid_groups <- dat %>%
+  dplyr::group_by(ID, resetflag) %>%
+  dplyr::filter(dplyr::n_distinct(CMT) > 2) %>%
+  dplyr::ungroup()
+
+if (nrow(invalid_groups) > 0) {
+  stop(
+    paste(
+      "Package requires ≤2 distinct CMT values. Found",
+      length(unique(invalid_groups$ID)),
+      "subjects with >2 CMT values",
+      "(not suitable for metabolites/multi-site analysis)."
+    )
+  )
+}
+
+#------- STEP 5: Dose/tad/DVstd(standardised concentration) processing ------#
 
 # Convert pharmacokinetic dataset to depreciated format with additional dosing
-# Must run before marking dose number
 if ("ADDL" %in% column_names) {
+  if (!is.numeric(dat$ADDL)) {
+    stop("ADDL column must be numeric. Found type: ", class(dat$ADDL))
+  }
   if (sum(dat$ADDL)>0){
   dat <- nmpkconvert(dat)
   }
@@ -283,78 +330,106 @@ if ("ADDL" %in% column_names) {
 
 # Mark the dose number
 dat <- mark_dose_number(dat)
+
+# Calculate time after the last dose (tad)
 dat<-calculate_tad(dat)
 
-dat$duration_obs<-0
-
-if (nrow(dat[dat$rateobs!=0,])>0){
-  dat$duration_obs <- dat[dat$rateobs!=0,]$dose / dat[dat$rateobs!=0,]$rateobs
-}
-
-
-# dat <- dat %>%
-#   mutate(original_EVID = EVID) %>%  # Create a backup column for EVID
-#   group_by(ID, dose_number) %>%  # Group by ID and dose_number to work within each dose cycle
-#   mutate(
-#     # Calculate Tmax within each ID and dose_number group where EVID == 0
-#     Tmax = ifelse(any(EVID == 0), TIME[which.max(DV[EVID == 0])], NA_real_),
-#     # Set EVID to 2 for rows where EVID == 0, TIME > Tmax, and DV == 0 within each ID and dose_number group
-#     # Only set if Tmax is not NA
-#     EVID = if_else(EVID == 0 & !is.na(Tmax) & TIME > Tmax & DV == 0, 2, EVID),
-#     # Set DV to NA for rows where EVID is set to 2
-#     DV = if_else(EVID == 2, 0, DV)
-#   ) %>%
-#   ungroup()
-
-# dat <- select(dat, -Tmax)
-# dat<-as.data.frame(dat)
+# The duration inherited from the most recent dose, applied to observation rows.
 dat <- dat %>%
-  mutate(original_EVID = EVID) %>%  # Create a backup column for EVID
-  mutate(
-    # Set EVID to 2 for rows where original_EVID == 0 and DV == 0
-    EVID = if_else(original_EVID == 0 & DV == 0, 2, EVID)
+  dplyr::mutate(
+    duration_obs = dplyr::if_else(
+      condition = (rateobs != 0),
+      true      = dose / rateobs,
+      false     = 0.0,
+      missing   = 0.0
+    )
   )
-
-# Check if any EVID was changed from 0 to 2
-if (any(dat$original_EVID == 0 & dat$EVID == 2)) {
-  message(black("Rows with DV=0 have been assigned EVID=2 and will be excluded from subsequent analyses."))
-  # Check if any row contains EVID=2 and issue a warning if found
-  if (2 %in% dat$EVID) {
-    dat <- dat %>% filter(EVID != 2)
-  }
-}
 
 dat$DVstd <- dat$DV / dat$dose
 
-############################# Group data####################################
-# First dose data (Data between the first and second doses,dose number=1)
-fd_data<-dat[dat$dose_number==1 & dat$iiobs==0,]
-# Normalise concentration by dose
-fd_data$DVstd <- fd_data$DV / fd_data$dose
-fd_data_obs<-dat[dat$dose_number==1 & dat$EVID==0& dat$iiobs==0,]
+#-------------- STEP 6: individual lambda-z eligibility -----------------#
+# Flag observations eligible for elimination phase (lambda-z) calculations
+dat <- dat %>%
+  dplyr::group_by(ID, dose_number) %>%                # Group by subject and dose interval
+  # 1. Calculate Tmax (time of maximum observed concentration)
+  dplyr::mutate(
+    Tmax = ifelse(
+      any(EVID == 0),
+      TIME[which.max(dplyr::if_else(EVID == 0, DV, -Inf))],
+      NA_real_
+    )
+  ) %>%
+  # 2. Count eligible post-Tmax points based on administration route
+  dplyr::mutate(
+    n_post_Tmax = dplyr::case_when(
+      routeobs %in% c("bolus", "infusion") ~
+        sum(EVID == 0 & TIME > Tmax, na.rm = TRUE),   # IV: strict post-Tmax
+      routeobs == "oral" ~
+        sum(EVID == 0 & TIME >= Tmax, na.rm = TRUE),  # Oral: include Tmax
+      TRUE ~ 0L                                        # Fallback counter
+    ),
+    # 3. Create eligibility flag (>=3 points required)
+    indiv_lambda_z_eligible = as.integer(n_post_Tmax >= 3)
+  ) %>%
+  dplyr::ungroup() %>%
+  dplyr::select(-Tmax, -n_post_Tmax)                  # Cleanup temporary columns
 
-# Non-first dose data (Data after at least two doses have been administered,dose number>1)
-md_data1 <-dat[dat$dose_number>1,]
-md_data2 <-dat[dat$dose_number==1 & dat$iiobs>0,]
-md_data<-rbind(md_data1,md_data2)
-md_data<-md_data[with(md_data, order(ID, resetflag, TIME, -AMT)), ]
+#------------------ STEP 7: Summarise data --------------------#
 
-md_data$DVstd <-md_data$DV / md_data$dose
-md_data_obs <-dat[dat$dose_number>1 & dat$EVID==0,]
+# 1. Process first-dose data (excluding steady-state cases) ----
+fd_data <- dat %>%
+  dplyr::filter(
+    dose_number == 1,
+    iiobs == 0,
+    SS != 1 | is.na(SS)  # Exclude SS=1 pseudo-first doses
+  ) %>%
+  dplyr::mutate(DVstd = DV / dose)  # Dose-normalize concentrations
+
+# Observation subset for first-dose data
+fd_data_obs <- fd_data %>%
+  dplyr::filter(EVID == 0)  # Keep observation records only
+
+# 2. Process multi-dose data (including steady-state cases) ----
+md_data <- dat %>%
+  dplyr::filter(
+    dose_number > 1 |
+      (dose_number == 1 & (iiobs > 0 | SS == 1))  # Include SS=1 special case
+  ) %>%
+  # Order records by:
+  dplyr::arrange(ID, resetflag, TIME, dplyr::desc(AMT)) %>%
+  dplyr::mutate(DVstd = DV / dose)  # Dose-normalize concentrations
+
+# Observation subset for multi-dose data (derived from processed data)
+md_data_obs <- md_data %>%
+  dplyr::filter(EVID == 0)  # Keep observation records only
 
 ####################Summary output#############################
+# Calculate summary metrics ----
+metrics <- list(
+  # 1. Total metrics
+  total = dat %>%
+    summarize(
+      route = toString(unique(route[EVID %in% c(1, 4)])),  # Collapse multiple routes
+      n_ids = n_distinct(ID),
+      n_obs = sum(EVID == 0)
+    ),
 
-# total subjects and observations for each dataset
-nids <- nrow(dat[!duplicated(dat$ID),])
-nobs <- nrow(dat[dat$EVID == 0,])
+  # 2. First-dose metrics
+  fd = fd_data_obs %>%
+    summarize(
+      n_ids = n_distinct(ID),
+      n_obs = n()
+    ),
 
-nids_fd <- nrow(fd_data_obs[!duplicated(fd_data_obs$ID),])   # Number of unique IDs in FD
-nobs_fd <- nrow(fd_data_obs[fd_data_obs$EVID == 0,])         # Number of observations in FD
+  # 3. Multi-dose metrics
+  md = md_data_obs %>%
+    summarize(
+      n_ids = n_distinct(ID),
+      n_obs = n()
+    )
+)
 
-nids_md <- nrow(md_data_obs[!duplicated(md_data_obs$ID),])   # Number of unique IDs in MD
-nobs_md <- nrow(md_data_obs[md_data_obs$EVID == 0,])         # Number of observations in MD
-
-
+# Build summary table
 summary_doseinfo <- data.frame(
   Infometrics = c("Dose Route",
                   "Total Number of Subjects",
@@ -363,40 +438,50 @@ summary_doseinfo <- data.frame(
                   "Observations in the First-Dose Interval",
                   "Subjects with Multiple-Dose Data",
                   "Observations after Multiple Doses"),
-  Values = c(unique(dat[dat$EVID %in% c(1,4),]$route),
-            nids,
-            nobs,
-            nids_fd,
-            nobs_fd,
-            nids_md,
-            nobs_md)
+  Value = c(
+    metrics$total$route,       # Character string from toString()
+    metrics$total$n_ids,      # Integer counts
+    metrics$total$n_obs,
+    metrics$fd$n_ids,
+    metrics$fd$n_obs,
+    metrics$md$n_ids,
+    metrics$md$n_obs
+  ),
+  stringsAsFactors = FALSE    # Prevent automatic factor conversion
 )
+# Format output ----
+summary_doseinfo_output <-
+  paste(capture.output(knitr::kable(summary_doseinfo, format = "simple")),
+        collapse = "\n")
 
+# Footnote generation
+if (length(evid_messages) > 0) {
+  # Format messages as bullet points with proper line wrapping
+  formatted_messages <- paste0("* ", evid_messages, collapse = "\n")
 
-# message(magenta(
-#   paste(capture.output(knitr::kable(summary_doseinfo, format = "simple")), collapse = "\n")
-# ))
-
-
-# Create the formatted table output
-summary_doseinfo_output <- paste(capture.output(knitr::kable(summary_doseinfo, format = "simple")), collapse = "\n")
-complete_output <- paste(summary_doseinfo_output, sep = "\n")
-
-if (!is.null(evid_message1)||!is.null(evid_message2)){
-# Define the footnote text
-footnote_evid<- paste(evid_message1, evid_message2, sep = "\n")
-# Combine table output and footnote, separated by a line for clarity
-complete_output <- paste(summary_doseinfo_output, footnote_evid, sep = "\n")
+  # Construct final output with separation between table and footnotes
+  complete_output <- paste(summary_doseinfo_output,
+                           # Main summary table
+                           "\n\n[Notes]\n",
+                           # Section header for validation messages
+                           formatted_messages,
+                           # Formatted bullet points
+                           sep = "")
+} else {
+  # Maintain clean output when no messages exist
+  complete_output <- summary_doseinfo_output
 }
-# Display the complete output with footnote in the console
-message(magenta(complete_output))
 
-message(magenta(
-  paste0("------------------------------------  ------")
-))
+# Display the complete output with footnote in the console
+message(crayon::magenta(complete_output))
+
+message(crayon::magenta(paste0(
+  "------------------------------------  ------"
+)))
 
 return(list(dat=dat,Datainfo =complete_output ))
 }
+
 
 
 
