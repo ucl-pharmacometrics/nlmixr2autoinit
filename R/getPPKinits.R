@@ -151,10 +151,7 @@ getPPKinits<- function(dat,
   if (run.option==1){
 ####################Single point method ################################
 
-message(black(
-  paste0("Run adaptive single-point method to calculate PK parameters",strrep(".", 20))))
 # Half-life estimated
-
    pooled <- get_pooled_data(dat,
                              data_type = data_type,
                              nbins=nbins,
@@ -170,6 +167,9 @@ message(black(
 
    message(black(
      paste0("Estimated half-life : ", half_life)))
+
+   message(black(
+     paste0("Run adaptive single-point method",strrep(".", 20))))
 
  single.point.lst <- run_single_point(
     dat = dat,
@@ -188,7 +188,7 @@ message(black(
 
 ################# Naive pooled Non-compartmental analysis ##################################
   message(black(
-    paste0("Run non-compartmental analysis on naive pooling data", strrep(".", 20))
+    paste0("Run naive pooled non-compartmental analysis", strrep(".", 20))
   ))
 
  nca.results <- run_pooled_nca(

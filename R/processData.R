@@ -139,6 +139,8 @@ processData<-function(dat){
   #Reset Flag Calculation #
   dat <- dat %>%
     dplyr::group_by(ID) %>%
+    # Create SS column if missing and initialize to 0
+    { if (!"SS" %in% names(.)) dplyr::mutate(., SS = 0) else . } %>%
     dplyr::mutate(
       # Identify reset events (EVID=4)
       reset_event = (.data$EVID == 4 | .data$SS == 1),
@@ -228,16 +230,16 @@ processData<-function(dat){
 
 #-------------- STEP 4: Reset and SS Flags ---------------------------#
   dat <- dat %>%
-    # Create SS column if missing and initialize to 0
-    { if (!"SS" %in% names(.)) dplyr::mutate(., SS = 0) else . } %>%
+    # Create II column if missing and initialize to 0
+    { if (!"II" %in% names(.)) dplyr::mutate(., II = 0) else . } %>%
     # Initialize SSflag column with 0 for all rows
     dplyr::mutate(SSflag = 0) %>%
     # Process within each subject ID
     dplyr::group_by(ID) %>%
     dplyr::mutate(
       # Create list of SS event windows: start/end times for SS=1 events
-      SS_events = base::list(
-        base::data.frame(
+      SS_events = list(
+        data.frame(
           start = TIME[SS == 1],
           end = TIME[SS == 1] + II[SS == 1]
         )
@@ -247,8 +249,8 @@ processData<-function(dat){
     dplyr::rowwise() %>%
     dplyr::mutate(
       # Determine if current time falls within any SS event window
-      SSflag = base::as.integer(
-        base::any(
+      SSflag = as.integer(
+        any(
           TIME >= SS_events$start & TIME <= SS_events$end
         )
       )
@@ -476,7 +478,7 @@ if (length(evid_messages) > 0) {
 message(crayon::magenta(complete_output))
 
 message(crayon::magenta(paste0(
-  "------------------------------------  ------"
+  "----------------------------------------  ------"
 )))
 
 return(list(dat=dat,Datainfo =complete_output ))
