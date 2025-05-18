@@ -167,6 +167,7 @@ getPPKinits <- function(dat, control=initsControl()) {
   ka_nca_efd <- NA
   ka_nca_all <- NA
   used_nca_fd_ka_fallback  <- FALSE
+  ka_wn <-NA
   if (route == "oral" &&
       !is.na(nca_out$nca.fd.results$clobs) &&
       !is.na(nca_out$nca.fd.results$vzobs)) {
@@ -1078,7 +1079,7 @@ getPPKinits <- function(dat, control=initsControl()) {
   init.history <- list(
     base.out = all.out,
     single.point.out = sp_result,
-    nca.out = nca.out,
+    nca.out = nca_out,
     ka.wanger.nelson.out =  ka_wn,
     graph.out =   graph_out,
     sim.vmax.km = sim.vmax.km.results.all,
