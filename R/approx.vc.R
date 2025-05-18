@@ -92,7 +92,7 @@ approx.vc <- function(dat = NULL,
                       single_point_base.lst = NULL,
                       route = c("bolus", "oral", "infusion"),
                       dose_type = NULL,
-                      pooledctrl = pooled_control(),
+                      pooled_ctrl = pooled_control(),
                       ssctrl = ss_control()) {
 
   # Ensure half-life is provided
@@ -123,7 +123,7 @@ approx.vc <- function(dat = NULL,
       half_life = half_life,
       route = route,
       dose_type = dose_type,
-      pooledctrl = pooledctrl,
+      pooled_ctrl = pooled_ctrl,
       ssctrl = ssctrl
     )
   }
