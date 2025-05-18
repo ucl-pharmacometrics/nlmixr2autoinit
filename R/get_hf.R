@@ -6,8 +6,8 @@
 #' linear regression on the terminal phase of log-transformed concentration-time data.
 #'
 #' @param dat A data frame containing the pharmacokinetic data. The required columns
-#'   depend on the specified \code{data_type} and are validated within \code{\link{get_pooled_data}}.
-#' @param data_type Character string specifying the type of data to analyze. One of:
+#'   depend on the specified \code{dose_type} and are validated within \code{\link{get_pooled_data}}.
+#' @param dose_type Character string specifying the type of data to analyze. One of:
 #'   \itemize{
 #'     \item{\code{"first_dose"}}: Analysis based on first-dose data only.
 #'     \item{\code{"repeated_doses"}}: Analysis based on repeated-dose data only.
@@ -44,11 +44,11 @@
 #' # Example: half-life estimation from a combined profile (first + repeated doses)
 #' dat <- Bolus_1CPT
 #' dat <- processData(dat)$dat
-#' get_hf(dat, data_type = "combined_doses", nlastpoints = 3)
+#' get_hf(dat, dose_type = "combined_doses", nlastpoints = 3)
 #'
 #' # Using externally pooled data
-#' pooled <- get_pooled_data(dat, data_type = "combined_doses")
-#' get_hf(dat, data_type = "combined_doses", pooled = pooled, nlastpoints = 2)
+#' pooled <- get_pooled_data(dat, dose_type = "combined_doses")
+#' get_hf(dat, dose_type = "combined_doses", pooled = pooled, nlastpoints = 2)
 #' }
 #'
 #' @seealso \code{\link{get_pooled_data}}, \code{\link{bin.time}}, \code{\link{find_best_lambdaz}}
@@ -56,7 +56,7 @@
 #' @export
 #'
 get_hf <- function(dat,
-                   data_type = "first_dose",
+                   dose_type = "first_dose",
                    pooled = NULL,
                    ...) {
 
@@ -64,12 +64,13 @@ get_hf <- function(dat,
 
   dots <- list(...)
   bin_args <- dots[names(dots) %in% names(formals(bin.time))]
-  slope_args <- dots[names(dots) %in% names(formals(find_best_lambdaz))]
+  slope_args <-
+    dots[names(dots) %in% names(formals(find_best_lambdaz))]
 
   if (is.null(pooled)) {
     pooled <- do.call(get_pooled_data,
                       c(list(
-                        dat = dat, data_type = data_type
+                        dat = dat, dose_type = dose_type
                       ), bin_args))
   }
 
@@ -77,58 +78,69 @@ get_hf <- function(dat,
   half_life_fd <- NA
   half_life_md <- NA
   half_life_all <- NA
+  slope_results_fd <- NA
+  slope_results_md <- NA
+  slope_results_all <- NA
 
   # First dose
   if (!is.null(pooled$datpooled_fd) &&
       "binned.df" %in% names(pooled$datpooled_fd)) {
-    slope_results <- do.call(force_find_lambdaz, c(
+    slope_results_fd <- do.call(force_find_lambdaz, c(
       list(
         time = pooled$datpooled_fd$binned.df$Time,
         conc = pooled$datpooled_fd$binned.df$Conc
       ),
       slope_args
     ))
-    ke <- slope_results$lambdaz
+    ke <- slope_results_fd$lambdaz
     half_life_fd <- ifelse(ke > 0, log(2) / ke, NA)
   }
 
   # Repeated doses
   if (!is.null(pooled$datpooled_efd) &&
       "binned.df" %in% names(pooled$datpooled_efd)) {
-    slope_results <- do.call(force_find_lambdaz, c(
+    slope_results_md <- do.call(force_find_lambdaz, c(
       list(
         time = pooled$datpooled_efd$binned.df$Time,
         conc = pooled$datpooled_efd$binned.df$Conc
       ),
       slope_args
     ))
-    ke <- slope_results$lambdaz
+    ke <- slope_results_md$lambdaz
     half_life_md <- ifelse(ke > 0, log(2) / ke, NA)
   }
 
   # Combined
   if (!is.null(pooled$datpooled_all) &&
       "binned.df" %in% names(pooled$datpooled_all)) {
-    slope_results <-  do.call(force_find_lambdaz, c(
+    slope_results_all <-  do.call(force_find_lambdaz, c(
       list(
         time = pooled$datpooled_all$binned.df$Time,
         conc = pooled$datpooled_all$binned.df$Conc
       ),
       slope_args
     ))
-    ke <- slope_results$lambdaz
+    ke <- slope_results_all$lambdaz
     half_life_all <- ifelse(ke > 0, log(2) / ke, NA)
   }
 
   # Summarize
   half_life_values <- c(half_life_fd, half_life_md, half_life_all)
   positive_values <-
-    half_life_values[half_life_values > 0 & !is.na(half_life_values)]
+    half_life_values[half_life_values > 0 &
+                       !is.na(half_life_values)]
   half_life_median <-
     if (length(positive_values) > 0)
       round(median(positive_values), 2)
   else
     NA
+
+  # Final message
+  message_text <- paste0(
+    crayon::green("Half-life estimation complete: "),
+    "Estimated t½ = ", half_life_median, " h"
+  )
+  message(message_text)
 
   return(
     list(
@@ -136,8 +148,9 @@ get_hf <- function(dat,
       half_life_fd = half_life_fd,
       half_life_md = half_life_md,
       half_life_all = half_life_all,
-      slope_results=slope_results
+      slope_results_fd = slope_results_fd,
+      slope_results_md = slope_results_md,
+      slope_results_all = slope_results_all
     )
   )
 }
-

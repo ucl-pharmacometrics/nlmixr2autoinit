@@ -80,7 +80,7 @@ metrics. <-function(pred.x,
   metrics.rmse <- sqrt(mean((pred.x - obs.y)^2,na.rm = T))
 
   # relative root mean squared error (rRMSE)
-  metrics.rrmse<- mean(((pred.x - obs.y)^2/ ((pred.x + obs.y)/2)^2),na.rm = T)*100
+  metrics.rrmse<- sqrt(mean(((pred.x - obs.y)^2/ ((pred.x + obs.y)/2)^2),na.rm = T))*100
 
   return(c( metrics.ape=metrics.ape ,
             metrics.mae=metrics.mae,

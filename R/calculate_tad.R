@@ -69,7 +69,7 @@ calculate_tad <- function(dat) {
     dat$route = NA
   }
 
-  dat <- dat %>% mutate(tad = NA_real_)
+  dat <- dat %>% dplyr::mutate(tad = NA_real_)
   # Identify concentration rows
   conc_rows <- dat$EVID == 0
   # Filter the dose lines
@@ -77,12 +77,12 @@ calculate_tad <- function(dat) {
     dplyr::arrange(ID, resetflag, TIME) %>%
     dplyr::group_by(ID, resetflag) %>%
     dplyr::mutate(
-      last_dose_time = if_else(EVID %in% c(1, 101, 4), TIME, NA_real_),
-      last_dose_number = if_else(EVID %in% c(1, 101, 4), dose_number, NA_integer_),
-      last_dose = if_else(EVID %in% c(1, 101, 4), AMT, NA_integer_),
-      last_ii = if_else(EVID %in% c(1, 101, 4), II, NA_real_),
-      last_rate = if_else(EVID %in% c(1, 101, 4), RATE, NA_real_),
-      last_route = if_else(EVID %in% c(1, 101, 4), route, NA_character_)
+      last_dose_time = dplyr::if_else(EVID %in% c(1, 101, 4), TIME, NA_real_),
+      last_dose_number = dplyr::if_else(EVID %in% c(1, 101, 4), dose_number, NA_integer_),
+      last_dose = dplyr::if_else(EVID %in% c(1, 101, 4), AMT, NA_integer_),
+      last_ii = dplyr::if_else(EVID %in% c(1, 101, 4), II, NA_real_),
+      last_rate = dplyr::if_else(EVID %in% c(1, 101, 4), RATE, NA_real_),
+      last_route = dplyr::if_else(EVID %in% c(1, 101, 4), route, NA_character_)
     ) %>%
     tidyr::fill(
       last_dose_time,
@@ -98,13 +98,13 @@ calculate_tad <- function(dat) {
   # Calculate TAD for each concentration
   dat <- dat %>%
     dplyr::mutate(
-      tad = if_else(conc_rows, TIME - last_dose_time, NA_real_),
+      tad = dplyr::if_else(conc_rows, TIME - last_dose_time, NA_real_),
       # if conc row, fill by last_dose_number, else, dose_number
-      dose_number = if_else(conc_rows, last_dose_number, dose_number),
-      dose = if_else(conc_rows, last_dose, AMT),
-      iiobs = if_else(conc_rows, last_ii, II),
-      rateobs = if_else(conc_rows, last_rate, RATE),
-      routeobs = if_else(conc_rows, last_route, route)
+      dose_number = dplyr::if_else(conc_rows, last_dose_number, dose_number),
+      dose = dplyr::if_else(conc_rows, last_dose, AMT),
+      iiobs = dplyr::if_else(conc_rows, last_ii, II),
+      rateobs = dplyr::if_else(conc_rows, last_rate, RATE),
+      routeobs = dplyr::if_else(conc_rows, last_route, route)
     ) %>%
 
     dplyr::select(-last_dose_time,-last_dose_number,-last_dose,-last_ii,-last_rate,-last_route)
@@ -146,7 +146,7 @@ mark_dose_number <- function(dat) {
   dat <- dat %>%
     dplyr::group_by(ID, resetflag) %>%
     dplyr::arrange(TIME, CMT) %>%
-    dplyr::mutate(dose_number = if_else(EVID %in% c(1, 101, 4),
+    dplyr::mutate(dose_number = dplyr::if_else(EVID %in% c(1, 101, 4),
                                         cumsum(EVID %in% c(1, 101, 4)),
                                         NA_integer_)) %>%
     dplyr::ungroup()

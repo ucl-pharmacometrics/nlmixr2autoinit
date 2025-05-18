@@ -122,9 +122,6 @@ single_point_base <- function(dat,
 ##############################Single Point Base#############################
 
  ##################################Calculate of clearance######################
-  dat <- is_ss(df = dat,
-                 half_life = half_life )
-
 
   dat.ss.obs <- dat[dat$SteadyState == TRUE & !is.na(dat$SteadyState), ]
 

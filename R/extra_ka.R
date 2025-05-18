@@ -6,8 +6,6 @@
 #'
 #' @param dat A data frame with at least two columns: `DV` (drug concentration)
 #' and `TIME` (time points of measurement).
-#' @param nlastpoints An integer specifying the number of last points to be used for slope calculation
-#' of the elimination rate constant (ke). However, this argument is not used in the current function logic but remains for future enhancements.
 #'
 #' @details
 #' The function calculates the absorption rate constant (ka) as follows:
@@ -23,34 +21,29 @@
 #' @return A numeric value representing the estimated absorption rate constant (ka).
 #'
 #' @examples
-#' # Example 1.  data frame with drug concentration (DV) and time (TIME)
-#' data_example <- data.frame(
-#'   TIME = c(0, 0.5, 1, 2, 3, 4, 5, 6, 8, 10),
-#'   DV = c(0, 5, 10, 30, 40, 45, 30, 20, 10, 5 )
-#' )
 #'
-#' # Calculate ka using the Wanger-Nelson method with the last 4 data points
-#' ka_wanger_nelson(data_example, 4)$ka
-#'
-#' # Example 2. data frame from nlmixr2data
+#' # data frame from nlmixr2data
 #' dat<-Oral_1CPT[Oral_1CPT$ID==1 &Oral_1CPT$SD==1&Oral_1CPT$EVID==0,]
 #' dat<-data.frame(TIME=dat$TIME,DV=dat$DV)
-#' ka_wanger_nelson(dat=dat,nlastpoints=4)$ka
-#' ka_wanger_nelson(dat=dat,nlastpoints=4)$dat_out_wanger_nelson
+#' ka_wanger_nelson(dat=dat)$ka
+#' ka_wanger_nelson(dat=dat)$dat_out_wanger_nelson
 #'
 #' @export
 #'
-ka_wanger_nelson<-function(dat,nlastpoints,nca.out){
+ka_wanger_nelson<-function(dat,
+                           nca.out=NULL){
 
   colnames(dat)[1]<-"TIME"
   colnames(dat)[2]<-"DV"
   x<-dat$TIME
   y<-dat$DV
-  if (missing(nca.out)){
-  nca.out<-nca.iv.normalised(dat = data.frame(time=x,conc=y),nlastpoints=nlastpoints)
+
+  if (missing(nca.out)) {
+    nca.out <- getnca(x = dat$TIME, y = dat$DV,ss = 0)
   }
-  auc_ <- nca.out[6]
-  ke<- nca.out[8]
+
+  auc_ <- nca.out$auc0_inf
+  ke<- nca.out$lambdaz
   auc_intervals<- diff(x) * (y[-1] + y[-length(y)])/2
 
   # use a triangle to calculate 0 - first sample
@@ -223,27 +216,6 @@ ka_calculation_md <- function(cl,      # Clearance of the drug (L/hr)
   return(list(ka = solution$root, full_solution = solution))
 }
 
-# plot uniroot
-# ka_calculation_md <- function(cl, ke, t, Ct, Fbio = 1, Dose, tau) {
-#   Vd <- cl / ke
-#
-#   # Define the equation to solve for the absorption rate constant (ka)
-#   ka.equation <- function(ka) {
-#     predicted_Ct <- (Fbio * Dose * ka) / (Vd * (ka - ke)) *
-#       ((exp(-ke * t) / (1 - exp(-ke * tau))) - (exp(-ka * t) / (1 - exp(-ka * tau))))
-#     return(predicted_Ct - Ct)
-#   }
-#
-#   # Visualize the function over a range of ka values
-#   ka_values <- seq(0.001, 10, by = 0.01)  # Adjust range as needed
-#   diff_values <- sapply(ka_values, ka.equation)
-#
-#   plot(ka_values, diff_values, type = "l", col = "blue",
-#        main = "ka.equation vs ka", xlab = "ka", ylab = "Difference (predicted_Ct - Ct)")
-#   abline(h = 0, col = "red")  # Reference line at y = 0
-# }
-
-
 #' Calculate absorption rate constant (ka) for oral administration Data
 #'
 #' Calculate the absorption rate constant (ka) using sampling points from the absorption phase (t<Tmax). The single-point method is applied, with each plasma concentration point used to calculate a corresponding ka value
@@ -262,103 +234,118 @@ ka_calculation_md <- function(cl,      # Clearance of the drug (L/hr)
 #'
 #' @examples
 #' # Example usage:
-#'  df<-Oral_1CPT[Oral_1CPT$SD==1 & Oral_1CPT$EVID==0,]
-#'  df<-calculate_tad(dat)
+#'  df<-Oral_1CPT[Oral_1CPT$SD==1,]
+#'  df<-processData(df)$dat
 #'  result <- run_ka_solution(df = df, cl = 4, ke = 4/70, Fbio = 1)
 #'  ka_median <- result[[1]]
 #'  data_with_ka <- result[[2]]
 #'
-#' @import dplyr
 #' @export
-run_ka_solution<-function(df,
-                          cl,
-                          ke,
-                          Fbio=1){
+run_ka_solution <- function(df,
+                            cl,
+                            ke,
+                            Fbio = 1) {
+  # Step 1: Find Tmax for each individual
+  tmax_df <- df %>%
+    dplyr::group_by(ID) %>%
+    dplyr::summarize(Tmax = TIME[which.max(DV)])
 
-# df<-Oral_1CPT[Oral_1CPT$SD==1 & Oral_1CPT$EVID==0,]
-# Step 1: Find Tmax for each individual
-tmax_df <- df %>%
-  group_by(ID) %>%
-  summarize(Tmax = TIME[which.max(DV)])
-
-# Step 2: Join Tmax with the original data and filter rows where TIME <= Tmax
-data_before_tmax <- df %>%
-  left_join(tmax_df, by = "ID") %>%
-  filter(TIME <= Tmax)
-
-data_before_tmax$cl=cl
-data_before_tmax$ke=ke
-data_before_tmax$Fbio=Fbio
-data_before_tmax$ka_calc=NA
-
-data_before_tmax_sd<-NULL
-data_before_tmax_md<-NULL
-
-if (nrow(data_before_tmax[data_before_tmax$dose_number==1 & data_before_tmax$EVID==0,])>0){
-data_before_tmax_sd<-data_before_tmax[data_before_tmax$dose_number==1  & data_before_tmax$EVID==0,]
-data_before_tmax_sd$ka_calc <-
-  mapply(
-    function(cl, ke, t, Ct, Fbio, Dose) {
-      try(ka_calculation_sd(
-        cl = cl,
-        ke = ke,
-        t = t,
-        Ct = Ct,
-        Fbio = Fbio,
-        Dose = Dose
-      )$ka,
-      silent = TRUE)
-    },
-    cl = data_before_tmax_sd$cl,
-    ke = data_before_tmax_sd$ke,
-    t = data_before_tmax_sd$TIME,
-    Ct = data_before_tmax_sd$DV,
-    Fbio = data_before_tmax_sd$Fbio,
-    Dose = data_before_tmax_sd$dose
-  )
-
-data_before_tmax_sd$ka_calcv<-suppressWarnings(suppressMessages(as.numeric(data_before_tmax_sd$ka_calc)))
-}
-
-
-if (nrow(data_before_tmax[data_before_tmax$dose_number>1  & data_before_tmax$EVID==0,])>0){
-  data_before_tmax_md<-data_before_tmax[data_before_tmax$dose_number>1  & data_before_tmax$EVID==0,]
-  data_before_tmax_md$ka_calc <-
-    mapply(
-      function(cl, ke, t, Ct, Fbio, Dose,tau) {
-        try(ka_calculation_md(
-          cl = cl,
-          ke = ke,
-          t = t,
-          Ct = Ct,
-          Fbio = Fbio,
-          Dose = Dose,
-          tau =tau
-        )$ka,
-        silent = TRUE)
-      },
-      cl = data_before_tmax_md$cl,
-      ke = data_before_tmax_md$ke,
-      t = data_before_tmax_md$tad,
-      Ct = data_before_tmax_md$DV,
-      Fbio = data_before_tmax_md$Fbio,
-      Dose = data_before_tmax_md$dose,
-      tau=data_before_tmax_md$recent_ii
+  # Step 2: Join Tmax with the original data and filter rows where TIME <= Tmax
+  data_before_tmax <- df %>%
+    dplyr::left_join(tmax_df, by = "ID") %>%
+    dplyr::filter(TIME <= Tmax) %>%
+    dplyr::mutate(
+      cl = cl,
+      ke = ke,
+      Fbio = Fbio,
+      ka_calc = NA_real_
     )
 
-  data_before_tmax_md$ka_calcv<-suppressWarnings(suppressMessages(as.numeric(data_before_tmax_md$ka_calc)))
-}
+  data_before_tmax_sd <- NULL
+  data_before_tmax_md <- NULL
 
-data_before_tmax<-rbind(data_before_tmax_sd,data_before_tmax_md)
+  if (any(data_before_tmax$dose_number == 1 &
+          data_before_tmax$EVID == 0 &
+          data_before_tmax$SSflag == 0)) {
 
-ka_calc_median<-suppressWarnings(suppressMessages(median(data_before_tmax$ka_calcv,na.rm = T)))
+    data_before_tmax_sd <- data_before_tmax %>%
+      dplyr::filter(dose_number == 1, EVID == 0, SSflag==0)
 
-if(is.null(ka_calc_median)){
-  ka_calc_median<-NA
-}
+    data_before_tmax_sd$ka_calc <-
+      mapply(
+        function(cl, ke, t, Ct, Fbio, Dose) {
+          try(ka_calculation_sd(
+            cl = cl,
+            ke = ke,
+            t = t,
+            Ct = Ct,
+            Fbio = Fbio,
+            Dose = Dose
+          )$ka,
+          silent = TRUE)
+        },
+        cl = data_before_tmax_sd$cl,
+        ke = data_before_tmax_sd$ke,
+        t = data_before_tmax_sd$TIME,
+        Ct = data_before_tmax_sd$DV,
+        Fbio = data_before_tmax_sd$Fbio,
+        Dose = data_before_tmax_sd$dose
+      )
 
-return(list(ka_calc_median=ka_calc_median,
-            ka_calc_dat_sd=data_before_tmax_sd,
-            ka_calc_dat_md=data_before_tmax_md,
-            ka_calc_dat=data_before_tmax))
+    data_before_tmax_sd$ka_calcv <-
+      suppressWarnings(suppressMessages(as.numeric(data_before_tmax_sd$ka_calc)))
+  }
+
+
+  if (any(data_before_tmax$dose_number > 1 &
+          data_before_tmax$EVID == 0 &
+          data_before_tmax$SSflag == 0)) {
+
+    data_before_tmax_md <- data_before_tmax %>%
+      dplyr::filter(dose_number > 1, EVID == 0)
+
+    data_before_tmax_md$ka_calc <-
+      mapply(
+        function(cl, ke, t, Ct, Fbio, Dose, tau) {
+          try(ka_calculation_md(
+            cl = cl,
+            ke = ke,
+            t = t,
+            Ct = Ct,
+            Fbio = Fbio,
+            Dose = Dose,
+            tau = tau
+          )$ka,
+          silent = TRUE)
+        },
+        cl = data_before_tmax_md$cl,
+        ke = data_before_tmax_md$ke,
+        t = data_before_tmax_md$tad,
+        Ct = data_before_tmax_md$DV,
+        Fbio = data_before_tmax_md$Fbio,
+        Dose = data_before_tmax_md$dose,
+        tau = data_before_tmax_md$recent_ii
+      )
+
+    data_before_tmax_md$ka_calcv <-
+      suppressWarnings(suppressMessages(as.numeric(data_before_tmax_md$ka_calc)))
+  }
+
+  data_before_tmax <- rbind(data_before_tmax_sd, data_before_tmax_md)
+
+  ka_calc_median <-
+    suppressWarnings(suppressMessages(median(data_before_tmax$ka_calcv, na.rm = T)))
+
+  if (is.null(ka_calc_median)) {
+    ka_calc_median <- NA
+  }
+
+  return(
+    list(
+      ka_calc_median = ka_calc_median,
+      ka_calc_dat_sd = data_before_tmax_sd,
+      ka_calc_dat_md = data_before_tmax_md,
+      ka_calc_dat = data_before_tmax
+    )
+  )
 }

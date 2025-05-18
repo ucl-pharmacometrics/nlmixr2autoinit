@@ -57,27 +57,47 @@
 #'
 #' @export
 find_best_lambdaz <- function(time,
-                       conc,
-                       route = "bolus",
-                       adj_r_squared_threshold = 0.7,
-                       nlastpoints = 3,
-                       tolerance = 1e-4) {
+                              conc,
+                              route = "bolus",
+                              duration = NULL,
+                              adj_r_squared_threshold = 0.7,
+                              nlastpoints = 3,
+                              tolerance = 1e-4) {
+  # Defensive check: infusion route must provide valid duration
+  if (route == "infusion") {
+    if (is.null(duration) ||
+        !is.numeric(duration) || is.na(duration) || duration <= 0) {
+      stop("For 'infusion' route, a valid numeric duration must be provided.",
+           call. = FALSE)
+    }
+  }
   # Initialize variables
   best_lambdaz <- NA
   best_points <- NULL
   best_r2 <- -Inf
   last_best_msg <- NULL
-  best_fit<-NULL
+  best_fit <- NULL
 
   warn_msgs <- character(0)
 
   n_points <- length(time)
   tmax_idx <- which.max(conc)
 
-  if (route == "bolus"){
-    search_start <-  tmax_idx + 1
-  } else {search_start <- tmax_idx}
-
+  if (route == "bolus") {
+    # For bolus: skip Tmax to avoid distribution phase
+    search_start <- tmax_idx + 1
+  } else if (route == "oral") {
+    # For oral: start from Tmax
+    search_start <- tmax_idx
+  } else if (route == "infusion") {
+    # For infusion: start from first time > duration
+    post_infusion_idx <- which(time > duration)[1]
+    if (!is.na(post_infusion_idx)) {
+      search_start <- post_infusion_idx
+    } else {
+      search_start <- length(time)  # fallback if no points after duration
+    }
+  }
   # search_start<-tmax_idx
   max_possible_points <- n_points - search_start + 1
 
@@ -89,7 +109,7 @@ find_best_lambdaz <- function(time,
         UsedPoints = NULL,
         adj.r.squared = NA,
         message = "ERROR: Insufficient data points",
-        slopefit =NULL
+        slopefit = NULL
       )
     )
   }
@@ -101,7 +121,7 @@ find_best_lambdaz <- function(time,
         UsedPoints = NULL,
         adj.r.squared = NA,
         message = "ERROR: Insufficient terminal phase points",
-        slopefit =NULL
+        slopefit = NULL
       )
     )
   }
@@ -126,8 +146,12 @@ find_best_lambdaz <- function(time,
     current_slope <- coef(fit)[2]
 
     # Catch invalid R² or slope
-    if (is.na(current_r2) || is.nan(current_r2) || is.na(current_slope) || is.nan(current_slope)) {
-      warn_msgs <- c(warn_msgs, paste(point_count, "points: invalid regression (NaN or NA)"))
+    if (is.na(current_r2) ||
+        is.nan(current_r2) ||
+        is.na(current_slope) || is.nan(current_slope)) {
+      warn_msgs <-
+        c(warn_msgs,
+          paste(point_count, "points: invalid regression (NaN or NA)"))
       next
     }
 
@@ -189,7 +213,8 @@ find_best_lambdaz <- function(time,
     lambdaz = best_lambdaz,
     UsedPoints = best_points,
     adj.r.squared = best_r2,
-    message = if (length(final_msgs) > 0) paste(final_msgs, collapse = "\n"),
+    message = if (length(final_msgs) > 0)
+      paste(final_msgs, collapse = "\n"),
     slopefit = best_fit
 
   )

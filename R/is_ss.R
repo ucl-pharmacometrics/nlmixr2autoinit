@@ -1,8 +1,63 @@
+#' Internal control builder for steady-state evaluation
+#'
+#' Used internally to build a list of control options for `is_ss()`.
+#'
+#' @param ... Control parameters (see `?is_ss` for details). Common options include:
+#'   - `ss_method`
+#'   - `no.doses`
+#'   - `no.half_lives`
+#'   - `allowed_interval_variation`
+#'   - `allowed_dose_variation`
+#'   - `min_doses_required`
+#'   - `tad_rounding`
+#'
+#' @return A list of steady-state control parameters.
+#' @keywords internal
+#'
+ss_control <-
+  function(ss_method = c("combined", "fixed_doses", "half_life_based"),
+           no.doses = 5,
+           no.half_lives = 5,
+           allowed_interval_variation = 0.25,
+           allowed_dose_variation = 0.20,
+           min_doses_required = 3,
+           tad_rounding = TRUE) {
+    # Safe matching for ss_method
+    ss_method <- tryCatch(
+      match.arg(
+        ss_method,
+        choices = c("combined", "fixed_doses", "half_life_based")
+      ),
+      error = function(e) {
+        stop(
+          sprintf(
+            "Invalid value for `%s`: '%s'. Must be one of: %s.",
+            "ss_method",
+            as.character(ss_method),
+            paste(shQuote(
+              c("combined", "fixed_doses", "half_life_based")
+            ), collapse = ", ")
+          ),
+          call. = FALSE
+        )
+      }
+    )
+    list(
+      ss_method = ss_method,
+      no.doses = no.doses,
+      no.half_lives = no.half_lives,
+      allowed_interval_variation = allowed_interval_variation,
+      allowed_dose_variation = allowed_dose_variation,
+      min_doses_required = min_doses_required,
+      tad_rounding = tad_rounding
+    )
+  }
+
 #' Determine steady state for pharmacokinetic observations
 #'
 #' Evaluates whether observations in a pharmacokinetic dataset have reached steady state,
-#' based on user-defined criteria. It supports two options: using a fixed number of doses or using a
-#' fixed number of half-lives to determine the required dose count for steady state.
+#' based on user-defined criteria. It supports three methods: using a fixed number of doses,
+#' using a fixed number of half-lives, or combining both criteria.
 #'
 #' @param df A data frame containing pharmacokinetic data. It should include columns:
 #'   - `ID`: Unique identifier for each subject.
@@ -10,174 +65,221 @@
 #'   - `SSflag`: Steady-state flag, set to 1 if steady state is manually indicated.
 #'   - `TIME`: Observation or dosing time.
 #'   - `AMT`: Dose amount.
-#'   - `tad`: Time after dose.
-#' @param ss_option Integer, either 1, 2, or 3, indicating the method to determine steady state:
-#'   - `1`: Steady state is determined based on the smaller value between the fixed number of doses (`no.doses`)
-#'          and the estimated number of doses based on half-life.
-#'   - `2`: Steady state is determined solely based on a fixed number of doses (`no.doses`).
-#'   - `3`: Steady state is determined by calculating the number of doses as the dosing duration
-#'          (a fixed number of half-lives, `no.half_life`, multiplied by `half_life`) divided by the dose interval.
-#' @param no.doses Integer. Number of doses required to reach steady state when `ss_option = 1`. Default is 5.
-#' @param no.half_life Integer. Number of half-lives required to reach steady state when `ss_option = 2`. Default is 3.
-#' @param half_life Numeric. The half-life of the drug, required if `ss_option = 2`.
+#'   - `tad`: Time after the last dose.
+#' @param ss_method Character. Method to determine steady state. One of:
+#'   - `"combined"` (default): Uses the smaller of the fixed dose count (`no.doses`) and the estimate based on half-life.
+#'   - `"fixed_doses"`: Uses only a fixed number of doses (`no.doses`).
+#'   - `"half_life_based"`: Uses half-life and dose interval to estimate required doses.
+#' @param no.doses Integer. Number of fixed doses assumed to reach steady state (default = 5).
+#' @param no.half_lives Integer. Number of half-lives assumed to reach steady state (default = 5).
+#' @param half_life Numeric. The drug's half-life. Required if `ss_method` is `"combined"` or `"half_life_based"`.
+#' @param allowed_interval_variation Numeric. Acceptable fractional variation in dose interval (default = 0.25).
+#' @param allowed_dose_variation Numeric. Acceptable fractional variation in dose amount (default = 0.20).
+#' @param min_doses_required Integer. Minimum number of doses required regardless of method (default = 3).
 #'
-#' @return A data frame similar to `df` with two additional columns:
+#' @param tad_rounding Logical. If TRUE (default = TRUE), rounding is applied only when checking
+#' whether an observation (`tad`) falls within the most recent dosing interval.
+#' Specifically, `tad` and the interval are rounded to the nearest whole time unit before comparison.
+#' This allows tolerance for small deviations (e.g., 24.3 is treated as within a 24-unit interval).
+#'
+#' @return A data frame similar to `df` with additional columns:
 #'   - `SteadyState`: Logical, indicating whether each observation has reached steady state.
-#'   - `recent_ii`: Numeric, indicating the recent dosing interval for each observation that has achieved steady state.
+#'   - `recent_ii`: Numeric, the most recent dosing interval for observations marked as steady state.
+#'   - `SS.method`: Character, description of the method used to identify steady state.
 #'
-#' @details
-#' The function evaluates steady state for each subject (`ID`) individually. It provides two options:
-#'   - If `ss_option = 1`, steady state is determined based on the smaller value between the number of fixed doses (`no.doses`)
-#'     and the estimated number of doses required based on half-life.
-#'   - If `ss_option = 2`, steady state is determined solely based on a fixed number of doses (`no.doses`).
-#'   - If `ss_option = 3`, steady state is determined by calculating the number of doses required as the dosing duration
-#'     (a fixed number of half-lives, `no.half_life`, multiplied by `half_life`) divided by the dose interval.
-#'
-#' For each observation, the following criteria are used to assess steady state:
-#'   1. If `SSflag = 1`, the observation is immediately marked as steady state.
-#'   2. If `SSflag = 0`, the function checks that:
-#'      - The required number of doses has been administered before the observation.
-#'      - The dosing intervals are consistent, within 50% of the median dose interval.
-#'      - The dose amounts are consistent, within 25% of the median dose.
-#'      - The observation falls within the last dosing interval, allowing a 25% variance.
 #'
 #' @examples
+#' \dontrun{
 #' # Example usage
 #' df <- data.frame(
-#'  ID = rep(1, 14),
-#'  EVID = c(1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0),
-#'  SSflag = rep(0, 14),  # Initialize SSflag as 0
-#'  TIME = 1:14,
-#'  AMT = c(100, 0, 0, 100, 0, 0, 100, 100, 100, 100, 100, 0, 0, 0),
-#'  tad = runif(14)
-#'  )
+#'   ID = rep(1, 14),
+#'   EVID = c(1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0),
+#'   SSflag = rep(0, 14),  # Initialize SSflag as 0
+#'   TIME = 1:14,
+#'   AMT = c(100, 0, 0, 100, 0, 0, 100, 100, 100, 100, 100, 0, 0, 0),
+#'   tad = runif(14)
+#' )
+#' is_ss(df)
 #'
-#' is_ss(df,ss_option=1)
-#' is_ss(df,ss_option=2)
-#'
-#' @importFrom dplyr filter mutate group_by summarise ungroup
-#' @importFrom crayon black
-#' @import purrr
-#' @export
+#' dat <- Bolus_1CPT
+#' dat <- processData(dat)$dat
+#' out <- is_ss(df = dat, half_life = 11)
+#' head(out)
+#' }
 
 is_ss <- function(df,
-                  ss_option = 1,
-                  no.doses = 5,
-                  no.half_life = 5,
+                  ssctrl = ss_control(),
                   half_life = NA) {
-  if (missing(df)) {
-    stop("Error, no dataset provided")
+  `%>%` <- magrittr::`%>%`
+
+  # ---- Extract control parameters from ssctrl ----
+  ss_method <- ssctrl$ss_method
+  no.doses <- ssctrl$no.doses
+  no.half_lives <- ssctrl$no.half_lives
+  allowed_interval_variation <- ssctrl$allowed_interval_variation
+  allowed_dose_variation <- ssctrl$allowed_dose_variation
+  min_doses_required <- ssctrl$min_doses_required
+  tad_rounding <- ssctrl$tad_rounding
+
+  # ---- Defensive checks ----
+  if (missing(df) ||
+      !is.data.frame(df))
+    stop("Input `df` must be a data.frame.")
+
+  required_cols <- c("TIME", "EVID", "AMT", "ID", "tad", "SSflag")
+  missing_cols <- setdiff(required_cols, colnames(df))
+
+  if (length(missing_cols) > 0) {
+    stop("Missing required columns: ",
+         paste(missing_cols, collapse = ", "))
   }
 
-  time_to_ss <- NA
+  valid_methods <- c("combined", "fixed_doses", "half_life_based")
+  ss_method <- tryCatch(
+    match.arg(ss_method, choices = valid_methods),
+    error = function(e) {
+      stop(
+        sprintf(
+          "Invalid value for `%s`: '%s'. Must be one of: %s.",
+          "ss_method",
+          as.character(ss_method),
+          paste(shQuote(valid_methods), collapse = ", ")
+        ),
+        call. = FALSE
+      )
+    }
+  )
 
-  if (!is.na(half_life)) {
-    # Calculate number of doses required to reach steady state
-    time_to_ss <- no.half_life * half_life
-  }
+  # Compute time to steady state
+  time_to_ss <-
+    if (!is.na(half_life))
+      no.half_lives * half_life
+  else
+    NA_real_
 
-  # Consider SS=1 column
-
-  df$SteadyState <- FALSE
-  df$recent_ii <- 0
-  # df$SS.method <- NA
-
-
-  # Calculate `previous_doses` and `previous_amts` for each observation time
+  # Calculate `dose_time_hist` and `dose_amt_hist` for each observation time
   df <- df %>%
-    group_by(ID) %>%
-    mutate(
-      # Filter `TIME` and `AMT` for dosing events where `EVID` indicates a dose (e.g., EVID in c(4, 101, 1))
-      previous_doses = purrr::map(TIME, ~ TIME[EVID %in% c(4, 101, 1) & TIME <= .]),
-      previous_amts = purrr::map(TIME, ~ AMT[EVID %in% c(4, 101, 1) & TIME <= .])
+    dplyr::group_by(ID) %>%
+    dplyr::mutate(
+      SteadyState = FALSE,
+      recent_ii = 0,
+      dose_time_hist = purrr::map(TIME, ~ TIME[EVID %in% c(4, 101, 1) &
+                                                 TIME <= .]),
+      dose_amt_hist = purrr::map(TIME, ~ AMT[EVID %in% c(4, 101, 1) &
+                                               TIME <= .])
     )
 
-  # Step 2: Calculate required number of doses based on fixed number of half-lives
   df <- df %>%
-    mutate(
-      # Define doses_required_1 as a fixed number of doses based on `no.doses`
-      doses_required_1 = no.doses
-    ) %>%
-    mutate(
-      #  Calculate last_two_doses_interval for each observation
-      last_two_doses_interval = purrr::map2_dbl(previous_doses, TIME, ~ {
-        last_two_doses <- tail(.x, 2)
-        if (length(last_two_doses) == 2) {
-          # Calculate and return the interval between the last two doses
-          diff(last_two_doses)
-        } else {
-          NA_real_ # Return NA if there are not enough doses
-        }
-      })
-    ) %>% # Calculate doses_required_2 (half-lives)
-    mutate(
-      doses_required_2 = ifelse(
-        !is.na(last_two_doses_interval) & !is.na(time_to_ss),
-        pmax(ceiling(time_to_ss / last_two_doses_interval),3),  # Calculate doses needed to reach steady state
-        NA_real_  # Assign NA if conditions are not met
+    dplyr::mutate(
+      # Step 1: Fixed dose calculation (doses_req_fixed)
+      doses_req_fixed = no.doses,
+
+      # Step 2: Calculate dosing interval between last two doses
+      last_two_doses_interval = purrr::map2_dbl(.x = dose_time_hist, .y = TIME,
+                                                .f = ~ {
+                                                  last_two_doses <- tail(.x, 2)
+                                                  if (length(last_two_doses) == 2) {
+                                                    diff(last_two_doses)  # Calculate time difference
+                                                  } else {
+                                                    NA_real_             # Return NA if <2 doses exist
+                                                  }
+                                                }),
+
+      # Step 3: Half-life-based dose calculation (doses_req_hl)
+      doses_req_hl = ifelse(
+        !is.na(time_to_ss) & !is.na(last_two_doses_interval),
+        pmax(ceiling(time_to_ss / last_two_doses_interval), 3),
+        NA_real_
       )
     )
 
-  # Calculate Final doses_required Based on ss_option
+  # Calculate Final doses_required Based on ss_method
   df <- df %>%
-    mutate(
-      doses_required = case_when(
-        ss_option == 1 ~ pmin(doses_required_1, doses_required_2, na.rm = TRUE), # Take minimum of two options
-        ss_option == 2 ~ doses_required_1, # Use fixed doses if `ss_option` is 2
-        ss_option == 3 ~ ifelse(!is.na(doses_required_2), doses_required_2, doses_required_1) # Based on half-lives if available
+    dplyr::mutate(
+      doses_required = dplyr::case_when(
+        ss_method == "combined"  ~ pmin(doses_req_fixed,
+                                        doses_req_hl, na.rm = TRUE),
+        ss_method == "fixed_doses"    ~ doses_req_fixed,
+        ss_method == "half_life_based" ~ ifelse(!is.na(doses_req_hl),
+                                                doses_req_hl, doses_req_fixed)
       ),
-      doses_required = pmax(doses_required, 3)  # Ensure minimum of 3 doses
+      doses_required = pmax(doses_required, min_doses_required)
     )
 
-
-  # df <- df %>%
-  #   mutate(
-  #     doses_to_check = purrr::map2(previous_doses, doses_required, ~ tail(.x, .y)),
-  #     amts_to_check = purrr::map2(previous_amts, doses_required, ~ tail(.x, .y)),
-  #     intervals = purrr::map(doses_to_check, diff),
-  #     dose_interval = purrr::map_dbl(intervals, median, na.rm = TRUE),
-  #     is_continuous = purrr::map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.5)),
-  #     is_same_dose = purrr::map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25))
-  #   )
-
-
   df <- df %>%
-    mutate(
-      dose_count_before_obs =  purrr::map_int(previous_doses, length),
+    dplyr::mutate(
+      dose_count_before_obs =  purrr::map_int(dose_time_hist, length),
       # Extract the last `doses_required` doses and amounts
-      doses_to_check = purrr::map2(previous_doses, doses_required, ~ tail(.x, .y)),
-      amts_to_check = purrr::map2(previous_amts, doses_required, ~ tail(.x, .y)),
+      doses_to_check = purrr::map2(dose_time_hist,
+                                   doses_required, ~ as.numeric(tail(.x, .y))),
+      amts_to_check = purrr::map2(dose_amt_hist,
+                                  doses_required, ~ as.numeric(tail(.x, .y))),
 
       # Calculate intervals between doses and the median interval
       intervals = purrr::map(doses_to_check, diff),
       dose_interval = purrr::map_dbl(last_two_doses_interval, median, na.rm = TRUE),
 
-      # Check if all intervals are within 1.5 times the median interval
-      is_continuous = purrr::map2_lgl(intervals, dose_interval, ~ all(abs(.x - .y) <= .y * 0.25)),
+      # Check if all intervals are within ±25% (default) of the last interval
+      is_continuous = purrr::map_lgl(intervals, ~ {
+        if (length(.x) < 2)
+          return(FALSE)
+        last_val <- tail(.x, 1)
+        all(abs(.x - last_val) <= last_val * (1 + allowed_interval_variation))
+      }),
 
-      # Check if all dose amounts are within 1.25 times the median dose amount
-      is_same_dose = purrr::map_lgl(amts_to_check, ~ all(abs(.x - median(.x, na.rm = TRUE)) <= median(.x, na.rm = TRUE) * 1.25)),
+      # Check if all dose amounts are within ±20% (default) of the last dose amount
+      is_same_dose = purrr::map_lgl(amts_to_check, ~ {
+        if (length(.x) < 2)
+          return(FALSE)
+        last_val <- tail(.x, 1)
+        all(abs(.x - last_val) <= last_val * (1 + allowed_dose_variation))
+      }),
 
-      # Check if each observation occurs within dose_interval * 1.25
-      is_within_last_dose_interval = tad < dose_interval * 1.25
+      is_within_last_dose_interval = if (tad_rounding) {
+        round(tad) <= round(dose_interval)
+      } else {
+        tad <= dose_interval
+      }
     )
 
   # Determine steady state and recent_ii
   df <- df %>%
-    mutate(
+    dplyr::mutate(
       SteadyState = ifelse(
-        (SSflag == 1 & EVID == 0) | ( (dose_count_before_obs >= doses_required) &  is_continuous & is_same_dose & is_within_last_dose_interval),
-        TRUE, FALSE
+        (SSflag == 1 & EVID == 0) |
+          (
+            (dose_count_before_obs >= doses_required) &
+              is_continuous &
+              is_same_dose & is_within_last_dose_interval
+          ),
+        TRUE,
+        FALSE
       ),
-      SS.method = case_when(
-        SteadyState & doses_required == doses_required_1 ~ "A fixed number of doses",
-        SteadyState & doses_required == doses_required_2 ~ "A fixed number of half-lives",
+      SS.method = dplyr::case_when(
+        SteadyState &
+          (SSflag == 1 &
+             EVID == 0) ~ "Protocol-defined steady state",
+        SteadyState &
+          doses_required == doses_req_fixed ~
+          paste0("Pre-specified fixed doses (ndoses = ", doses_required, ")"),
+        SteadyState &
+          doses_required == doses_req_hl ~
+          paste0("Half-life-based steady state (ndoses = ", doses_required, ")"),
         TRUE ~ NA_character_
       ),
-      recent_ii = ifelse(SteadyState, dose_interval, NA)
-    ) %>%
-    ungroup()
 
+      recent_ii = dplyr::case_when(
+        SteadyState & SSflag == 1 & EVID == 0 ~ iiobs,
+        SteadyState ~ dose_interval,
+        TRUE ~ NA_real_
+      )
+    ) %>%
+    dplyr::ungroup()
+
+  # Remove internal list-columns to prevent large output size
+  df <- df %>%
+    dplyr::select(-dose_time_hist, -dose_amt_hist)
 
   return(df)
 }
+

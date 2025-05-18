@@ -68,7 +68,7 @@ processData<-function(dat){
   colnames(dat) <- toupper(colnames(dat))
 
   # Convert key columns to numeric format
-  num_cols <- c("TIME",
+  column.list <- c("TIME",
                 "DV",
                 "MDV",
                 "EVID",
@@ -79,8 +79,12 @@ processData<-function(dat){
                 "II",
                 "SS",
                 "CMT")
-  dat <- dat %>%
-    dplyr::mutate(across(any_of(num_cols), as.numeric))
+
+  for (testcolumn in colnames(dat)) {
+    if (testcolumn %in% column.list) {
+      dat[[testcolumn]] <- as.numeric(dat[[testcolumn]])
+    }
+  }
 
   #-------------- STEP 2: Event Flag Processing -------------------------#
   # Initialize message container
@@ -262,11 +266,11 @@ processData<-function(dat){
 
 #------------- STEP 4: Compartment Handling & Administration Route ----------#
 # Ensure CMT column exists with default value 1
-dat <- dat %>%
-  dplyr::mutate(
-    across(any_of(num_cols), as.numeric),
-    CMT = dplyr::coalesce(.data$CMT, 1L)
-  )
+for (testcolumn in colnames(dat)) {
+    if (testcolumn %in% column.list) {
+      dat[[testcolumn]] <- as.numeric(dat[[testcolumn]])
+    }
+  }
 
 # Process compartment logic per ID/reset group
 dat <- dat %>%
@@ -339,7 +343,7 @@ dat<-calculate_tad(dat)
 # The duration inherited from the most recent dose, applied to observation rows.
 dat <- dat %>%
   dplyr::mutate(
-    duration_obs = dplyr::if_else(
+    durationobs = dplyr::if_else(
       condition = (rateobs != 0),
       true      = dose / rateobs,
       false     = 0.0,
@@ -350,12 +354,12 @@ dat <- dat %>%
 dat$DVstd <- dat$DV / dat$dose
 
 #-------------- STEP 6: individual lambda-z eligibility -----------------#
-# Flag observations eligible for elimination phase (lambda-z) calculations
+# Flag observations eligible for elimination phase (lambdaz) calculations
 dat <- dat %>%
   dplyr::group_by(ID, dose_number) %>%                # Group by subject and dose interval
   # 1. Calculate Tmax (time of maximum observed concentration)
   dplyr::mutate(
-    Tmax = ifelse(
+    Tmax = dplyr::if_else(
       any(EVID == 0),
       TIME[which.max(dplyr::if_else(EVID == 0, DV, -Inf))],
       NA_real_
@@ -371,7 +375,7 @@ dat <- dat %>%
       TRUE ~ 0L                                        # Fallback counter
     ),
     # 3. Create eligibility flag (>=3 points required)
-    indiv_lambda_z_eligible = as.integer(n_post_Tmax >= 3)
+    indiv_lambdaz_eligible = as.integer(n_post_Tmax >= 3)
   ) %>%
   dplyr::ungroup() %>%
   dplyr::select(-Tmax, -n_post_Tmax)                  # Cleanup temporary columns
@@ -410,30 +414,42 @@ md_data_obs <- md_data %>%
 metrics <- list(
   # 1. Total metrics
   total = dat %>%
-    summarize(
+    dplyr::summarize(
       route = toString(unique(route[EVID %in% c(1, 4)])),  # Collapse multiple routes
-      n_ids = n_distinct(ID),
+      n_ids = dplyr::n_distinct(ID),
       n_obs = sum(EVID == 0)
     ),
 
   # 2. First-dose metrics
   fd = fd_data_obs %>%
-    summarize(
-      n_ids = n_distinct(ID),
-      n_obs = n()
+    dplyr::summarize(
+      n_ids = dplyr::n_distinct(ID),
+      n_obs = dplyr::n()
     ),
 
   # 3. Multi-dose metrics
   md = md_data_obs %>%
-    summarize(
-      n_ids = n_distinct(ID),
-      n_obs = n()
+    dplyr::summarize(
+      n_ids = dplyr::n_distinct(ID),
+      n_obs = dplyr::n()
     )
+)
+
+# Determine data type based on dosing structure ----
+has_first_dose <-
+  any(dat$dose_number == 1 & dat$EVID == 0 & dat$iiobs == 0)
+has_repeated_dose <- any(dat$dose_number > 1 & dat$EVID == 0)
+
+dose_type <- dplyr::case_when(
+  has_first_dose & !has_repeated_dose ~ "first_dose",
+  has_first_dose & has_repeated_dose  ~ "combined_doses",
+  TRUE                                ~ "repeated_doses"
 )
 
 # Build summary table
 summary_doseinfo <- data.frame(
   Infometrics = c("Dose Route",
+                  "Dose Type",
                   "Total Number of Subjects",
                   "Total Number of Observations",
                   "Subjects with First-Dose Interval Data",
@@ -441,8 +457,9 @@ summary_doseinfo <- data.frame(
                   "Subjects with Multiple-Dose Data",
                   "Observations after Multiple Doses"),
   Value = c(
-    metrics$total$route,       # Character string from toString()
-    metrics$total$n_ids,      # Integer counts
+    metrics$total$route,
+    dose_type,
+    metrics$total$n_ids,
     metrics$total$n_obs,
     metrics$fd$n_ids,
     metrics$fd$n_obs,
@@ -481,7 +498,7 @@ message(crayon::magenta(paste0(
   "----------------------------------------  ------"
 )))
 
-return(list(dat=dat,Datainfo =complete_output ))
+return(list(dat=dat,Datainfo =summary_doseinfo ))
 }
 
 
