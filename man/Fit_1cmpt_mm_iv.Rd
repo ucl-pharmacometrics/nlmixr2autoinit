@@ -2,30 +2,81 @@
 % Please edit documentation in R/npd_modelcodes.R
 \name{Fit_1cmpt_mm_iv}
 \alias{Fit_1cmpt_mm_iv}
-\title{Fit intravenous pharmacokinetic data to a one-compartment model with Michaelis-Menten Kinetics}
+\title{Fit IV pharmacokinetic data to a one-compartment model with Michaelis-Menten elimination}
 \usage{
-Fit_1cmpt_mm_iv(data, est.method, input.vmax, input.km, input.vd, input.add)
+Fit_1cmpt_mm_iv(
+  data,
+  est.method,
+  input.vmax,
+  input.km,
+  input.vd,
+  input.add,
+  return.pred.only = FALSE,
+  ...
+)
 }
 \arguments{
-\item{data}{Intravenous pharmacokinetic data in the nlmixr2 format.}
+\item{data}{A data frame of IV pharmacokinetic data formatted for nlmixr2.}
 
-\item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
+\item{est.method}{Estimation method to use in nlmixr2, one of:
+\code{"rxSolve"}, \code{"nls"}, \code{"nlm"}, \code{"nlminb"}, or \code{"focei"}.}
 
-\item{input.vmax}{Initial estimate for Vmax.}
+\item{input.vmax}{Initial estimate of the maximum elimination rate (Vmax).}
 
-\item{input.km}{Initial estimate for Km.}
+\item{input.km}{Initial estimate of the Michaelis constant (Km).}
 
-\item{input.vd}{Initial estimate for volume of distribution.}
+\item{input.vd}{Initial estimate of the volume of distribution (V).}
 
-\item{input.add}{Initial estimate for additive error.}
+\item{input.add}{Initial estimate of the additive residual error.}
+
+\item{return.pred.only}{Logical; if \code{TRUE}, returns a data frame with
+only predicted concentrations (\code{cp}) for all observations in the input data.}
+
+\item{...}{Optional arguments passed to \code{nlmixr2()}, such as a custom
+\code{control = foceiControl(...)} or other control objects.}
 }
 \value{
-An object of class 'nlmixr2' containing the results of the estimation.
+If \code{return.pred.only = TRUE}, returns a \code{data.frame}
+with a single column \code{cp} (predicted concentrations).
+Otherwise, returns a fitted model object produced by nlmixr2.
 }
 \description{
-Perform parameter estimation using the naive pooled data approach with a one-compartment model with nonlinear elimination kinetics for the provided intravenous pharmacokinetic data.
+Fits intravenous pharmacokinetic (IV PK) data to a one-compartment model with
+Michaelis-Menten (nonlinear) elimination using the naive pooled data approach.
+Supports multiple estimation methods available in nlmixr2, and optionally
+returns only predicted concentrations to reduce memory use in simulation workflows.
 }
 \examples{
+\dontrun{
 dat <- Bolus_1CPTMM
-Fit_1cmpt_mm_iv(dat=dat,est.method="nls",input.vmax=1000,input.km=100,input.vd=70,input.add=1)
+# Fit using 'nls' method with default control
+Fit_1cmpt_mm_iv(
+  data = dat,
+  est.method = "nls",
+  input.vmax = 1000,
+  input.km = 250,
+  input.vd = 70,
+  input.add = 10
+)
+# Fit using 'focei' with custom rxControl settings
+Fit_1cmpt_mm_iv(
+  data = dat,
+  est.method = "focei",
+  input.vmax = 1000,
+  input.km = 250,
+  input.vd = 70,
+  input.add = 10,
+  control = foceiControl(rxControl = rxControl(maxSS = 300, atol = 1e-8))
+)
+# Return only predicted concentrations
+Fit_1cmpt_mm_iv(
+  data = dat,
+  est.method = "rxSolve",
+  input.vmax = 1000,
+  input.km = 250,
+  input.vd = 70,
+  input.add = 10,
+  return.pred.only = TRUE
+)
+}
 }

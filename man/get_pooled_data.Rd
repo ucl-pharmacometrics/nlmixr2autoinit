@@ -4,17 +4,21 @@
 \alias{get_pooled_data}
 \title{Generate pooled data for pharmacokinetic analysis}
 \usage{
-get_pooled_data(dat, data_type = "first_dose", ...)
+get_pooled_data(
+  dat,
+  dose_type = c("first_dose", "repeated_doses", "combined_doses"),
+  pooled_ctrl = pooled_control()
+)
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data. The required columns depend on \code{data_type}:
+\item{dat}{A data frame containing pharmacokinetic data. The required columns depend on \code{dose_type}:
 \itemize{
 \item \code{"first_dose"}: \code{dose_number}, \code{iiobs}, \code{ID}, \code{TIME}, \code{DV}
 \item \code{"repeated_doses"}: \code{EVID}, \code{AMT}, \code{tad}, \code{dose_number}, \code{iiobs}, \code{ID}, \code{TIME}, \code{DV}, \code{resetflag}
 \item \code{"combined_doses"}: \code{EVID}, \code{tad}, \code{dose_number}, \code{ID}, \code{TIME}, \code{DV}, \code{resetflag}
 }}
 
-\item{data_type}{Character string indicating the type of data to pool.
+\item{dose_type}{Character string indicating the type of data to pool.
 One of \code{"first_dose"}, \code{"repeated_doses"}, or \code{"combined_doses"}.
 \itemize{
 \item \code{"first_dose"} processes only the first dose of each subject.
@@ -22,36 +26,42 @@ One of \code{"first_dose"}, \code{"repeated_doses"}, or \code{"combined_doses"}.
 \item \code{"combined_doses"} merges both first and repeated dose data into a single dataset for pooled analysis.
 }}
 
+\item{pooled_ctrl}{A list of control options created by \code{pooled_control()}. Includes:
+\describe{
+\item{\code{nbins}}{Number of bins to use when binning data.}
+\item{\code{bin_method}}{Method used for time binning (e.g., \code{"equal"}, \code{"quantile"}).}
+\item{\code{tad_rounding}}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
+are rounded to the nearest whole unit before comparing. This allows for
+small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
+}}
+
 \item{...}{Additional arguments passed to \code{bin.time()}, such as \code{nbins} or \code{bin.method}.}
 }
 \value{
-A list containing one or more elements, depending on the specified \code{data_type}:
+A list containing one or more of the following elements, depending on the \code{dose_type}:
 \describe{
-\item{\code{datpooled_fd}}{Binned data corresponding to the first dose only, typically used for single-dose NCA.}
-\item{\code{datpooled_efd}}{Binned data excluding the first dose, representing repeated-dose profiles.}
-\item{\code{datpooled_all}}{Binned data that combines both first and repeated doses into a single dataset,
-used when \code{data_type = "combined_doses"} for pooled overall profile analysis.}
+\item{\code{datpooled_fd}}{Binned data for the first dose (single-dose profiles).}
+\item{\code{datpooled_efd}}{Binned data excluding the first dose (repeated-dose profiles).}
+\item{\code{datpooled_all}}{Combined first and repeated dose data, for overall pooled analysis.}
 }
 }
 \description{
-Processes pharmacokinetic (PK) data and produces pooled datasets for based on
-the specified dosing scenario.
+Processes pharmacokinetic (PK) data and produces pooled datasets based on
+the specified dosing scenario, with flexible control over binning and time-alignment behavior.
 }
 \details{
-For \code{"repeated_doses"} and \code{"combined_doses"} analyses, the function calculates the most
-common dosing interval (\code{most_common_ii}) from dosing events (\code{EVID == 1}) across subjects.
-This is done by computing the time difference between successive doses within each subject
-and selecting the mode (most frequent value) of the rounded intervals.
+For \code{"repeated_doses"} and \code{"combined_doses"} data types, the function determines the most
+common dosing interval (\code{most_common_ii}) based on dosing records (\code{EVID == 1}). This interval is
+used to assess whether post-dose observations fall within the relevant dosing window.
+If \code{tad_rounding} is TRUE, both the observed time after dose (\code{tad}) and the interval are rounded
+before comparison, making the method more robust to minor time variations.
 
-This interval is used to define a time window for pooling observed concentrations
-(\code{tad <= most_common_ii * 1.2}) to ensure data consistency within a typical dosing period.
-This approach helps filter out excessively long or irregular post-dose observations
-that may bias the pooled profile, especially under real-world or non-ideal dosing conditions.
+The function then filters, bins, and returns the appropriate datasets for analysis.
 }
 \examples{
 \dontrun{
 processed_data <- processData(Bolus_1CPT)$dat
-pooled <- get_pooled_data(processed_data, data_type = "combined_doses")
+pooled <- get_pooled_data(processed_data, dose_type = "combined_doses")
 pooled$datpooled_all$binned.df
 }
 

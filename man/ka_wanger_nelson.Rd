@@ -4,14 +4,11 @@
 \alias{ka_wanger_nelson}
 \title{Calculate the Absorption Rate Constant (ka) using the Wanger-Nelson Method}
 \usage{
-ka_wanger_nelson(dat, nlastpoints, nca.out)
+ka_wanger_nelson(dat, nca.out = NULL)
 }
 \arguments{
 \item{dat}{A data frame with at least two columns: \code{DV} (drug concentration)
 and \code{TIME} (time points of measurement).}
-
-\item{nlastpoints}{An integer specifying the number of last points to be used for slope calculation
-of the elimination rate constant (ke). However, this argument is not used in the current function logic but remains for future enhancements.}
 }
 \value{
 A numeric value representing the estimated absorption rate constant (ka).
@@ -33,19 +30,11 @@ The function calculates the absorption rate constant (ka) as follows:
 This method assumes that the drug absorption follows first-order kinetics.
 }
 \examples{
-# Example 1.  data frame with drug concentration (DV) and time (TIME)
-data_example <- data.frame(
-  TIME = c(0, 0.5, 1, 2, 3, 4, 5, 6, 8, 10),
-  DV = c(0, 5, 10, 30, 40, 45, 30, 20, 10, 5 )
-)
 
-# Calculate ka using the Wanger-Nelson method with the last 4 data points
-ka_wanger_nelson(data_example, 4)$ka
-
-# Example 2. data frame from nlmixr2data
+# data frame from nlmixr2data
 dat<-Oral_1CPT[Oral_1CPT$ID==1 &Oral_1CPT$SD==1&Oral_1CPT$EVID==0,]
 dat<-data.frame(TIME=dat$TIME,DV=dat$DV)
-ka_wanger_nelson(dat=dat,nlastpoints=4)$ka
-ka_wanger_nelson(dat=dat,nlastpoints=4)$dat_out_wanger_nelson
+ka_wanger_nelson(dat=dat)$ka
+ka_wanger_nelson(dat=dat)$dat_out_wanger_nelson
 
 }

@@ -2,24 +2,28 @@
 % Please edit documentation in R/getnca.R
 \name{trapezoidal_linear}
 \alias{trapezoidal_linear}
-\title{Calculate Area Under the Curve (AUC) using the trapezoidal linear rule}
+\title{Calculate area under the curve (AUC) or area under the moment curve (AUMC) using the linear trapezoidal rule}
 \usage{
-trapezoidal_linear(x, y)
+trapezoidal_linear(x, y, moment = FALSE)
 }
 \arguments{
 \item{x}{A numeric vector representing the time points.}
 
-\item{y}{A numeric vector representing the corresponding concentration at each time point.}
+\item{y}{A numeric vector representing the corresponding concentration values at each time point.}
+
+\item{moment}{Logical. If \code{TRUE}, computes AUMC by integrating \code{t * C(t)} instead of just \code{C(t)}.}
 }
 \value{
-A numeric value representing the estimated AUC using the trapezoidal rule.
+A numeric value representing the estimated AUC or AUMC using the linear trapezoidal rule.
 }
 \description{
-Computes the area under the curve (AUC) using the linear trapezoidal rule.
+Computes the area under the curve (AUC) or the area under the moment curve (AUMC) using the linear trapezoidal rule.
+If \code{moment = TRUE}, the function estimates AUMC by integrating \code{time * concentration}.
 }
 \examples{
-x <- c(0.5, 1, 2, 4, 6, 8, 10)
-y <- c(12, 8, 5, 3, 2, 1.5, 1)
-trapezoidal_linear(x, y)
+x <- c(0.5, 1, 2, 4, 6, 8)
+y <- c(12, 8, 5, 3, 2, 1)
+trapezoidal_linear(x, y)                # AUC
+trapezoidal_linear(x, y, moment = TRUE) # AUMC
 
 }

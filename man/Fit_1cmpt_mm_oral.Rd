@@ -2,7 +2,7 @@
 % Please edit documentation in R/npd_modelcodes.R
 \name{Fit_1cmpt_mm_oral}
 \alias{Fit_1cmpt_mm_oral}
-\title{Fit oral pharmacokinetic data to a one-compartment model with Michaelis-Menten Kinetics}
+\title{Fit oral pharmacokinetic data to a one-compartment model with Michaelis-Menten elimination}
 \usage{
 Fit_1cmpt_mm_oral(
   data,
@@ -11,31 +11,78 @@ Fit_1cmpt_mm_oral(
   input.vmax,
   input.km,
   input.vd,
-  input.add
+  input.add,
+  return.pred.only = FALSE,
+  ...
 )
 }
 \arguments{
-\item{data}{Intravenous pharmacokinetic data in the nlmixr2 format.}
+\item{data}{A data frame of oral pharmacokinetic data formatted for nlmixr2.}
 
-\item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
+\item{est.method}{Estimation method to use in nlmixr2, one of:
+\code{"rxSolve"}, \code{"nls"}, \code{"nlm"}, \code{"nlminb"}, or \code{"focei"}.}
 
-\item{input.ka}{Initial estimate for absorption rate constant.}
+\item{input.ka}{Initial estimate of the absorption rate constant (ka).}
 
-\item{input.vmax}{Initial estimate for Vmax.}
+\item{input.vmax}{Initial estimate of the maximum elimination rate (Vmax).}
 
-\item{input.km}{Initial estimate for Km.}
+\item{input.km}{Initial estimate of the Michaelis constant (Km).}
 
-\item{input.vd}{Initial estimate for volume of distribution.}
+\item{input.vd}{Initial estimate of the volume of distribution (V).}
 
-\item{input.add}{Initial estimate for additive error.}
+\item{input.add}{Initial estimate of the additive residual error.}
+
+\item{return.pred.only}{Logical; if \code{TRUE}, returns a data frame with
+only predicted concentrations (\code{cp}) for all observations in the input data.}
+
+\item{...}{Optional arguments passed to \code{nlmixr2()}, such as a custom
+\code{control = foceiControl(...)} or other control objects.}
 }
 \value{
-An object of class 'nlmixr2' containing the results of the estimation.
+If \code{return.pred.only = TRUE}, returns a \code{data.frame}
+with columns \code{cp} (predicted concentration) and \code{DV} (observed data).
+Otherwise, returns a fitted model object produced by nlmixr2.
 }
 \description{
-Perform parameter estimation using the naive pooled data approach with a one-compartment model with nonlinear elimination kinetics for the provided intravenous pharmacokinetic data.
+Fits oral pharmacokinetic data to a one-compartment model with
+first-order absorption and Michaelis-Menten (nonlinear) elimination using the naive pooled data approach.
+Supports multiple estimation methods available in nlmixr2, and optionally
+returns only predicted concentrations to reduce memory use in simulation workflows.
 }
 \examples{
+\dontrun{
 dat <- Oral_1CPTMM
-Fit_1cmpt_mm_oral(dat=dat,est.method="nls",input.ka=1,input.vmax=1000,input.km=100,input.vd=70,input.add=1)
+# Fit using 'nls'
+Fit_1cmpt_mm_oral(
+  data = dat,
+  est.method = "nls",
+  input.ka = 1,
+  input.vmax = 1000,
+  input.km = 250,
+  input.vd = 70,
+  input.add = 10
+)
+# Fit using 'focei' with custom control
+Fit_1cmpt_mm_oral(
+  data = dat,
+  est.method = "focei",
+  input.ka = 1,
+  input.vmax = 1000,
+  input.km = 250,
+  input.vd = 70,
+  input.add = 10,
+  control = foceiControl(rxControl = rxControl(maxSS = 200))
+)
+# Return only predicted concentrations
+Fit_1cmpt_mm_oral(
+  data = dat,
+  est.method = "rxSolve",
+  input.ka = 1,
+  input.vmax = 1000,
+  input.km = 250,
+  input.vd = 70,
+  input.add = 10,
+  return.pred.only = TRUE
+)
+}
 }

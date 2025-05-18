@@ -4,13 +4,13 @@
 \alias{get_hf}
 \title{Estimate half-life from pooled pharmacokinetic data}
 \usage{
-get_hf(dat, data_type = "first_dose", pooled = NULL, ...)
+get_hf(dat, dose_type = "first_dose", pooled = NULL, ...)
 }
 \arguments{
 \item{dat}{A data frame containing the pharmacokinetic data. The required columns
-depend on the specified \code{data_type} and are validated within \code{\link{get_pooled_data}}.}
+depend on the specified \code{dose_type} and are validated within \code{\link{get_pooled_data}}.}
 
-\item{data_type}{Character string specifying the type of data to analyze. One of:
+\item{dose_type}{Character string specifying the type of data to analyze. One of:
 \itemize{
 \item{\code{"first_dose"}}: Analysis based on first-dose data only.
 \item{\code{"repeated_doses"}}: Analysis based on repeated-dose data only.
@@ -56,11 +56,11 @@ time binning to normalize the time-course concentration data.
 # Example: half-life estimation from a combined profile (first + repeated doses)
 dat <- Bolus_1CPT
 dat <- processData(dat)$dat
-get_hf(dat, data_type = "combined_doses", nlastpoints = 3)
+get_hf(dat, dose_type = "combined_doses", nlastpoints = 3)
 
 # Using externally pooled data
-pooled <- get_pooled_data(dat, data_type = "combined_doses")
-get_hf(dat, data_type = "combined_doses", pooled = pooled, nlastpoints = 2)
+pooled <- get_pooled_data(dat, dose_type = "combined_doses")
+get_hf(dat, dose_type = "combined_doses", pooled = pooled, nlastpoints = 2)
 }
 
 }

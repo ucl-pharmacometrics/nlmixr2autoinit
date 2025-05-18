@@ -2,26 +2,33 @@
 % Please edit documentation in R/getnca.R
 \name{trapezoidal_linear_up_log_down}
 \alias{trapezoidal_linear_up_log_down}
-\title{Calculate AUC using linear up and log down trapezoidal rule}
+\title{Calculate area under the curve (AUC) or area under the moment curve (AUMC) using linear-up and log-down trapezoidal rule}
 \usage{
-trapezoidal_linear_up_log_down(x, y)
+trapezoidal_linear_up_log_down(x, y, moment = FALSE)
 }
 \arguments{
 \item{x}{A numeric vector representing the time points.}
 
-\item{y}{A numeric vector representing the corresponding concentration at each time point.}
+\item{y}{A numeric vector representing the corresponding concentration values at each time point.}
+
+\item{moment}{Logical. If \code{TRUE}, computes AUMC by integrating \code{t * C(t)} instead of \code{C(t)}.}
 }
 \value{
-A numeric value representing the estimated AUC using the linear up/log down method.
+A numeric value representing the estimated AUC or AUMC using the linear-up/log-down trapezoidal method.
 }
 \description{
-This function computes the area under the curve (AUC) by using the trapezoidal rule
-for phases where concentration is increasing, and a logarithmic rule for phases
-where concentration is decreasing.
+Computes the area under the curve (AUC) or the area under the moment curve (AUMC)
+using a hybrid trapezoidal rule. The method uses linear interpolation for increasing
+or constant concentration segments, and logarithmic interpolation for decreasing segments.
+}
+\details{
+If \code{moment = TRUE}, the function calculates the area under the moment curve (AUMC),
+i.e., it integrates \code{t * C(t)} over time instead of just \code{C(t)}.
 }
 \examples{
-x <- c(0.5, 1, 2, 4, 6, 8, 10)
-y <- c(12, 8, 5, 3, 2, 1.5, 1)
-trapezoidal_linear_up_log_down(x, y)
+x <- c(0, 0.5, 1, 2, 4, 6, 8)
+y <- c(0, 2, 8, 5, 3, 2, 1)
+trapezoidal_linear_up_log_down(x, y)                # AUC
+trapezoidal_linear_up_log_down(x, y, moment = TRUE) # AUMC
 
 }

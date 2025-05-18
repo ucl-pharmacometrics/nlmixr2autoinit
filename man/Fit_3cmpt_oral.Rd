@@ -2,7 +2,7 @@
 % Please edit documentation in R/npd_modelcodes.R
 \name{Fit_3cmpt_oral}
 \alias{Fit_3cmpt_oral}
-\title{Fit oral pharmacokinetic data to a three-compartment model}
+\title{Fit oral pharmacokinetic data to a three-compartment linear elimination model}
 \usage{
 Fit_3cmpt_oral(
   data,
@@ -14,37 +14,96 @@ Fit_3cmpt_oral(
   input.vp23cmpt,
   input.q3cmpt,
   input.q23cmpt,
-  input.add
+  input.add,
+  return.pred.only = FALSE,
+  ...
 )
 }
 \arguments{
-\item{data}{Intravenous pharmacokinetic data in the nlmixr2 format.}
+\item{data}{A data frame containing oral pharmacokinetic data formatted for nlmixr2.}
 
-\item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
+\item{est.method}{Estimation method to use in nlmixr2. Must be one of:
+\code{"rxSolve"}, \code{"nls"}, \code{"nlm"}, \code{"nlminb"}, or \code{"focei"}.}
 
-\item{input.ka}{Initial estimate for absorption rate constant.}
+\item{input.ka}{Initial estimate of the absorption rate constant (ka).}
 
-\item{input.cl}{Initial estimate for clearance.}
+\item{input.cl}{Initial estimate of clearance (CL).}
 
-\item{input.vc3cmpt}{Initial estimate for the central volume of distribution in a three-compartment model.}
+\item{input.vc3cmpt}{Initial estimate of central volume of distribution (V1).}
 
-\item{input.vp3cmpt}{Initial estimate for the first peripheral volume of distribution in a three-compartment model.}
+\item{input.vp3cmpt}{Initial estimate of first peripheral volume of distribution (V2).}
 
-\item{input.vp23cmpt}{Initial estimate for the second peripheral volume of distribution in a three-compartment model.}
+\item{input.vp23cmpt}{Initial estimate of second peripheral volume of distribution (V3).}
 
-\item{input.q3cmpt}{Initial estimate for first inter-compartmental clearance in a three-compartment model.}
+\item{input.q3cmpt}{Initial estimate of first inter-compartmental clearance (Q1).}
 
-\item{input.q23cmpt}{Initial estimate for second inter-compartmental clearance in a three-compartment model.}
+\item{input.q23cmpt}{Initial estimate of second inter-compartmental clearance (Q2).}
 
-\item{input.add}{Initial estimate for additive error.}
+\item{input.add}{Initial estimate of the additive residual error.}
+
+\item{return.pred.only}{Logical; if \code{TRUE}, returns a data frame with
+only predicted concentrations (\code{cp}) for all observations in the input data.}
+
+\item{...}{Additional arguments passed to \code{nlmixr2()}, such as a user-defined
+\code{control = foceiControl(...)} or other control settings.}
 }
 \value{
-An object of class 'nlmixr2' containing the results of the estimation.
+If \code{return.pred.only = TRUE}, returns a \code{data.frame}
+with a single column \code{cp} (predicted concentrations).
+Otherwise, returns a fitted model object produced by nlmixr2.
 }
 \description{
-Perform parameter estimation using the naive pooled data approach with a one-compartment model for the provided intravenous pharmacokinetic data.
+Fits oral pharmacokinetic data to a three-compartment model with
+first-order absorption and first-order elimination using the naive pooled data approach.
+Supports multiple estimation methods provided by nlmixr2 and can optionally return
+only predicted concentrations to support efficient simulation workflows.
 }
 \examples{
+\dontrun{
 dat <- Oral_2CPT
-Fit_3cmpt_oral(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vc3cmpt=70,input.vp3cmpt=35,input.vp23cmpt=35,input.q3cmpt=10,input.q23cmpt=10,input.add=1)
+
+# Fit using 'nls'
+Fit_3cmpt_oral(
+  data = dat,
+  est.method = "nls",
+  input.ka = 1,
+  input.cl = 4,
+  input.vc3cmpt = 70,
+  input.vp3cmpt = 35,
+  input.vp23cmpt = 35,
+  input.q3cmpt = 4,
+  input.q23cmpt = 4,
+  input.add = 10
+)
+
+# Fit using 'focei' with custom control
+Fit_3cmpt_oral(
+  data = dat,
+  est.method = "focei",
+  input.ka = 1,
+  input.cl = 4,
+  input.vc3cmpt = 70,
+  input.vp3cmpt = 35,
+  input.vp23cmpt = 35,
+  input.q3cmpt = 4,
+  input.q23cmpt = 4,
+  input.add = 10,
+  control = foceiControl(rxControl = rxControl(maxSS = 200))
+)
+
+# Return only predicted concentrations
+Fit_3cmpt_oral(
+  data = dat,
+  est.method = "rxSolve",
+  input.ka = 1,
+  input.cl = 4,
+  input.vc3cmpt = 70,
+  input.vp3cmpt = 35,
+  input.vp23cmpt = 35,
+  input.q3cmpt = 4,
+  input.q23cmpt = 4,
+  input.add = 10,
+  return.pred.only = TRUE
+)
+}
 }

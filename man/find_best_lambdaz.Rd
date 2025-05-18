@@ -8,6 +8,7 @@ find_best_lambdaz(
   time,
   conc,
   route = "bolus",
+  duration = NULL,
   adj_r_squared_threshold = 0.7,
   nlastpoints = 3,
   tolerance = 1e-04

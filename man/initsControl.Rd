@@ -2,73 +2,34 @@
 % Please edit documentation in R/initsControl.R
 \name{initsControl}
 \alias{initsControl}
-\title{Initialise control settings for pipeline and NPD compartmental analysis}
+\title{Create full control list for initial PPK parameter estimation}
 \usage{
 initsControl(
-  half_life = NA,
-  nlastpoints = 3,
-  trapezoidal.rule = 1,
-  nbins = 10,
-  bin.method = "quantile",
-  est.method = "nls",
-  selection.criteria = "rRMSE",
-  npdcmpt.inits.strategy = 0,
-  enable_ka_fallback = TRUE,
-  param.sweep.mode.q = 1
+  ss.control = ss_control(),
+  pooled.control = pooled_control(),
+  nca.control = nca_control(),
+  fallback.control = fallback_control(),
+  selection.criterion = "All"
 )
 }
 \arguments{
-\item{half_life}{Numeric, default is \code{NA}. User-defined half-life value used as a reference for single-point calculations.}
+\item{pooled_control}{Output of \code{pooled_control()}.}
 
-\item{nlastpoints}{Integer, default is \code{4}. Number of last points used for linear regression during the terminal elimination phase slope estimation.}
+\item{nca_control}{Output of \code{nca_control()}.}
 
-\item{trapezoidal.rule}{Integer, default is \code{1}. Method for applying the trapezoidal rule to calculate the area under the curve (AUC):
-\itemize{
-\item \code{1}: Linear trapezoidal rule.
-\item \code{2}: Linear-up log-down trapezoidal rule.
-}}
+\item{selection_control}{Output of \code{selection_control()}.}
 
-\item{nbins}{Integer, default is \code{8}. Number of time windows for quantile-based partitioning of the time variable in the dataset.}
-
-\item{est.method}{Character, default is \code{"nls"}. The method used for PK parameter estimation, such as naive pooled data compartmental analysis (NPD-NCA).}
-
-\item{selection.criteria}{Character, default is \code{"APE"}. Criteria used for evaluating and selecting appropriate parameter values.}
-
-\item{npdcmpt.inits.strategy}{Integer, default is \code{0}. Strategy for initializing the naive pooled data compartmental analysis:
-\itemize{
-\item \code{0}: Set as \code{1}.
-\item \code{1}: Set as pipeline-recommended values.
-}}
-
-\item{enable_ka_fallback}{Logical, default is \code{TRUE}. Controls whether to replace invalid absorption rate constant (ka) values with a default:
-\itemize{
-\item \code{TRUE}: Replaces invalid ka values (e.g., \code{NA} or negative) with a predefined default (e.g., 1).
-\item \code{FALSE}: Retains original ka values, even if invalid.
-}}
+\item{fallback_control}{Output of \code{fallback_control()}.}
 }
 \value{
-A list containing:
-\itemize{
-\item \code{half_life}: The user-defined half-life value.
-\item \code{nlastpoints}: The specific number of data points at the end of the terminal phase chosen for linear regression to estimate the elimination rate constant (Lambda Z), with a default value of 3.
-\item \code{trapezoidal.rule}: The selected trapezoidal rule method (1 for linear, 2 for linear-up log-down).
-\item \code{nbins}: The number of time windows as specific intervals used for naive pooling of data, where observations from multiple subjects are combined within each time window to create an median concentration-time profile.
-\item \code{est.method}: The method used for PK parameter estimation.
-\item \code{selection.criteria}: The selection criteria for parameter values.
-\item \code{npdcmpt.inits.strategy}: The strategy for initializing the NPD compartment analysis.
-\item \code{enable_ka_fallback}: Logical flag to replace invalid ka values (NA or negative) with a default (e.g., 1) when TRUE; retains original values when FALSE.
-\item \code{param.sweep.mode.q}: Mode selection for parameter sweep.
-\enumerate{
-\item Mode 1: Uses the combination \code{2/cl}, \code{cl}, \code{2*cl}, \code{2*cl}.
-\item Mode 2: Uses an empirical setting with parameters \code{1}, \code{cl}, \code{10}.
-}
-}
+A named list combining all control modules.
 }
 \description{
-Initialise the control settings for pipeline calculation and NPD compartmental analysis, including options for half-life, number of points used for regression, trapezoidal rule method for area under the curve (AUC) calculation, and naive pooled data compartmental analysis (NPD-NCA) strategies.
+Aggregates all modular control functions into one structured list.
 }
 \examples{
-settings <- initsControl(half_life = 5, nlastpoints = 4)
-print(settings)
-
+initsControl(
+  pooled_control = pooled_control(nbins = 8),
+  fallback_control = fallback_control(sigma_method_additive = "fixed_fraction")
+)
 }

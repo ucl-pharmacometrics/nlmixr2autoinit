@@ -2,28 +2,31 @@
 % Please edit documentation in R/getPPKinits.R
 \name{print.getPPKinits}
 \alias{print.getPPKinits}
-\title{Print environment summary for initial parameter estimation}
+\title{Print method for \code{getPPKinits} objects}
 \usage{
 \method{print}{getPPKinits}(env, ...)
 }
 \arguments{
-\item{env}{An environment containing the initial parameter estimation results.
-The environment should include:
+\item{env}{An environment of class \code{getPPKinits} containing the initial parameter estimation results.
+Expected components include:
 \itemize{
-\item \code{Datainfo}: A string summarizing the data information (e.g., number of subjects, observations, etc.).
-\item \code{Recommended_initial_estimates}: A data frame containing recommended initial estimates for parameters.
-\item \code{Parameter_descriptions}: A character vector of descriptions for each parameter.
+\item \code{Recommended_initial_estimates}: A data frame with estimated values and selection methods.
+\item \code{Parameter.descriptions}: A character vector explaining the meaning of each parameter.
+\item \code{time.spent} (optional): Time taken to compute the estimates.
 }}
 }
 \value{
 Prints a formatted summary to the console.
 }
 \description{
-Prints a summary of initial parameter estimation including Data information, recommended initial estimates by pipeline, naive pooled data compartmental analysis, run history and parameter descriptions stored in an environment by S3 method.
+This function prints a summary of the results from the initial parameter estimation pipeline,
+including data information, recommended initial estimates, and parameter descriptions.
+It is the default S3 \code{print} method for objects of class \code{getPPKinits}.
 }
 \examples{
 \dontrun{
-# Assuming the environment 'env' contains the required fields:
-print_env_output(env)
+# Assume `env` is the output from getPPKinits()
+print(env)
 }
+
 }

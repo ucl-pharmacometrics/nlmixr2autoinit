@@ -28,8 +28,8 @@ The function first calculates the time to maximum concentration (Tmax) for each 
 }
 \examples{
 # Example usage:
- df<-Oral_1CPT[Oral_1CPT$SD==1 & Oral_1CPT$EVID==0,]
- df<-calculate_tad(dat)
+ df<-Oral_1CPT[Oral_1CPT$SD==1,]
+ df<-processData(df)$dat
  result <- run_ka_solution(df = df, cl = 4, ke = 4/70, Fbio = 1)
  ka_median <- result[[1]]
  data_with_ka <- result[[2]]

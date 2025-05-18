@@ -12,33 +12,80 @@ Fit_2cmpt_oral(
   input.vc2cmpt,
   input.vp2cmpt,
   input.q2cmpt,
-  input.add
+  input.add,
+  return.pred.only = FALSE,
+  ...
 )
 }
 \arguments{
-\item{data}{Intravenous pharmacokinetic data in the nlmixr2 format.}
+\item{data}{A data frame containing oral pharmacokinetic data formatted for nlmixr2,}
 
-\item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
+\item{est.method}{Estimation method to use in nlmixr2, one of:
+\code{"rxSolve"}, \code{"nls"}, \code{"nlm"}, \code{"nlminb"}, or \code{"focei"}.}
 
-\item{input.ka}{Initial estimate for absorption rate constant.}
+\item{input.ka}{Initial estimate of the absorption rate constant (ka).}
 
-\item{input.cl}{Initial estimate for clearance.}
+\item{input.cl}{Initial estimate of clearance (CL).}
 
-\item{input.vc2cmpt}{Initial estimate for the central volume of distribution in two-compartment model.}
+\item{input.vc2cmpt}{Initial estimate of central volume of distribution (V1).}
 
-\item{input.vp2cmpt}{Initial estimate for the peripheral volume of distribution in a two-compartment model.}
+\item{input.vp2cmpt}{Initial estimate of peripheral volume of distribution (V2).}
 
-\item{input.q2cmpt}{Initial estimate for inter-compartmental clearance in a two-compartment model.}
+\item{input.q2cmpt}{Initial estimate of inter-compartmental clearance (Q).}
 
-\item{input.add}{Initial estimate for additive error.}
+\item{input.add}{Initial estimate of the additive residual error.}
+
+\item{return.pred.only}{Logical; if \code{TRUE}, returns a data frame with
+only predicted concentrations (\code{cp}) for all observations in the input data.}
+
+\item{...}{Additional arguments passed to \code{nlmixr2()}, such as a user-defined
+\code{control = foceiControl(...)} or other control settings.}
 }
 \value{
-An object of class 'nlmixr2' containing the results of the estimation.
+If \code{return.pred.only = TRUE}, returns a \code{data.frame}
+with a single column \code{cp} (predicted concentrations).
+Otherwise, returns a fitted model object produced by nlmixr2.
 }
 \description{
-Perform parameter estimation using the naive pooled data approach with a one-compartment model for the provided intravenous pharmacokinetic data.
+Fits oral pharmacokinetic data to a two-compartment model with
+first-order absorption and linear (first-order) elimination using the naive pooled data approach.
+Supports multiple estimation methods available in nlmixr2, and optionally
+returns only predicted concentrations to support simulation workflows.
 }
 \examples{
+\dontrun{
 dat <- Oral_2CPT
-Fit_2cmpt_oral(dat=dat,est.method="nls",input.ka=1,input.cl=4,input.vc2cmpt=70,input.vp2cmpt=35,input.q2cmpt=10,input.add=1)
+Fit_2cmpt_oral(
+  data = dat,
+  est.method = "nls",
+  input.ka = 1,
+  input.cl = 4,
+  input.vc2cmpt = 70,
+  input.vp2cmpt = 40,
+  input.q2cmpt = 10,
+  input.add = 10
+)
+Fit_2cmpt_oral(
+  data = dat,
+  est.method = "focei",
+  input.ka = 1,
+  input.cl = 4,
+  input.vc2cmpt = 70,
+  input.vp2cmpt = 40,
+  input.q2cmpt = 4,
+  input.add = 10,
+  control = foceiControl(rxControl = rxControl(maxSS = 200, atol = 1e-8))
+)
+Fit_2cmpt_oral(
+  data = dat,
+  est.method = "rxSolve",
+  input.ka = 1,
+  input.cl = 4,
+  input.vc2cmpt = 70,
+  input.vp2cmpt = 40,
+  input.q2cmpt = 4,
+  input.add = 10,
+  return.pred.only = TRUE
+)
+}
 }

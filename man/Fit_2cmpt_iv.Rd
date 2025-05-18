@@ -2,7 +2,7 @@
 % Please edit documentation in R/npd_modelcodes.R
 \name{Fit_2cmpt_iv}
 \alias{Fit_2cmpt_iv}
-\title{Fit intravenous pharmacokinetic data to a two-compartment model}
+\title{Fit intravenous pharmacokinetic data to a two-compartment linear elimination model}
 \usage{
 Fit_2cmpt_iv(
   data,
@@ -11,31 +11,78 @@ Fit_2cmpt_iv(
   input.vc2cmpt,
   input.vp2cmpt,
   input.q2cmpt,
-  input.add
+  input.add,
+  return.pred.only = FALSE,
+  ...
 )
 }
 \arguments{
-\item{data}{Intravenous pharmacokinetic data in the nlmixr2 format.}
+\item{data}{A data frame containing IV pharmacokinetic data formatted for nlmixr2,}
 
-\item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
+\item{est.method}{Estimation method to use in nlmixr2. Must be one of:
+\code{"rxSolve"}, \code{"nls"}, \code{"nlm"}, \code{"nlminb"}, or \code{"focei"}.}
 
-\item{input.cl}{Initial estimate for clearance.}
+\item{input.cl}{Initial estimate of clearance (CL).}
 
-\item{input.vc2cmpt}{Initial estimate for the central volume of distribution in two-compartment model.}
+\item{input.vc2cmpt}{Initial estimate of central volume of distribution (V1).}
 
-\item{input.vp2cmpt}{Initial estimate for the peripheral volume of distribution in a two-compartment model.}
+\item{input.vp2cmpt}{Initial estimate of peripheral volume of distribution (V2).}
 
-\item{input.q2cmpt}{Initial estimate for inter-compartmental clearance in a two-compartment model.}
+\item{input.q2cmpt}{Initial estimate of inter-compartmental clearance (Q).}
 
-\item{input.add}{Initial estimate for additive error.}
+\item{input.add}{Initial estimate of the additive residual error.}
+
+\item{return.pred.only}{Logical; if \code{TRUE}, returns a data frame with
+only predicted concentrations (\code{cp}) for all observations in the input data.}
+
+\item{...}{Additional arguments passed to \code{nlmixr2()}, such as a user-defined
+\code{control = foceiControl(...)} or other control settings.}
 }
 \value{
-An object of class 'nlmixr2' containing the results of the estimation.
+If \code{return.pred.only = TRUE}, returns a \code{data.frame}
+with a single column \code{cp} (predicted concentrations).
+Otherwise, returns a fitted model object produced by nlmixr2.
 }
 \description{
-Perform parameter estimation using the naive pooled data approach with a one-compartment model for the provided intravenous pharmacokinetic data.
+Fits intravenous pharmacokinetic (IV PK) data to a two-compartment model with
+linear (first-order) elimination using the naive pooled data approach. Supports
+multiple estimation methods provided by nlmixr2 and can optionally return
+only predicted concentrations to support efficient simulation workflows.
 }
 \examples{
+\dontrun{
 dat <- Bolus_2CPT
-Fit_2cmpt_iv(dat=dat,est.method="nls",input.cl=4,input.vc2cmpt=70,input.vp2cmpt=35,input.q2cmpt=10,input.add=1)
+# Fit using 'nls' method with default control settings
+Fit_2cmpt_iv(
+  data = dat,
+  est.method = "nls",
+  input.cl = 4,
+  input.vc2cmpt = 70,
+  input.vp2cmpt = 40,
+  input.q2cmpt = 4,
+  input.add = 10
+)
+# Fit using 'focei' with custom control settings
+Fit_2cmpt_iv(
+  data = dat,
+  est.method = "focei",
+  input.cl = 4,
+  input.vc2cmpt = 70,
+  input.vp2cmpt = 40,
+  input.q2cmpt = 4,
+  input.add = 10,
+  control = foceiControl(rxControl = rxControl(maxSS = 200))
+)
+# Return only predicted concentrations (cp) for all timepoints
+Fit_2cmpt_iv(
+  data = dat,
+  est.method = "rxSolve",
+  input.cl = 4,
+  input.vc2cmpt = 70,
+  input.vp2cmpt = 40,
+  input.q2cmpt = 4,
+  input.add = 10,
+  return.pred.only = TRUE
+)
+}
 }

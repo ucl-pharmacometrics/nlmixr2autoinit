@@ -8,67 +8,79 @@ getnca(
   x,
   y,
   dose = 1,
-  trapezoidal.rule = 1,
+  trapezoidal.rule = c("linear_up_log_down", "linear"),
   ss = 0,
+  duration = NULL,
   nlastpoints = 3,
-  route = "bolus"
+  route = c("bolus", "oral", "infusion")
 )
 }
 \arguments{
-\item{x}{Numeric vector of observation times}
+\item{x}{Numeric vector of observation times.}
 
-\item{y}{Numeric vector of drug concentration measurements}
+\item{y}{Numeric vector of drug concentration measurements.}
 
-\item{dose}{Administered dose (default = 1)}
+\item{dose}{Administered dose (default = 1).}
 
 \item{trapezoidal.rule}{Method for AUC calculation:
 \itemize{
-\item 1 - Linear trapezoidal method (default)
-\item 2 - Linear-up/log-down method (linear for ascending concentrations, logarithmic for descending)
+\item \code{"linear"} - Linear trapezoidal method (default)
+\item \code{"linear_up_log_down"} - Linear-up/log-down method (linear for ascending concentrations, logarithmic for descending)
 }}
 
 \item{ss}{Steady-state flag:
 \itemize{
-\item 0 - Use extrapolated AUC₀→∞ for clearance (default)
-\item 1 - Use observed AUC₀→last for clearance
+\item 0 - Use extrapolated \eqn{AUC_{0 \rightarrow \infty}} for clearance (default)
+\item 1 - Use observed \eqn{AUC_{0 \rightarrow \mathrm{last}}} for clearance
 }}
 
-\item{nlastpoints}{Number of terminal points for slope estimation (default = 3)}
+\item{duration}{Infusion duration (required if \code{route = "infusion"}).}
+
+\item{nlastpoints}{Number of terminal points for slope estimation (default = 3).}
 
 \item{route}{Administration route:
 \itemize{
-\item "bolus" - Intravenous bolus (default)
-\item "oral" - Oral administration
+\item \code{"bolus"} - Intravenous bolus (default)
+\item \code{"oral"} - Oral administration
+\item \code{"infusion"} - Intravenous infusion
 }}
 }
 \value{
 A list containing:
 \itemize{
-\item cl - Clearance (CL)
-\item vz - Volume of distribution (Vz)
-\item half_life - Terminal half-life
-\item auct - AUC₀→last
-\item auc0_inf - AUC₀→∞
-\item C_last - Last measurable concentration
-\item lambdaz - Terminal slope (λ_z)
-\item aumc_0_inf - AUMC₀→∞
-\item used_points - Number of points used for terminal slope
-\item adj.r.squared - Adjusted R² for terminal slope
-\item messages - Concatenated warning/status messages
+\item \code{cl} - Clearance (\eqn{CL})
+\item \code{vz} - Volume of distribution (\eqn{V_z})
+\item \code{half_life} - Terminal half-life
+\item \code{auct} - \eqn{AUC_{0 \rightarrow \mathrm{last}}}
+\item \code{auc0_inf} - \eqn{AUC_{0 \rightarrow \infty}}
+\item \code{C_last} - Last measurable concentration
+\item \code{lambdaz} - Terminal elimination rate constant (\eqn{\lambda_z})
+\item \code{aumc_0_t} - \eqn{AUMC_{0 \rightarrow \mathrm{last}}}
+\item \code{aumc_0_inf} - \eqn{AUMC_{0 \rightarrow \infty}}
+\item \code{used_points} - Number of points used for \eqn{\lambda_z} estimation
+\item \code{adj.r.squared} - Adjusted \eqn{R^2} for terminal slope
+\item \code{messages} - Concatenated warning/status messages
 }
 }
 \description{
 Calculates key pharmacokinetic parameters using non-compartmental methods for both intravenous and oral administration data.
 }
 \examples{
+\dontrun{
 # IV bolus example
 dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8),
                   DV = c(12, 8, 5, 3, 2, 1))
 getnca(x = dat$TIME, y = dat$DV, dose = 1)
 
+# IV infusion example
+dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8),
+                  DV = c(2, 8, 5, 3, 2, 1))
+getnca(x = dat$TIME, y = dat$DV, dose = 1, route = "infusion", duration = 1)
+
 # Oral administration example
-oral_dat <- data.frame(TIME = c(0, 1, 2, 4, 6, 8),
-                       DV = c(0, 9, 12, 8, 4, 2))
-getnca(x = oral_dat$TIME, y = oral_dat$DV, route = "oral")
+dat <- data.frame(TIME = c(0, 1, 2, 4, 6, 8),
+                  DV = c(0, 9, 12, 8, 4, 2))
+getnca(x = dat$TIME, y = dat$DV, route = "oral")
+}
 
 }

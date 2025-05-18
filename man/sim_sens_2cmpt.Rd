@@ -2,48 +2,96 @@
 % Please edit documentation in R/sim_sens_params.R
 \name{sim_sens_2cmpt}
 \alias{sim_sens_2cmpt}
-\title{Simulation-based sensitivity analysis for  for a two-compartment model}
+\title{Parameter sweeping for a two-compartment pharmacokinetic model}
 \usage{
 sim_sens_2cmpt(
   dat,
-  sim_vc_list,
-  sim_vp_list = NA,
-  sim_q_list = NA,
-  estcl,
-  estka = NA,
-  noniv_flag = 0,
-  mode_sim_q = 1
+  sim_ka = list(mode = "manual", values = NULL),
+  sim_cl = list(mode = "manual", values = NULL),
+  sim_vc = list(mode = "manual", values = NULL),
+  sim_vp = list(mode = c("auto", "manual"), values = NULL),
+  sim_q = list(mode = c("auto", "manual"), values = NULL, auto.strategy = c("scaled",
+    "fixed")),
+  route = c("iv", "oral")
 )
 }
 \arguments{
-\item{dat}{A data frame containing the pharmacokinetic data}
+\item{dat}{A data frame containing the pharmacokinetic dataset.}
 
-\item{sim_vc_list}{A list of central compartment volumes (Vc) to simulate (optional).}
+\item{sim_ka}{A list with Ka simulation settings (used only if \code{route = "oral"}). Default:
+\code{list(mode = "manual", values = NULL)}.
+\describe{
+\item{mode}{Must be \code{"manual"}; only used when \code{route = "oral"}.}
+\item{values}{Vector of Ka values; required for oral.}
+}}
 
-\item{sim_vp_list}{A list of peripheral compartment volumes (Vp) to simulate (optional).}
+\item{sim_cl}{A list for clearance (CL) simulation. Default: \code{list(mode = "manual", values = NULL)}.
+\describe{
+\item{mode}{Must be \code{"manual"}.}
+\item{values}{Vector of candidate CL values. Required.}
+}}
 
-\item{sim_q_list}{A list of inter-compartmental clearance (Q) to simulate (optional).}
+\item{sim_vc}{A list for central compartment volume (Vc) simulation. Default: \code{list(mode = "manual", values = NULL)}.
+\describe{
+\item{mode}{Must be \code{"manual"}.}
+\item{values}{Vector of candidate Vc values. Required.}
+}}
 
-\item{estcl}{Estimated clearance.}
+\item{sim_vp}{A list for peripheral compartment volume (Vp) simulation. Default: \code{list(mode = c("auto", "manual"), values = NULL)}.
+\describe{
+\item{mode}{\code{"auto"} or \code{"manual"}.}
+\item{values}{If \code{"manual"}, a vector of Vp values. If \code{"auto"}, generated based on Vc/ratio.}
+}}
 
-\item{estka}{Estimated absorption rate if oral case.}
+\item{sim_q}{A list for inter-compartmental clearance (Q). Default:
+\code{list(mode = c("auto", "manual"), values = NULL, auto.strategy = c("scaled", "fixed"))}.
+\describe{
+\item{mode}{\code{"auto"} or \code{"manual"}.}
+\item{values}{Required if \code{"manual"}; a vector of Q values.}
+\item{auto.strategy}{Only used if \code{"auto"}; either \code{"scaled"} (relative to CL) or \code{"fixed"} (fixed values).}
+}}
 
-\item{estvc}{Estimated central volume of distribution (optional, required if \code{sim_vc_list} and \code{sim_vp_list} are not provided).}
+\item{route}{A character string indicating administration route. One of \code{"iv"} (intravenous) or \code{"oral"} (extravascular). Default is \code{"iv"}.}
 }
 \value{
-A data frame containing the Vc, Vp, APE, MAPE, and time spent for each simulation.
+A data frame with simulated parameter combinations and evaluation metrics:
+\describe{
+\item{Vc, Vp, Q, CL, Ka}{The parameter values used.}
+\item{APE, MAE, MAPE, RMSE, rRMSE}{Model fit evaluation metrics.}
+\item{Cumulative.Time.Sec}{Total elapsed time (in seconds) for each simulation.}
+}
 }
 \description{
-Performs sensitivity analysis by testing a series of potential ratios of vc to vp.
+Performs sensitivity analysis via parameter sweeping in a two-compartment pharmacokinetic model.
+By systematically varying user-defined or automatically generated values for key pharmacokinetic
+parameters (e.g., CL, Vc, Vp, Q, and Ka), the function evaluates model sensitivity and fit
+across a defined grid of parameter combinations.
 }
 \examples{
+\dontrun{
+# Example 1: IV route
+out <- sim_sens_2cmpt(
+  dat = Bolus_1CPT,
+  sim_cl = list(mode = "manual", values = c(4)),
+  sim_vc = list(mode = "manual", values = c(50, 70)),
+  sim_vp = list(mode = "auto"),
+  sim_q  = list(mode = "auto", auto.strategy = "scaled"),
+  sim_ka = list(mode = "manual", values = NA),  # NA for IV route
+  route = "iv"
+)
+head(out)
 
-# Example 1. IV case
-dat <- Bolus_2CPT
-head(sim_sens_2cmpt(dat, estcl = 4, sim_vc_list = 70))
-
-# Example 2. Oral case
-dat <- Oral_2CPT
-head(sim_sens_2cmpt(dat, estka=1, estcl = 4, sim_vc_list = 70))
+# Example 2: Oral route
+out <- sim_sens_2cmpt(
+  dat = Oral_2CPT,
+  sim_cl = list(mode = "manual", values = c(4)),
+  sim_vc = list(mode = "manual", values = c(70)),
+  sim_vp = list(mode = "manual", values = c(20, 30)),
+  sim_q  = list(mode = "manual", values = c(10)),
+  sim_ka = list(mode = "manual", values = c(0.5, 1, 2)),
+  route = "oral"
+)
+head(out)
+}
 
 }

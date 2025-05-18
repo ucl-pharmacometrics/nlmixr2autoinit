@@ -7,13 +7,20 @@ Performs non-compartmental analysis (NCA) using pooled pharmacokinetic data
 for various dosing scenarios, including first dose, repeated doses, or a combined
 analysis of both.}
 \usage{
-run_pooled_nca(dat, data_type = "first_dose", pooled = NULL, ...)
+run_pooled_nca(
+  dat,
+  route = c("bolus", "oral", "infusion"),
+  dose_type = c("first_dose", "repeated_doses", "combined_doses"),
+  pooled = NULL,
+  pooled_ctrl = pooled_control(),
+  nca_ctrl = nca_control()
+)
 }
 \arguments{
 \item{dat}{A data frame containing pharmacokinetic data. Required columns depend on
-the specified \code{data_type} (see Details).}
+the specified \code{dose_type} (see Details).}
 
-\item{data_type}{Type of analysis to perform. One of:
+\item{dose_type}{Type of analysis to perform. One of:
 \itemize{
 \item{\code{"first_dose"}}: First-dose analysis (default)
 \item{\code{"repeated_doses"}}: Analysis of doses beyond the first (e.g., steady-state)
@@ -38,7 +45,7 @@ A named list containing:
 \item{\code{nca.efd.results}}: NCA results for repeated doses (if applicable)
 \item{\code{nca.all.results}}: NCA results for combined first and repeated doses (if applicable)
 }
-Any result not relevant to the \code{data_type} will return \code{NA}.
+Any result not relevant to the \code{dose_type} will return \code{NA}.
 }
 \description{
 Perform Non-Compartmental Analysis (NCA) on Pooled Pharmacokinetic Data
@@ -50,24 +57,42 @@ analysis of both.
 This function supports flexible NCA workflows where pooled data can either be computed
 internally using \code{\link{get_pooled_data}}, or supplied externally (e.g., reused across calls).
 Required columns in \code{dat} are automatically checked within \code{get_pooled_data}.
+
+For infusion analyses (\code{route = "infusion"}), the representative infusion duration is determined
+based on observation records (\code{EVID == 0}). Each sampling time point is associated with a corresponding
+infusion duration, recorded in the \code{durationobs} column. This value reflects the infusion responsible
+for the observed concentration at that time. When estimating a pooled duration (e.g., for lambda-z estimation),
+the most commonly used value in \code{durationobs} is selected to ensure consistency with the analyzed profile.
 }
 \examples{
 \dontrun{
-# First-dose NCA analysis (pre-filtered dataset)
+
+# Example 1: Pre-pooling externally using get_pooled_data()
 dat <- Bolus_1CPT[Bolus_1CPT$SD == 1, ]
-dat <- processData(dat)$dat
+out <- processData(dat)
+fdat<- out$dat
+froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
+pooled <- get_pooled_data(fdat, dose_type = "first_dose")
+run_pooled_nca(dat, dose_type = "first_dose", route=froute, pooled = pooled)
 
-# Option 1: Pre-pooling externally using get_pooled_data()
-pooled <- get_pooled_data(dat, data_type = "first_dose", binsize = 1)
-result <- run_pooled_nca(dat, data_type = "first_dose", pooled = pooled)
-
-# Option 2: Automatic pooling within run_pooled_nca()
-result <- run_pooled_nca(dat, data_type = "first_dose")
-
-# Combined analysis: first-dose + repeated-dose profiles
+# Example 2: Automatic pooling within run_pooled_nca()
 dat <- Bolus_1CPT
-dat <- processData(dat)$dat
-result <- run_pooled_nca(dat, data_type = "combined_doses")
+out <- processData(dat)
+fdat<- out$dat
+froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
+pooled <- get_pooled_data(dat, dose_type = "first_dose")
+run_pooled_nca(fdat, dose_type = "combined_doses", route=froute)
+
+
+# Example 4: Infusion case
+dat <- Infusion_1CPT
+out <- processData(dat)
+fdat<- out$dat
+froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
+fdosetype<-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Type"]
+pooled <- get_pooled_data(fdat, dose_type = fdosetype)
+run_pooled_nca(fdat, dose_type = fdosetype, route=froute)
+
 }
 
 }
