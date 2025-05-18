@@ -10,7 +10,7 @@ approx.vc(
   single_point_base.lst = NULL,
   route = c("bolus", "oral", "infusion"),
   dose_type = NULL,
-  pooledctrl = pooled_control(),
+  pooled_ctrl = pooled_control(),
   ssctrl = ss_control()
 )
 }
