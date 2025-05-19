@@ -342,9 +342,9 @@ getPPKinits <- function(dat, control=initsControl()) {
     }
 
     if (!is.na(nca_out$nca.fd.results$clobs) &&
-        !is.na(nca_out$nca.fd.results$vzobs) && !is.na(ka_nca)) {
+        !is.na(nca_out$nca.fd.results$vzobs) && !is.na(ka_nca_fd)) {
       if (nca_out$nca.fd.results$clobs > 0 &&
-          nca_out$nca.fd.results$vzobs > 0 && ka_nca > 0) {
+          nca_out$nca.fd.results$vzobs > 0 && ka_nca_fd > 0) {
         nca_fd_sim <- Fit_1cmpt_oral(
           data = dat[dat$EVID != 2, ],
           est.method = "rxSolve",
