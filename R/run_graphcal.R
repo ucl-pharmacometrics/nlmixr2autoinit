@@ -5,7 +5,12 @@
 #'
 #' @param dat A data frame containing pharmacokinetic data.
 #' @param route Administration route, must be one of \code{"bolus"}, \code{"infusion"}, or \code{"oral"}.
-#' @param data_type Type of dataset to use for binning (default: \code{"first_dose"}).
+#' @param dose_type Type of analysis to perform. One of:
+#'   \itemize{
+#'     \item{\code{"first_dose"}}: First-dose analysis (default)
+#'     \item{\code{"repeated_doses"}}: Analysis of doses beyond the first (e.g., steady-state)
+#'     \item{\code{"combined_doses"}}: Analysis combining first and repeated doses
+#'   }
 #' @param pooled Optional externally provided pooled data. If \code{NULL}, the data will be pooled internally.
 #' @param ... Additional arguments passed to \code{bin.time} or to the graphical calculation functions.
 #'
@@ -36,18 +41,44 @@
 
 run_graphcal <- function(dat,
                          route,
-                         data_type = "first_dose",
+                         dose_type = c("first_dose", "repeated_doses", "combined_doses"),
                          pooled = NULL,
+                         pooled_ctrl=pooled_control(),
                          ...) {
 
   dots <- list(...)
-  bin_args <- dots[names(dots) %in% names(formals(bin.time))]
+
   graph_args <- dots[names(dots) %in% names(formals(graphcal_iv))]
 
+  if (route %in% c("bolus","infusion")){
+  graph.fd.output <-list(
+    cl = NA,
+    vd = NA,
+    slope = NA,
+    C0 = NA,
+    method = NA,
+    slopefit = NA,
+    time.spent = NA
+  )
+  }
+
+  if (route %in% c("oral")){
+    graph.fd.output <-list(
+      ka= NA,
+      cl = NA,
+      vd = NA,
+      slope = NA,
+      C0 = NA,
+      method = NA,
+      slopefit = NA,
+      time.spent = NA
+    )
+  }
+    # Generate pooled data if not already supplied
   if (is.null(pooled)) {
-    pooled <- do.call(get_pooled_data,
-                      c(list(dat = dat, data_type = data_type),
-                        bin_args))
+    pooled <- get_pooled_data(dat = dat,
+                              dose_type = dose_type,
+                              pooled_ctrl=pooled_ctrl)
   }
 
   # Initialize default output

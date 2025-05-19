@@ -4,14 +4,26 @@
 \alias{run_graphcal}
 \title{Run graphical analysis of PK Parameters}
 \usage{
-run_graphcal(dat, route, data_type = "first_dose", pooled = NULL, ...)
+run_graphcal(
+  dat,
+  route,
+  dose_type = c("first_dose", "repeated_doses", "combined_doses"),
+  pooled = NULL,
+  pooled_ctrl = pooled_control(),
+  ...
+)
 }
 \arguments{
 \item{dat}{A data frame containing pharmacokinetic data.}
 
 \item{route}{Administration route, must be one of \code{"bolus"}, \code{"infusion"}, or \code{"oral"}.}
 
-\item{data_type}{Type of dataset to use for binning (default: \code{"first_dose"}).}
+\item{dose_type}{Type of analysis to perform. One of:
+\itemize{
+\item{\code{"first_dose"}}: First-dose analysis (default)
+\item{\code{"repeated_doses"}}: Analysis of doses beyond the first (e.g., steady-state)
+\item{\code{"combined_doses"}}: Analysis combining first and repeated doses
+}}
 
 \item{pooled}{Optional externally provided pooled data. If \code{NULL}, the data will be pooled internally.}
 

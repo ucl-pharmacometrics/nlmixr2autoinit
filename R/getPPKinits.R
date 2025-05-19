@@ -140,10 +140,8 @@ getPPKinits <- function(dat, control=initsControl()) {
     dat,
     route,
     data_type,
-    .pooledctrl$nbins,
-    .pooledctrl$bin_method,
-    .pooledctrl$tad_rounding,
     pooled =  pooled_data,
+    pooled_ctrl = .pooledctrl,
     nlastpoints = 3
   )
 
@@ -712,13 +710,15 @@ getPPKinits <- function(dat, control=initsControl()) {
     sigma_add <- sigma.out$summary$sigma_additive
     if (is.na(sigma_add)) {
       used_add_fallback <- TRUE
-      sigma_add <- fallback_add$sigma_additive
+      dv_obs <- dat[dat$EVID == 0, "DV", drop = TRUE]
+      dv_mean <- mean(dv_obs, na.rm = TRUE, trim = 0.05)
+      sigma_add <-  sigma_fallback_fraction *  dv_mean
     }
   } else if (method_additive == "fixed_fraction") {
     used_add_fallback <- TRUE
-    dv_obs <- df[df$EVID == 0, "DV", drop = TRUE]
+    dv_obs <- dat[dat$EVID == 0, "DV", drop = TRUE]
     dv_mean <- mean(dv_obs, na.rm = TRUE, trim = trim)
-    sigma_add <- fallback_add$sigma_additive
+    sigma_add <-  sigma_fallback_fraction * dv_mean
   }
 
   # --- Proportional error model: decide method used ---
@@ -726,11 +726,11 @@ getPPKinits <- function(dat, control=initsControl()) {
     sigma_prop <- sigma.out$summary$sigma_proportional
     if (is.na(sigma_prop)) {
       used_prop_fallback <- TRUE
-      sigma_prop <- fallback_prop$sigma_proportional
+      sigma_prop <- sigma_fallback_fraction
     }
   } else if (method_proportional == "fixed_fraction") {
     used_prop_fallback <- TRUE
-    sigma_prop <- fallback_prop$sigma_proportional
+    sigma_prop <-sigma_fallback_fraction
   }
 
   # --- Determine method labels used ---
