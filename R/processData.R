@@ -77,13 +77,14 @@ processData<-function(dat){
                 "AMT",
                 "ADDL",
                 "II",
-                "SS",
-                "CMT")
+                "SS")
 
-  for (testcolumn in colnames(dat)) {
-    if (testcolumn %in% column.list) {
-      dat[[testcolumn]] <- as.numeric(dat[[testcolumn]])
-    }
+  # Identify columns that are both in the dataset and the column list
+  existing_columns <- intersect(column.list, colnames(dat))
+
+  # Convert only existing columns to numeric
+  for (col in existing_columns) {
+    dat[[col]] <- as.numeric(dat[[col]])
   }
 
   #-------------- STEP 2: Event Flag Processing -------------------------#
@@ -265,13 +266,25 @@ processData<-function(dat){
 
 
 #------------- STEP 4: Compartment Handling & Administration Route ----------#
-# Ensure CMT column exists with default value 1
-for (testcolumn in colnames(dat)) {
-    if (testcolumn %in% column.list) {
-      dat[[testcolumn]] <- as.numeric(dat[[testcolumn]])
-    }
-  }
+# Convert key columns to numeric format
+  column.list <- c("TIME",
+                   "DV",
+                   "MDV",
+                   "EVID",
+                   "RATE",
+                   "DUR",
+                   "AMT",
+                   "ADDL",
+                   "II",
+                   "SS")
 
+  # Identify columns that are both in the dataset and the column list
+  existing_columns <- intersect(column.list, colnames(dat))
+
+  # Convert only existing columns to numeric
+  for (col in existing_columns) {
+    dat[[col]] <- as.numeric(dat[[col]])
+  }
 
 # Process compartment logic per ID/reset group
 dat <- dat %>%
