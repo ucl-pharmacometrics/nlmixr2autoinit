@@ -19,7 +19,7 @@ A list containing:
 \item{\code{ka}}{Estimated absorption rate constant (1/h)}
 \item{\code{kel}}{Estimated elimination rate constant (1/h)}
 \item{\code{slope}}{Negative terminal phase slope (lambda_z)}
-\item{\code{C0}}{Extrapolated concentration at the start of elimination phase}
+\item{\code{C0exp}}{Extrapolated concentration at the start of elimination phase}
 \item{\code{cl}}{Estimated clearance normalized by bioavailability (Cl/F)}
 \item{\code{vd}}{Estimated apparent volume of distribution normalized by bioavailability (Vd/F)}
 \item{\code{method}}{Method used for terminal phase slope estimation ("find_best_lambdaz" or "fallback_regression")}
@@ -29,7 +29,7 @@ A list containing:
 \description{
 Calculates key pharmacokinetic parameters from oral pharmacokinetic data using graphical methods,
 including absorption rate constant (ka), elimination rate constant (kel), terminal slope,
-extrapolated concentration (C0), apparent volume of distribution (Vd/F), and clearance (Cl/F).
+extrapolated concentration (C0exp), apparent volume of distribution (Vd/F), and clearance (Cl/F).
 }
 \details{
 Estimation of the terminal elimination slope (lambda_z) is performed using the \code{\link{force_find_lambdaz}} function,

@@ -19,7 +19,7 @@ A list containing the following elements:
 \item{\code{cl}}{Estimated clearance (CL)}
 \item{\code{vd}}{Estimated volume of distribution (Vd)}
 \item{\code{slope}}{Estimated negative terminal phase slope (lambda_z)}
-\item{\code{C0}}{Extrapolated concentration at time zero}
+\item{\code{C0exp}}{Extrapolated concentration at time zero}
 \item{\code{method}}{Slope estimation method used ("find_best_lambdaz" or "fallback_regression")}
 \item{\code{time.spent}}{Elapsed computation time (in seconds)}
 }
@@ -27,7 +27,7 @@ If sufficient valid data points are not available, returned values will be \code
 }
 \description{
 Performs graphical calculation of pharmacokinetic parameters including clearance (CL),
-volume of distribution (Vd), terminal slope (lambda_z), and extrapolated concentration at time zero (C0)
+volume of distribution (Vd), terminal slope (lambda_z), and extrapolated concentration at time zero (C0exp)
 based on intravenous (IV) pharmacokinetic data.
 }
 \details{

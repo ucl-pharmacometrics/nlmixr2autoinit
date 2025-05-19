@@ -1109,6 +1109,7 @@ getPPKinits <- function(dat, control=initsControl()) {
   output_env$Run.history <- init.history
   output_env$time.spent <- time.spent
   output_env$Parameter.descriptions <- params.descriptions
+  output_env$Omegas<- getOmegas()
 
   class(output_env) <- "getPPKinits"
 
@@ -1154,6 +1155,11 @@ print.getPPKinits <- function(env, ...) {
 
   cat("\nTime spent :\n")
   print(paste0(env$time.spent,"s"))
+
+  if (!is.null(env$Omegas)) {
+    cat("\nETA variances and derived covariances:\n")
+    print(env$Omegas)
+  }
 
   cat("\nParameter descriptions:\n")
   print(env$Parameter.descriptions)
