@@ -55,7 +55,7 @@ run_graphcal <- function(dat,
     cl = NA,
     vd = NA,
     slope = NA,
-    C0 = NA,
+    C0exp = NA,
     method = NA,
     slopefit = NA,
     time.spent = NA
@@ -68,7 +68,7 @@ run_graphcal <- function(dat,
       cl = NA,
       vd = NA,
       slope = NA,
-      C0 = NA,
+      C0exp = NA,
       method = NA,
       slopefit = NA,
       time.spent = NA
@@ -115,7 +115,7 @@ run_graphcal <- function(dat,
 #' Graphical Calculation of Clearance and Volume of Distribution (IV Route)
 #'
 #' Performs graphical calculation of pharmacokinetic parameters including clearance (CL),
-#' volume of distribution (Vd), terminal slope (lambda_z), and extrapolated concentration at time zero (C0)
+#' volume of distribution (Vd), terminal slope (lambda_z), and extrapolated concentration at time zero (C0exp)
 #' based on intravenous (IV) pharmacokinetic data.
 #'
 #' @param dat A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).
@@ -127,7 +127,7 @@ run_graphcal <- function(dat,
 #'   \item{\code{cl}}{Estimated clearance (CL)}
 #'   \item{\code{vd}}{Estimated volume of distribution (Vd)}
 #'   \item{\code{slope}}{Estimated negative terminal phase slope (lambda_z)}
-#'   \item{\code{C0}}{Extrapolated concentration at time zero}
+#'   \item{\code{C0exp}}{Extrapolated concentration at time zero}
 #'   \item{\code{method}}{Slope estimation method used ("find_best_lambdaz" or "fallback_regression")}
 #'   \item{\code{time.spent}}{Elapsed computation time (in seconds)}
 #' }
@@ -160,7 +160,7 @@ graphcal_iv <- function(dat,
   cl <- NA
   vd <- NA
   slope <- NA
-  C0 <- NA
+  C0exp <- NA
   method <- NA
   slopefit <- NULL
 
@@ -178,10 +178,10 @@ graphcal_iv <- function(dat,
     if (!is.na(kel)) {
       slope <- -kel
       if (!is.na(result$intercept)) {
-        C0 <- exp(result$intercept)
+        C0exp <- exp(result$intercept)
       }
-      if (!is.na(C0) && C0 > 0) {
-        vd <- dose / C0
+      if (!is.na(C0exp) && C0exp > 0) {
+        vd <- dose / C0exp
         cl <- kel * vd
       }
     }
@@ -196,7 +196,7 @@ graphcal_iv <- function(dat,
       cl = cl,
       vd = vd,
       slope = slope,
-      C0 = C0,
+      C0exp = C0exp,
       method = method,
       slopefit = slopefit,
       time.spent = time.spent
@@ -209,7 +209,7 @@ graphcal_iv <- function(dat,
 #'
 #' Calculates key pharmacokinetic parameters from oral pharmacokinetic data using graphical methods,
 #' including absorption rate constant (ka), elimination rate constant (kel), terminal slope,
-#' extrapolated concentration (C0), apparent volume of distribution (Vd/F), and clearance (Cl/F).
+#' extrapolated concentration (C0exp), apparent volume of distribution (Vd/F), and clearance (Cl/F).
 #'
 #' @param dat A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).
 #' @param dose Administered dose amount (default is \code{1}).
@@ -220,7 +220,7 @@ graphcal_iv <- function(dat,
 #'   \item{\code{ka}}{Estimated absorption rate constant (1/h)}
 #'   \item{\code{kel}}{Estimated elimination rate constant (1/h)}
 #'   \item{\code{slope}}{Negative terminal phase slope (lambda_z)}
-#'   \item{\code{C0}}{Extrapolated concentration at the start of elimination phase}
+#'   \item{\code{C0exp}}{Extrapolated concentration at the start of elimination phase}
 #'   \item{\code{cl}}{Estimated clearance normalized by bioavailability (Cl/F)}
 #'   \item{\code{vd}}{Estimated apparent volume of distribution normalized by bioavailability (Vd/F)}
 #'   \item{\code{method}}{Method used for terminal phase slope estimation ("find_best_lambdaz" or "fallback_regression")}
@@ -265,7 +265,7 @@ graphcal_oral <- function(dat,
   ka <- NA
   kel <- NA
   slope <- NA
-  C0 <- NA
+  C0exp <- NA
   vd <- NA
   cl <- NA
   method <- NA
