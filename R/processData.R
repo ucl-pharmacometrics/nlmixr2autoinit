@@ -272,8 +272,11 @@ for (testcolumn in colnames(dat)) {
     }
   }
 
+
 # Process compartment logic per ID/reset group
 dat <- dat %>%
+  # Ensure CMT exists: if missing, initialize with 1
+  { if (!"CMT" %in% colnames(.)) dplyr::mutate(., CMT = 1) else . } %>%
   dplyr::group_by(ID, resetflag) %>%
   dplyr::mutate(
     # Get observation compartment (EVID=0) for current reset group
