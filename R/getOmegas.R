@@ -86,7 +86,7 @@ getOmegas <- function() {
       cov_table,
       data.frame(
         Parameters = cov_name,
-        Methods = "derived_from_eta_and_correlation (0.1)",
+        Methods = "eta_corr_derived (r=0.1)",
         Values = format(cov_value, scientific = FALSE, digits = 3),
         stringsAsFactors = FALSE
       )

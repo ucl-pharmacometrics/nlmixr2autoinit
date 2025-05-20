@@ -87,7 +87,6 @@ getPPKinits <- function(dat, control=initsControl()) {
    selection.criterion <- control$selection.criterion
 
   ################# 1. Data preprocessing #################
-
   # Record start time
   start.time <- Sys.time()
 
@@ -99,7 +98,7 @@ getPPKinits <- function(dat, control=initsControl()) {
   process_result$Datainfo$Value[process_result$Datainfo$Infometrics == "Dose Route"]
   Datainfo<-process_result$Datainfo
 
-  # reset ID
+  # Reset ID
   dat <- dat %>%
     dplyr::mutate(ID = ID + (resetflag - 1) * max(dat$ID, na.rm = TRUE))
 
@@ -164,290 +163,57 @@ getPPKinits <- function(dat, control=initsControl()) {
   ka_nca_fd <- NA
   ka_nca_efd <- NA
   ka_nca_all <- NA
-  used_nca_fd_ka_fallback  <- FALSE
-  ka_wn <-NA
+  ka_wn <- NA
+  used_nca_ka_fallback  <- FALSE
+
   if (route == "oral" &&
       !is.na(nca_out$nca.fd.results$clobs) &&
       !is.na(nca_out$nca.fd.results$vzobs)) {
-    ka_wn <- ka_wanger_nelson(
-      pooled_data$datpooled_fd$binned.df,
-      nca_out$nca.fd.results
-    )
+    ka_wn <- ka_wanger_nelson(pooled_data$datpooled_fd$binned.df,
+                              nca_out$nca.fd.results)
     ka_nca_fd <- signif(ka_wn$ka, 3)
+
     if (.fbctrl$enable_ka_fallback) {
-      if ((is.na(ka_nca_fd) || ka_nca_fd < 0)){
-           ka_nca_fd <- 1
-           used_nca_fd_fallback <- TRUE
+      if ((is.na(ka_nca_fd) || ka_nca_fd < 0)) {
+        ka_nca_fd <- 1
+        used_nca_ka_fallback <- TRUE
       }
-           ka_nca_efd <- 1
-           ka_nca_all <- 1
-      }
-  }
-
-  ########## 5. Predictive performance evaluation for base parameters   ##########
-  simpcal.APE <- simpcal.MAE <- simpcal.MAPE <- simpcal.RMSE <- simpcal.rRMSE <- NA
-  nca.APE <- nca.MAE <- nca.MAPE <- nca.RMSE <- nca.rRMSE <- NA
-  nca_fd.APE <- nca_fd.MAE <- nca_fd.MAPE <- nca_fd.RMSE <- nca_fd.rRMSE <- NA
-  nca_efd.APE <- nca_efd.MAE <- nca_efd.MAPE <- nca_efd.RMSE <- nca_efd.rRMSE <- NA
-  graph_fd.APE <- graph_fd.MAE <- graph_fd.MAPE <- graph_fd.RMSE <- graph_fd.rRMSE <- NA
-
-  if (route %in% c("bolus", "infusion")) {
-    if (!is.na(sp_out$cl) && !is.na(sp_out$vd)) {
-      simpcal_sim <- Fit_1cmpt_iv(
-        data = dat[dat$EVID != 2, ],
-        est.method = "rxSolve",
-        input.cl = sp_out$cl,
-        input.vd = sp_out$vd,
-        input.add = 0
-      )
-      simpcal.APE <-
-        round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[1], 3)
-      simpcal.MAE <-
-        round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[2], 3)
-      simpcal.MAPE <-
-        round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[3], 3)
-      simpcal.RMSE <-
-        round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[4], 3)
-      simpcal.rRMSE <-
-        round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[5], 3)
-      rm(simpcal_sim)
-      gc()
-    }
-
-    if (!is.na(nca_out$nca.fd.results$clobs) &&
-        !is.na(nca_out$nca.fd.results$vzobs)) {
-      if (nca_out$nca.fd.results$clobs > 0 &&
-          nca_out$nca.fd.results$vzobs > 0) {
-        nca_fd_sim <- Fit_1cmpt_iv(
-          data = dat[dat$EVID != 2, ],
-          est.method = "rxSolve",
-          input.cl = nca_out$nca.fd.results$clobs,
-          input.vd = nca_out$nca.fd.results$vzobs,
-          input.add = 0
-        )
-        nca_fd.APE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[1], 3)
-        nca_fd.MAE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[2], 3)
-        nca_fd.MAPE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[3], 3)
-        nca_fd.RMSE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[4], 3)
-        nca_fd.rRMSE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[5], 3)
-        rm(nca_fd_sim)
-        gc()
-      }
-    }
-    if (!is.na(nca_out$nca.efd.results$clobs) &&
-        !is.na(nca_out$nca.efd.results$vzobs)) {
-      if (nca_out$nca.efd.results$clobs > 0 &&
-          nca_out$nca.efd.results$vzobs > 0) {
-        nca_efd_sim <- Fit_1cmpt_iv(
-          data = dat[dat$EVID != 2,],
-          est.method = "rxSolve",
-          input.cl = nca_out$nca.efd.results$clobs,
-          input.vd = nca_out$nca.efd.results$vzobs,
-          input.add = 0
-        )
-        nca_efd.APE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[1], 3)
-        nca_efd.MAE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[2], 3)
-        nca_efd.MAPE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[3], 3)
-        nca_efd.RMSE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[4], 3)
-        nca_efd.rRMSE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[5], 3)
-        rm(nca_efd_sim)
-        gc()
-      }
-    }
-
-    if (!is.na(nca_out$nca.all.results$clobs) &&
-        !is.na(nca_out$nca.all.results$vzobs)) {
-      if (nca_out$nca.all.results$clobs > 0 &&
-          nca_out$nca.all.results$vzobs > 0) {
-        nca_all_sim <- Fit_1cmpt_iv(
-          data = dat[dat$EVID != 2,],
-          est.method = "rxSolve",
-          input.cl = nca_out$nca.all.results$clobs,
-          input.vd = nca_out$nca.all.results$vzobs,
-          input.add = 0
-        )
-        nca.APE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[1], 3)
-        nca.MAE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[2], 3)
-        nca.MAPE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[3], 3)
-        nca.RMSE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[4], 3)
-        nca.rRMSE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[5], 3)
-        rm(nca_all_sim)
-        gc()
-      }
-    }
-    if (!is.na(graph_out$cl) && !is.na(graph_out$vd)) {
-      if (graph_out$cl > 0 && graph_out$vd > 0) {
-        graph_fd_sim <- Fit_1cmpt_iv(
-          data = dat[dat$EVID != 2, ],
-          est.method = "rxSolve",
-          input.cl = graph_out$cl,
-          input.vd = graph_out$vd,
-          input.add = 0
-        )
-        graph_fd.APE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[1], 3)
-        graph_fd.MAE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[2], 3)
-        graph_fd.MAPE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[3], 3)
-        graph_fd.RMSE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[4], 3)
-        graph_fd.rRMSE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[5], 3)
-        rm(graph_fd_sim)
-        gc()
-      }
+      ka_nca_efd <- 1
+      ka_nca_all <- 1
     }
   }
 
-  if (route == "oral") {
-    if (!is.na(sp_out$cl) && !is.na(sp_out$vd) && !is.na(sp_out$ka)) {
-      if (sp_out$cl > 0 && sp_out$vd > 0 && sp_out$ka > 0) {
-        simpcal_sim <- Fit_1cmpt_oral(
-          data = dat[dat$EVID != 2, ],
-          est.method = "rxSolve",
-          input.ka = sp_out$ka,
-          input.cl = sp_out$cl,
-          input.vd = sp_out$vd,
-          input.add = 0
-        )
-        simpcal.APE <-
-          round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[1], 3)
-        simpcal.MAE <-
-          round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[2], 3)
-        simpcal.MAPE <-
-          round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[3], 3)
-        simpcal.RMSE <-
-          round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[4], 3)
-        simpcal.rRMSE <-
-          round(metrics.(pred.x = simpcal_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[5], 3)
-        rm(simpcal_sim)
-        gc()
-      }
-    }
+  ###############5. Base parameter predictive performance   ##################
+  base_perf.out <- list(
+    simpcal = eval_perf_1cmpt(dat, "rxSolve", sp_out$ka, sp_out$cl, sp_out$vd, route),
+    graph   = eval_perf_1cmpt(dat, "rxSolve", graph_out$ka, graph_out$cl, graph_out$vd, route),
+    nca_fd  = eval_perf_1cmpt(
+      dat,
+      "rxSolve",
+      ka_nca_fd,
+      nca_out$nca.fd.results$clobs,
+      nca_out$nca.fd.results$vzobs,
+      route
+    ),
+    nca_efd = eval_perf_1cmpt(
+      dat,
+      "rxSolve",
+      ka_nca_efd,
+      nca_out$nca.efd.results$clobs,
+      nca_out$nca.efd.results$vzobs,
+      route
+    ),
+    nca_all = eval_perf_1cmpt(
+      dat,
+      "rxSolve",
+      ka_nca_all,
+      nca_out$nca.all.results$clobs,
+      nca_out$nca.all.results$vzobs,
+      route
+    )
+  )
 
-    if (!is.na(nca_out$nca.fd.results$clobs) &&
-        !is.na(nca_out$nca.fd.results$vzobs) && !is.na(ka_nca_fd)) {
-      if (nca_out$nca.fd.results$clobs > 0 &&
-          nca_out$nca.fd.results$vzobs > 0 && ka_nca_fd > 0) {
-        nca_fd_sim <- Fit_1cmpt_oral(
-          data = dat[dat$EVID != 2, ],
-          est.method = "rxSolve",
-          input.ka = ka_nca_fd,
-          input.cl = nca_out$nca.fd.results$clobs,
-          input.vd = nca_out$nca.fd.results$vzobs,
-          input.add = 0
-        )
-        nca_fd.APE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[1], 3)
-        nca_fd.MAE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[2], 3)
-        nca_fd.MAPE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[3], 3)
-        nca_fd.RMSE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[4], 3)
-        nca_fd.rRMSE <-
-          round(metrics.(pred.x = nca_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[5], 3)
-        rm(nca_fd_sim)
-        gc()
-      }
-    }
-
-    if (!is.na(nca_out$nca.efd.results$clobs) &&
-        !is.na(nca_out$nca.efd.results$vzobs) && !is.na(ka_nca_efd)) {
-      if (nca_out$nca.efd.results$clobs > 0 &&
-          nca_out$nca.efd.results$vzobs > 0 && ka_nca_efd > 0) {
-        nca_efd_sim <- Fit_1cmpt_oral(
-          data = dat[dat$EVID != 2,],
-          est.method = "rxSolve",
-          input.ka = ka_nca_efd,
-          input.cl = nca_out$nca.efd.results$clobs,
-          input.vd = nca_out$nca.efd.results$vzobs,
-          input.add = 0
-        )
-        nca_efd.APE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[1], 3)
-        nca_efd.MAE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[2], 3)
-        nca_efd.MAPE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[3], 3)
-        nca_efd.RMSE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[4], 3)
-        nca_efd.rRMSE <-
-          round(metrics.(pred.x = nca_efd_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[5], 3)
-        rm(nca_efd_sim)
-        gc()
-      }
-    }
-
-    if (!is.na(nca_out$nca.all.results$clobs) &&
-        !is.na(nca_out$nca.all.results$vzobs) && !is.na(ka_nca_all)) {
-      if (nca_out$nca.all.results$clobs > 0 &&
-          nca_out$nca.all.results$vzobs > 0 && ka_nca_all > 0) {
-        nca_all_sim <- Fit_1cmpt_oral(
-          data = dat[dat$EVID != 2,],
-          est.method = "rxSolve",
-          input.ka = ka_nca_all,
-          input.cl = nca_out$nca.all.results$clobs,
-          input.vd = nca_out$nca.all.results$vzobs,
-          input.add = 0
-        )
-        nca.APE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[1], 3)
-        nca.MAE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[2], 3)
-        nca.MAPE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[3], 3)
-        nca.RMSE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[4], 3)
-        nca.rRMSE <-
-          round(metrics.(pred.x = nca_all_sim$cp, obs.y = dat[dat$EVID == 0, ]$DV)[5], 3)
-        rm(nca_all_sim)
-        gc()
-      }
-    }
-
-    if (!is.na(graph_out$cl) &&
-        !is.na(graph_out$vd) && !is.na(graph_out$ka)) {
-      if (graph_out$cl > 0 && graph_out$vd > 0 && graph_out$ka > 0) {
-        graph_fd_sim <- Fit_1cmpt_oral(
-          data = dat[dat$EVID != 2, ],
-          est.method = "rxSolve",
-          input.ka = graph_out$ka,
-          input.cl = graph_out$cl,
-          input.vd = graph_out$vd,
-          input.add = 0
-        )
-        graph_fd.APE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[1], 3)
-        graph_fd.MAE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[2], 3)
-        graph_fd.MAPE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[3], 3)
-        graph_fd.RMSE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[4], 3)
-        graph_fd.rRMSE <-
-          round(metrics.(pred.x = graph_fd_sim$cp, obs.y = dat[dat$EVID == 0,]$DV)[5], 3)
-        rm(graph_fd_sim)
-        gc()
-      }
-    }
-  }
+#######6. Summary of one-compartment parameter  ##################
 
   ka <- c(NA,NA,NA,NA,NA)
 
@@ -489,43 +255,43 @@ getPPKinits <- function(dat, control=initsControl()) {
     ),
 
     simAPE = c(
-      simpcal.APE,
-      graph_fd.APE,
-      nca_fd.APE,
-      nca_efd.APE,
-      nca.APE
+      unname(base_perf.out$simpcal["APE"]),
+      unname(base_perf.out$graph["APE"]),
+      unname(base_perf.out$nca_fd["APE"]),
+      unname(base_perf.out$nca_efd["APE"]),
+      unname(base_perf.out$nca_all["APE"])
     ),
 
     simMAE = c(
-      simpcal.MAE,
-      graph_fd.MAE,
-      nca_fd.MAE,
-      nca_efd.MAE,
-      nca.MAE
+      unname(base_perf.out$simpcal["MAE"]),
+      unname(base_perf.out$graph["MAE"]),
+      unname(base_perf.out$nca_fd["MAE"]),
+      unname(base_perf.out$nca_efd["MAE"]),
+      unname(base_perf.out$nca_all["MAE"])
     ),
 
     simMAPE = c(
-      simpcal.MAPE,
-      graph_fd.MAPE,
-      nca_fd.MAPE,
-      nca_efd.MAPE,
-      nca.MAPE
+      unname(base_perf.out$simpcal["MAPE"]),
+      unname(base_perf.out$graph["MAPE"]),
+      unname(base_perf.out$nca_fd["MAPE"]),
+      unname(base_perf.out$nca_efd["MAPE"]),
+      unname(base_perf.out$nca_all["MAPE"])
     ),
 
     simRMSE = c(
-      simpcal.RMSE,
-      graph_fd.RMSE,
-      nca_fd.RMSE,
-      nca_efd.RMSE,
-      nca.RMSE
+      unname(base_perf.out$simpcal["RMSE"]),
+      unname(base_perf.out$graph["RMSE"]),
+      unname(base_perf.out$nca_fd["RMSE"]),
+      unname(base_perf.out$nca_efd["RMSE"]),
+      unname(base_perf.out$nca_all["RMSE"])
     ),
 
     simrRMSE = c(
-      simpcal.rRMSE,
-      graph_fd.rRMSE,
-      nca_fd.rRMSE,
-      nca_efd.rRMSE,
-      nca.rRMSE
+      unname(base_perf.out$simpcal["rRMSE"]),
+      unname(base_perf.out$graph["rRMSE"]),
+      unname(base_perf.out$nca_fd["rRMSE"]),
+      unname(base_perf.out$nca_efd["rRMSE"]),
+      unname(base_perf.out$nca_all["rRMSE"])
     ),
 
     time.spent = c(
@@ -550,7 +316,15 @@ getPPKinits <- function(dat, control=initsControl()) {
     "Time spent"
   )
 
-  stat_cols <- colnames(all.out)[5:9]
+  #################7. Select the base parameters by metrics####################
+  # stat_cols <- colnames(all.out)[5:9]
+  stat_cols <- c(
+    "Absolute Predicted Error (APE)",
+    "Mean Absolute Error (MAE)",
+    "Mean Absolute Percentage Error (MAPE)",
+    "Root Mean Squared Error (RMSE)",
+    "Relative Root Mean Squared Error (rRMSE)"
+  )
 
   all.out$min_count <- rowSums(sapply(all.out[stat_cols],function(col) {
     col == min(col, na.rm = TRUE)
@@ -560,10 +334,6 @@ getPPKinits <- function(dat, control=initsControl()) {
     base.best <- all.out[which.max(all.out$min_count), ]
   } else if (selection.criterion %in% c("APE", "MAE", "MAPE", "RMSE", "rRMSE")) {
     base.best <- all.out[which.min(all.out[[paste0("Mean ", selection.criterion)]]), ]
-  }
-
-  if (nrow(base.best) > 1) {
-    base.best <- base.best[1, ]
   }
 
   base.ka.best <- base.best$`Calculated Ka`
@@ -578,7 +348,7 @@ getPPKinits <- function(dat, control=initsControl()) {
 
   cat(message_text, "\n")
 
-################# 6. Parameter Sweeping on Vmax and Km #######################
+################# 8. Parameter Sweeping on Vmax and Km #######################
   message(crayon::black(
     paste0("Run parameter sweeping on nonlinear eliminiation kinetics PK parameters",strrep(".", 20))))
   sim.vmax.km.results.all <- NULL
@@ -611,7 +381,7 @@ getPPKinits <- function(dat, control=initsControl()) {
       dplyr::mutate(row_id = dplyr::row_number())
   }
 
-  ########### 7. Parameter Sweeping on Multi-Compartmental Model Parameters#####
+  ########### 9. Parameter Sweeping on Multi-Compartmental Model Parameters#####
   message(crayon::black(
     paste0("Run parameter sweeping on multi-compartmental PK parameters",strrep(".", 20))))
 
@@ -689,7 +459,7 @@ getPPKinits <- function(dat, control=initsControl()) {
 
   }
 
-############### 8. Residual error sigma estimation#####################
+############### 10. Residual error sigma estimation#####################
 
   method_additive <- .fbctrl$sigma_method_additive
   method_proportional <-.fbctrl$sigma_method_proportional
@@ -749,7 +519,7 @@ getPPKinits <- function(dat, control=initsControl()) {
   recommended_sigma_add_init <- sigma_add
   recommended_sigma_prop_init <-sigma_prop
 
-################## 8. Parameter Selection Selection############################
+################## 11. Parameter Selection Selection############################
   # Identify the columns containing the statistics
   stat_cols <- c("APE", "MAE", "MAPE", "RMSE", "rRMSE")
 
@@ -797,7 +567,7 @@ getPPKinits <- function(dat, control=initsControl()) {
 
   recommended_vc2cmpt_init <- recommended.multi1$Vc
   recommended_vp2cmpt_init <- recommended.multi1$Vp
-  recommended_q2cmpt_init <- recommended.multi1$Vp
+  recommended_q2cmpt_init <- recommended.multi1$Q
 
   recommended_vc3cmpt_init <- recommended.multi2$Vc
   recommended_vp3cmpt_init <- recommended.multi2$Vp1
@@ -830,7 +600,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     vars_to_remove[vars_to_remove %in% ls(envir = .GlobalEnv)]
   rm(list = vars_to_remove, envir = .GlobalEnv)
 
-  ############## 9. Finally selection####################
+  ############## 12. Finally selection####################
 
   end.time <- Sys.time()
   time.spent <-
@@ -842,18 +612,6 @@ getPPKinits <- function(dat, control=initsControl()) {
   f_init_vd <- base.best$`Calculated Vd`[1]
 
   sel.method.ka.cl.vd <- base.best$Method[1]
-
-  if (nrow(base.best) > 1) {
-    #check the total volume of distribution of two compartment
-    total.vd <- recommended.multi1$vc + recommended.multi1$vp
-
-    f_init_cl <-
-      base.best[base.best$`Calculated Vd` == round(total.vd, 1),]$`Calculated CL`
-    f_init_vd <-
-      base.best[base.best$`Calculated Vd` == round(total.vd, 1),]$`Calculated Ka`
-    sel.method.ka.cl.vd <-
-      base.best[base.best$`Calculated Vd` == round(total.vd, 1),]$Method
-  }
 
   # vmax.km
   f_init_vmax <- recommended_vmax_init
@@ -893,7 +651,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     }
   }
 
-  if (used_nca_fd_ka_fallback) {
+  if (used_nca_ka_fallback) {
     sel.method.ka <- "Fallback (fixed Ka)"
   }
 
