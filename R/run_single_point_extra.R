@@ -75,7 +75,7 @@ run_single_point_extra <- function(dat = NULL,
     )
   }
 
-  trimmed_mean_ka <- NA
+  median_ka <- NA
   single_point.ka.out <- NA
 
   # obtain run_single_point_base information
@@ -162,6 +162,7 @@ run_single_point_extra <- function(dat = NULL,
         single_point.ka.out <- run_ka_solution(df = cmax_by_group,
                                                cl = trimmed_mean_cl,
                                                ke = trimmed_mean_cl / trimmed_mean_vd)
+        median_ka<-single_point.ka.out$ka_calc_median
       }
     }
   }
@@ -173,7 +174,7 @@ run_single_point_extra <- function(dat = NULL,
 
   # Only selected the key columns
   singlepoint.results <- data.frame(
-    ka = signif(single_point.ka.out$ka_calc_median, 3),
+    ka = signif(median_ka, 3),
     cl = signif(trimmed_mean_cl, 3),
     vd = signif(trimmed_mean_vd, 3),
     starttime = start.time,
