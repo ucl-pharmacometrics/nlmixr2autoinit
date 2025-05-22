@@ -383,6 +383,7 @@ getPPKinits <- function(dat, control=initsControl()) {
 
 #################7. Select the base parameters by metrics####################
 
+  # Full list of available performance metric column names
   metrics.all <- c(
     "Absolute Predicted Error (APE)",
     "Mean Absolute Error (MAE)",
@@ -392,11 +393,11 @@ getPPKinits <- function(dat, control=initsControl()) {
     "Relative Root Mean Squared Error (rRMSE2)"
   )
 
-  # Extract the suffix (abbreviated name) from stat_cols
-  stat_keys <- sub(".*\\((.*)\\)", "\\1", stat_cols)
+  # Extract abbreviated metric keys from column names (e.g., "APE", "MAE", etc.)
+  metric_keys <- sub(".*\\((.*)\\)", "\\1", metrics.all)
 
-  # Select columns based on selmetrics
-  stat_cols <- stat_cols[stat_keys %in% selmetrics]
+  # Identify selected metric columns based on user-specified selmetrics
+  stat_cols  <- metrics.all[metric_keys %in% selmetrics]
 
   # Extract the column-wise minimum values for each performance metric
   mins <- sapply(base.out[stat_cols], min, na.rm = TRUE)
