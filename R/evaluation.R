@@ -285,6 +285,12 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
       stringsAsFactors = FALSE
     )
 
+    if (nrow(param_grid) == 1) {
+      param_grid$ka_value <- ka_values[param_grid$ka_source]
+      param_grid$cl_value <- cl_values[param_grid$cl_source]
+      param_grid$vd_value <- vd_values[param_grid$vd_source]
+      param_grid_unique <- param_grid
+    } else {
     # Separate base and hybrid
     base_combos <- param_grid[param_grid$ka_source == param_grid$cl_source &
                                 param_grid$cl_source == param_grid$vd_source,]
@@ -326,6 +332,7 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
 
     param_grid_unique <-
       rbind(base_combos, hybrid_combos[keep_idx,])
+    }
 
   } else {
     # IV/bolus: no ka combinations
@@ -334,13 +341,19 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
       vd_source = valid_vd_sources,
       stringsAsFactors = FALSE
     )
+
     param_grid$ka_source <- NA
     param_grid$ka_value <- NA
     param_grid$cl_value <- cl_values[param_grid$cl_source]
     param_grid$vd_value <- vd_values[param_grid$vd_source]
+
+    if (nrow(param_grid) == 1) {
+      # Only one combination, no hybrid to evaluate
+      param_grid_unique <- param_grid
+    }
+    else{
     # Separate base and hybrid combinations (by cl == vd)
     base_combos <- param_grid[param_grid$cl_source == param_grid$vd_source,]
-
     hybrid_combos <- param_grid[param_grid$cl_source != param_grid$vd_source,]
 
     # Deduplicate hybrid combos based on cl/vd similarity
@@ -366,6 +379,7 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
     # Combine base and deduplicated hybrid
     param_grid_unique <-
       rbind(base_combos, hybrid_combos[keep_idx,])
+    }
   }
 
   # Reorder columns: ka_source, cl_source, vd_source, followed by other columns
