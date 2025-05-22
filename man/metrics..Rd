@@ -18,55 +18,36 @@ A numeric vector with the computed values of the following metrics:
 \item MAE (Mean Absolute Error)
 \item MAPE (Mean Absolute Percentage Error)
 \item RMSE (Root Mean Squared Error)
-\item rRMSE (Relative Root Mean Squared Error)
+\item rRMSEtype1 (Relative RMSE, type 1)
+\item rRMSEtype2 ( Relative RMSE, type 2)
 }
 }
 \description{
-calculates several error metrics, including Absolute Percentage Error (APE),
-Mean Absolute Error (MAE), Mean Absolute Percentage Error (MAPE), Root Mean Squared Error (RMSE),
-and Relative Root Mean Squared Error (rRMSE) based on predicted and observed values.
+Calculates several error metrics, including absolute percentage error (APE),
+mean Aabsolute error (MAE), mean absolute percentage error (MAPE), root mean squared error (RMSE),
+and traditional relative root mean squared error (rRMSEtra) and Symmetric relative root mean squared error (rRMSEsym).
 }
 \details{
 This function will stop with an error message if the length of \code{pred.x} and \code{obs.y} are not the same.
 It computes the following metrics:
+It computes the following metrics:
 \itemize{
-\item \strong{APE}: Absolute Predicted Error (Sum of absolute differences between predicted and observed values)
-\item \strong{MAE}: Mean Absolute Error (Average absolute difference between predicted and observed values)
-\item \strong{MAPE}: Mean Absolute Percentage Error (Sum of absolute percentage differences)
-\item \strong{RMSE}: Root Mean Squared Error (Square root of the average squared differences between predicted and observed values)
-\item \strong{rRMSE}: Relative Root Mean Squared Error (Mean of relative squared differences scaled by the average of predicted and observed values)
+\item \strong{APE}: Sum of absolute differences between predicted and observed values.
+\item \strong{MAE}: Mean of absolute differences between predicted and observed values.
+\item \strong{MAPE}: Mean of absolute percentage differences between predicted and observed values.
+\item \strong{RMSE}: Square root of the mean of squared differences between predicted and observed values.
+\item \strong{rRMSEtype1}: relative RMSE, calculated as RMSE divided by the mean of observed values.
+\item \strong{rRMSEtype2}: relative RMSE, calculated by dividing the squared error by the square of the average of each predicted–observed pair.
 }
 }
 \examples{
 \dontrun{
-  ## Define the one-compartment model
-  one.compartment <- function() {
-    ini({
-      tka <- log(1.57); label("Ka")
-      tcl <- log(2.72); label("Cl")
-      tv <- log(31.5); label("V")
-      eta.ka ~ 0.6
-      eta.cl ~ 0.3
-      eta.v ~ 0.1
-      add.sd <- 0.7
-    })
-    # Model block with error and model specification
-    model({
-      ka <- exp(tka + eta.ka)
-      cl <- exp(tcl + eta.cl)
-      v <- exp(tv + eta.v)
-      d/dt(depot) <- -ka * depot
-      d/dt(center) <- ka * depot - cl / v * center
-      cp <- center / v
-      cp ~ add(add.sd)
-    })
-  }
+set.seed(123)
+obs.y  <- rnorm(100, mean = 100, sd = 10)
+pred.x <- obs.y + rnorm(100, mean = 0, sd = 5)
 
-  ## Perform the model fitting using nlmixr2
-  fit <- nlmixr2(one.compartment, theo_sd, est="saem", saemControl(print=0))
-
-  ## Calculate error metrics using the metrics function
-  metrics.(pred.x = fit$PRED, obs.y = fit$DV)
+## Calculate error metrics
+metrics.(pred.x = pred.x, obs.y = obs.y)
 }
 
 }

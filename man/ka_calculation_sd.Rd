@@ -23,6 +23,7 @@ ka_calculation_sd(cl, ke, t, Ct, Fbio = 1, Dose)
 A list containing the following components:
 \item{ka}{The calculated absorption rate constant.}
 \item{full_solution}{The full solution object returned by the \code{uniroot()} function, which includes additional details about the root-finding process.}
+\item{message}{A character string providing status information about the estimation, including warnings if the observed concentration exceeds model-predicted limits or if numerical errors occurred.}
 }
 \description{
 Calculates the absorption rate constant (\code{ka}) for a drug administered orally
@@ -40,7 +41,11 @@ for \code{ka} numerically using \code{uniroot()}:
 
 The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
 between the predicted and observed concentrations equal to zero. The reasonable range for
-\code{ka} is set as \link{0.01, 100} for root-finding.
+\code{ka} is set as \link{0.01, 1000} for root-finding.
+
+Additional safeguards include ensuring that \code{ka > ke} to avoid flip-flop kinetics, and rejecting
+values of \code{Ct} that exceed the model-predicted maximum concentration. In such cases, the function
+returns \code{NA} for \code{ka} and a descriptive \code{message}.
 }
 \examples{
 # Example usage:

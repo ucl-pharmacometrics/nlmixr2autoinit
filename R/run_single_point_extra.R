@@ -145,7 +145,7 @@ run_single_point_extra <- function(dat = NULL,
     if (is.na(trimmed_mean_cl) == F & is.na(trimmed_mean_vd) == F) {
       datobs <- dat[dat$EVID == 0,]
 
-      cmax_by_group2 <- datobs %>%
+      cmax_by_group <- datobs %>%
         dplyr::group_by(ID, dose_number) %>%
         dplyr::mutate(Tmax = TIME[which.max(DV)]) %>%
         dplyr::filter(TIME < Tmax |
@@ -157,24 +157,11 @@ run_single_point_extra <- function(dat = NULL,
         dplyr::ungroup() %>%
         dplyr::select(-Tmax)
 
-      if (nrow(cmax_by_group2[cmax_by_group2$EVID == 0  &
-                              cmax_by_group2$iiobs == 0,]) > 0) {
-        single_point.ka.out <- run_ka_solution(df = cmax_by_group2,
+      if (nrow(cmax_by_group[cmax_by_group$EVID == 0  &
+                              cmax_by_group$iiobs == 0,]) > 0) {
+        single_point.ka.out <- run_ka_solution(df = cmax_by_group,
                                                cl = trimmed_mean_cl,
                                                ke = trimmed_mean_cl / trimmed_mean_vd)
-
-        trimmed_mean_ka <-
-          tryCatch(
-            trimmed_geom_mean(
-              single_point.ka.out,
-              trim = 0.05,
-              na.rm = TRUE
-            ),
-            error = function(e) {
-              NA
-            }
-          )
-
       }
     }
   }
@@ -186,7 +173,7 @@ run_single_point_extra <- function(dat = NULL,
 
   # Only selected the key columns
   singlepoint.results <- data.frame(
-    ka = signif(trimmed_mean_ka, 3),
+    ka = signif(single_point.ka.out$ka_calc_median, 3),
     cl = signif(trimmed_mean_cl, 3),
     vd = signif(trimmed_mean_vd, 3),
     starttime = start.time,

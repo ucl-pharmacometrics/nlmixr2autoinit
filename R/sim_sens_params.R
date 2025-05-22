@@ -50,15 +50,15 @@
 #' head(out)
 #'
 #' # Example 2: Oral route
-#' out <- sim_sens_1cmpt_mm(
-#'   dat = Oral_1CPTMM,
-#'   sim_vmax = list(mode = "auto",est.cl=4),
-#'   sim_km   = list(mode = "auto"),
-#'   sim_vd   = list(mode = "manual", values = c(70)),
-#'   sim_ka   = list(mode = "manual", values = c(1)),  # 1 for oral route
-#'   route = "oral"
-#' )
-#' head(out)
+#' #out <- sim_sens_1cmpt_mm(
+#' #  dat = Oral_1CPTMM,
+#' #  sim_vmax = list(mode = "auto",est.cl=1),
+#' #  sim_km   = list(mode = "auto"),
+#' #  sim_vd   = list(mode = "manual", values = c(48)),
+#' #  sim_ka   = list(mode = "manual", values = c(1)),  # 1 for oral route
+#' #  route = "oral"
+#' #)
+#' #head(out)
 #' }
 #'
 #' @export
@@ -109,6 +109,15 @@ sim_sens_1cmpt_mm <- function(dat,
     stop("No candidate Vd values available for parameter sweeping.",
          call. = FALSE)
   }
+
+  # Deduplicate similar values if values are close
+  vd_values <- na.omit(vd_values) %>%
+    sort() %>%
+    tibble::tibble(value = .) %>%
+    dplyr::mutate(prev = dplyr::lag(value),
+                  rel_diff = abs(value - prev) / prev) %>%
+    dplyr::filter(is.na(rel_diff) | rel_diff > 0.2) %>%
+    dplyr::pull(value)
 
   if (route == "oral") {
     sim_ka$mode <- tryCatch(
@@ -215,7 +224,8 @@ sim_sens_1cmpt_mm <- function(dat,
           MAE = round(met[2], 2),
           MAPE = round(met[3], 2),
           RMSE = round(met[4], 2),
-          rRMSE = round(met[5], 2),
+          rRMSE1 = round(met[5], 2),
+          rRMSE2 = round(met[6], 2),
           Cumulative.Time.Sec = as.numeric(elapsed)
         )
       })
@@ -372,10 +382,7 @@ sim_sens_2cmpt <- function(dat,
   }
 
   # Deduplicate similar values if valus are close
-  vc_values <- na.omit(vc_values)
-  vc_values <- sort(vc_values)
-
-  vc_values <- vc_values %>%
+  vc_values <- na.omit(vc_values)%>%
     sort() %>%
     tibble::tibble(value = .) %>%
     dplyr::mutate(prev = dplyr::lag(value),
@@ -512,7 +519,8 @@ sim_sens_2cmpt <- function(dat,
           MAE = round(met[2], 2),
           MAPE = round(met[3], 2),
           RMSE = round(met[4], 2),
-          rRMSE = round(met[5], 2),
+          rRMSE1 = round(met[5], 2),
+          rRMSE2 = round(met[6], 2),
           Cumulative.Time.Sec = as.numeric(elapsed)
         )
       })
@@ -676,8 +684,8 @@ sim_sens_3cmpt <- function(dat,
          call. = FALSE)
   }
 
-  vc_values <- na.omit(vc_values) %>% sort()
-  vc_values <- vc_values %>%
+  vc_values <- na.omit(vc_values) %>%
+    sort() %>%
     tibble::tibble(value = .) %>%
     dplyr::mutate(prev = dplyr::lag(value),
                   rel_diff = abs(value - prev) / prev) %>%
@@ -874,7 +882,8 @@ sim_sens_3cmpt <- function(dat,
           MAE = round(met[2], 2),
           MAPE = round(met[3], 2),
           RMSE = round(met[4], 2),
-          rRMSE = round(met[5], 2),
+          rRMSE1 = round(met[5], 2),
+          rRMSE2 = round(met[6], 2),
           Cumulative.Time.Sec = as.numeric(elapsed)
         )
       })

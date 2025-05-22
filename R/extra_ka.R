@@ -98,6 +98,7 @@ ka_wanger_nelson<-function(dat,
 #' @return A list containing the following components:
 #' \item{ka}{The calculated absorption rate constant.}
 #' \item{full_solution}{The full solution object returned by the \code{uniroot()} function, which includes additional details about the root-finding process.}
+#' \item{message}{A character string providing status information about the estimation, including warnings if the observed concentration exceeds model-predicted limits or if numerical errors occurred.}
 #'
 #' @details
 #' This function uses a one-compartment model with first-order absorption and elimination to
@@ -108,7 +109,11 @@ ka_wanger_nelson<-function(dat,
 #'
 #' The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
 #' between the predicted and observed concentrations equal to zero. The reasonable range for
-#' \code{ka} is set as [0.01, 100] for root-finding.
+#' \code{ka} is set as [0.01, 1000] for root-finding.
+#'
+#' Additional safeguards include ensuring that \code{ka > ke} to avoid flip-flop kinetics, and rejecting
+#' values of \code{Ct} that exceed the model-predicted maximum concentration. In such cases, the function
+#' returns \code{NA} for \code{ka} and a descriptive \code{message}.
 #'
 #' @examples
 #' # Example usage:
@@ -118,16 +123,14 @@ ka_wanger_nelson<-function(dat,
 #'
 #' @export
 ka_calculation_sd <- function(cl,     # Clearance of the drug (L/hr)
-                           ke,     # Elimination rate constant (1/hr)
-                           t,      # Time (hr) after drug administration at which concentration is measured
-                           Ct,     # Observed concentration of the drug at time 't' (mg/L)
-                           Fbio=1, # Bioavailability fraction, default is 1 (100% bioavailability)
-                           Dose) { # Administered dose of the drug (mg)
-
-  Vd<-cl/ke
+                              ke,     # Elimination rate constant (1/hr)
+                              t,      # Time (hr) after drug administration at which concentration is measured
+                              Ct,     # Observed concentration of the drug at time 't' (mg/L)
+                              Fbio = 1, # Bioavailability fraction, default is 1 (100% bioavailability)
+                              Dose) {
+  Vd <- cl / ke
   # Define the equation to solve for the absorption rate constant (ka)
   ka.equation_sd <- function(ka) {
-
     # Predicted concentration using the one-compartment model with first-order absorption and elimination
     predicted_Ct <- (Fbio * Dose * ka) / (Vd * (ka - ke)) *
       (exp(-ke * t) - exp(-ka * t))
@@ -138,11 +141,72 @@ ka_calculation_sd <- function(cl,     # Clearance of the drug (L/hr)
 
   # Use the uniroot function to numerically solve for ka (absorption rate constant)
   # The reasonable range for ka is provided as [lower, upper] for root finding
-  solution <- uniroot(ka.equation_sd, lower = 0.001, upper = 1000)
+  # To avoid flip-flop, lower boundry of ka was set as higher than ke
+  ka_lower <- ke + 1e-4
+  ka_upper <- 1000
 
-  # Return the value of ka (solution$root) and full solution object
-  return(list(ka = solution$root, full_solution = solution))
+  # Theoretical upper limit of Ct as ka → ∞
+  max_pred_Ct <- (Fbio * Dose / Vd) * exp(-ke * t)
+
+  # Return early if Ct is too high
+  if (!is.finite(max_pred_Ct) || Ct > max_pred_Ct) {
+    msg <-
+      "Observed Ct exceeds model-predicted maximum concentration; ka estimation skipped."
+    return(list(
+      ka = NA,
+      full_solution = NULL,
+      message = msg
+    ))
+  }
+
+  # Check boundary function values
+  f_lower <-
+    tryCatch(
+      ka.equation_sd(ka_lower),
+      error = function(e)
+        NA
+    )
+  f_upper <-
+    tryCatch(
+      ka.equation_sd(ka_upper),
+      error = function(e)
+        NA
+    )
+
+  if (!is.finite(f_lower) ||
+      !is.finite(f_upper) || f_lower * f_upper > 0) {
+    msg <-
+      "Function values at uniroot boundaries are invalid or not of opposite sign."
+    return(list(
+      ka = NA,
+      full_solution = NULL,
+      message = msg
+    ))
+  }
+
+  # Try solving via uniroot safely
+  solution <- tryCatch({
+    uniroot(ka.equation_sd, lower = ka_lower, upper = ka_upper)
+  }, error = function(e) {
+    return(structure(NULL, class = "try-error", message = e$message))
+  })
+
+  if (inherits(solution, "try-error")) {
+    return(list(
+      ka = NA,
+      full_solution = NULL,
+      message = paste("uniroot error:", attr(solution, "message"))
+    ))
+  }
+
+  # Successful result
+  return(list(
+    ka = solution$root,
+    full_solution = solution,
+    message = "complete"
+  ))
 }
+
 
 
 #' Calculate absorption rate constant (ka) in a multiple-dose one-compartment model
@@ -185,18 +249,18 @@ ka_calculation_sd <- function(cl,     # Clearance of the drug (L/hr)
 #'
 #' @export
 ka_calculation_md <- function(cl,      # Clearance of the drug (L/hr)
-                                    ke,      # Elimination rate constant (1/hr)
-                                    t,       # Time (hr) after last dose at which concentration is measured
-                                    Ct,      # Observed concentration of the drug at time 't' (mg/L)
-                                    Fbio = 1, # Bioavailability fraction, default is 1 (100% bioavailability)
-                                    Dose,    # Administered dose of the drug (mg)
-                                    tau) {   # Dosing interval (hr) between doses
+                              ke,      # Elimination rate constant (1/hr)
+                              t,       # Time (hr) after last dose at which concentration is measured
+                              Ct,      # Observed concentration of the drug at time 't' (mg/L)
+                              Fbio = 1, # Bioavailability fraction, default is 1 (100% bioavailability)
+                              Dose,    # Administered dose of the drug (mg)
+                              tau) {
+  # Dosing interval (hr) between doses
 
   Vd <- cl / ke  # Calculate the volume of distribution
 
   # Define the equation to solve for the absorption rate constant (ka)
   ka.equation_md <- function(ka) {
-
     # Predicted concentration using the multiple-dose formula
     predicted_Ct <- (Fbio * Dose * ka) / (Vd * (ka - ke)) *
       ((exp(-ke * t) / (1 - exp(-ke * tau))) - (exp(-ka * t) / (1 - exp(-ka * tau))))
@@ -210,10 +274,74 @@ ka_calculation_md <- function(cl,      # Clearance of the drug (L/hr)
 
   # Use the uniroot function to numerically solve for ka (absorption rate constant)
   # The reasonable range for ka is provided as [lower, upper] for root finding
-  solution <- uniroot(ka.equation_md, lower = 0.001, upper = 1000)
+  # To avoid flip-flop, lower boundry of ka was set as higher than ke
+  ka_lower <- ke + 1e-4
+  ka_upper <- 1000
 
-  # Return the value of ka (solution$root) and full solution object
-  return(list(ka = solution$root, full_solution = solution))
+
+  # Estimate theoretical max Ct (ka → ∞), i.e., first term dominates
+  max_pred_Ct <-
+    (Fbio * Dose) / Vd * (exp(-ke * t) / (1 - exp(-ke * tau)))
+
+  if (!is.finite(max_pred_Ct) || Ct > max_pred_Ct) {
+    msg <-
+      "Observed Ct exceeds model-predicted maximum concentration (multiple-dose); ka estimation skipped."
+    return(list(
+      ka = NA,
+      full_solution = NULL,
+      message = msg
+    ))
+  }
+
+  # Check signs at boundaries
+  f_lower <-
+    tryCatch(
+      ka.equation_md(ka_lower),
+      error = function(e)
+        NA
+    )
+  f_upper <-
+    tryCatch(
+      ka.equation_md(ka_upper),
+      error = function(e)
+        NA
+    )
+
+  if (!is.finite(f_lower) ||
+      !is.finite(f_upper) || f_lower * f_upper > 0) {
+    msg <-
+      "Function values at uniroot boundaries are invalid or not of opposite sign (multiple-dose)."
+    return(list(
+      ka = NA,
+      full_solution = NULL,
+      message = msg
+    ))
+  }
+
+  # Try solving with uniroot
+  solution <- tryCatch({
+    uniroot(ka.equation_md, lower = ka_lower, upper = ka_upper)
+  }, error = function(e) {
+    return(structure(NULL, class = "try-error", message = e$message))
+  })
+
+  if (inherits(solution, "try-error")) {
+    return(list(
+      ka = NA,
+      full_solution = NULL,
+      message = paste(
+        "uniroot error (multiple-dose):",
+        attr(solution, "message")
+      )
+    ))
+  }
+
+  # Success
+  return(list(
+    ka = solution$root,
+    full_solution = solution,
+    message = "complete"
+  ))
 }
 
 #' Calculate absorption rate constant (ka) for oral administration Data
@@ -269,64 +397,93 @@ run_ka_solution <- function(df,
           data_before_tmax$SSflag == 0)) {
 
     data_before_tmax_sd <- data_before_tmax %>%
-      dplyr::filter(dose_number == 1, EVID == 0, SSflag==0)
+      dplyr::filter(dose_number == 1, EVID == 0, SteadyState==F)
 
-    data_before_tmax_sd$ka_calc <-
-      mapply(
-        function(cl, ke, t, Ct, Fbio, Dose) {
-          try(ka_calculation_sd(
-            cl = cl,
-            ke = ke,
-            t = t,
-            Ct = Ct,
-            Fbio = Fbio,
-            Dose = Dose
-          )$ka,
-          silent = TRUE)
-        },
-        cl = data_before_tmax_sd$cl,
-        ke = data_before_tmax_sd$ke,
-        t = data_before_tmax_sd$TIME,
-        Ct = data_before_tmax_sd$DV,
-        Fbio = data_before_tmax_sd$Fbio,
-        Dose = data_before_tmax_sd$dose
-      )
+    # Use mapply to compute ka and diagnostic message for each row in single-dose data
+    ka_sd_results <- mapply(
+      function(cl, ke, t, Ct, Fbio, Dose) {
+        # Attempt to estimate ka using ka_calculation_sd()
+        res <- try(ka_calculation_sd(
+          cl = cl,
+          ke = ke,
+          t = t,
+          Ct = Ct,
+          Fbio = Fbio,
+          Dose = Dose
+        ), silent = TRUE)
 
+        # Return NA and message if error occurred
+        if (inherits(res, "try-error")) {
+          return(list(ka = NA, message = "try-error"))
+        }
+
+        # Return estimated ka and status message
+        list(ka = res$ka, message = res$message)
+      },
+      cl    = data_before_tmax_sd$cl,
+      ke    = data_before_tmax_sd$ke,
+      t     = data_before_tmax_sd$TIME,   # time after single dose
+      Ct    = data_before_tmax_sd$DV,     # observed concentration
+      Fbio  = data_before_tmax_sd$Fbio,
+      Dose  = data_before_tmax_sd$dose,
+      SIMPLIFY = FALSE
+    )
+
+    # Extract ka and message columns
+    data_before_tmax_sd$ka_calc    <-
+      sapply(ka_sd_results, `[[`, "ka")
+    data_before_tmax_sd$ka_message <-
+      sapply(ka_sd_results, `[[`, "message")
+
+    # Optional: convert ka column to numeric explicitly, suppressing warnings
     data_before_tmax_sd$ka_calcv <-
-      suppressWarnings(suppressMessages(as.numeric(data_before_tmax_sd$ka_calc)))
+      suppressWarnings(suppressMessages(as.numeric(data_before_tmax_sd$ka_calc)
+))
   }
-
 
   if (any(data_before_tmax$dose_number > 1 &
           data_before_tmax$EVID == 0 &
-          data_before_tmax$SSflag == 0)) {
+          data_before_tmax$SteadyState)) {
 
     data_before_tmax_md <- data_before_tmax %>%
-      dplyr::filter(dose_number > 1, EVID == 0)
+      dplyr::filter(dose_number > 1, EVID == 0, SteadyState)
 
-    data_before_tmax_md$ka_calc <-
-      mapply(
-        function(cl, ke, t, Ct, Fbio, Dose, tau) {
-          try(ka_calculation_md(
-            cl = cl,
-            ke = ke,
-            t = t,
-            Ct = Ct,
-            Fbio = Fbio,
-            Dose = Dose,
-            tau = tau
-          )$ka,
-          silent = TRUE)
-        },
-        cl = data_before_tmax_md$cl,
-        ke = data_before_tmax_md$ke,
-        t = data_before_tmax_md$tad,
-        Ct = data_before_tmax_md$DV,
-        Fbio = data_before_tmax_md$Fbio,
-        Dose = data_before_tmax_md$dose,
-        tau = data_before_tmax_md$recent_ii
-      )
+    ka_md_results <- mapply(
+      function(cl, ke, t, Ct, Fbio, Dose, tau) {
+        # Try to estimate ka using ka_calculation_md()
+        res <- try(ka_calculation_md(
+          cl = cl,
+          ke = ke,
+          t = t,
+          Ct = Ct,
+          Fbio = Fbio,
+          Dose = Dose,
+          tau = tau
+        ), silent = TRUE)
 
+        # If error occurs, return NA and a message
+        if (inherits(res, "try-error")) {
+          return(list(ka = NA, message = "try-error"))
+        }
+
+        # Return both ka and message from the result
+        list(ka = res$ka, message = res$message)
+      },
+      cl    = data_before_tmax_md$cl,
+      ke    = data_before_tmax_md$ke,
+      t     = data_before_tmax_md$tad,        # time after last dose
+      Ct    = data_before_tmax_md$DV,         # observed concentration
+      Fbio  = data_before_tmax_md$Fbio,
+      Dose  = data_before_tmax_md$dose,
+      tau   = data_before_tmax_md$dose_interval,  # dosing interval
+      SIMPLIFY = FALSE
+    )
+
+    # Extract ka and message columns from result list
+    data_before_tmax_md$ka_calc    <- sapply(ka_md_results, `[[`, "ka")
+    data_before_tmax_md$ka_message <- sapply(ka_md_results, `[[`, "message")
+
+    # Optional: convert ka column to numeric explicitly, suppressing warnings
     data_before_tmax_md$ka_calcv <-
       suppressWarnings(suppressMessages(as.numeric(data_before_tmax_md$ka_calc)))
   }
@@ -339,6 +496,13 @@ run_ka_solution <- function(df,
   if (is.null(ka_calc_median)) {
     ka_calc_median <- NA
   }
+  # trimmed_mean_ka <-
+  #   tryCatch(
+  #     trimmed_geom_mean(data_before_tmax$ka_calc, trim = 0.05, na.rm = TRUE),
+  #     error = function(e) {
+  #       NA
+  #     }
+  #   )
 
   return(
     list(

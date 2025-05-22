@@ -1,3 +1,86 @@
+#' Calculate metrics for model predictive performance evaluation
+#'
+#' Calculates several error metrics, including absolute percentage error (APE),
+#' mean Aabsolute error (MAE), mean absolute percentage error (MAPE), root mean squared error (RMSE),
+#' and traditional relative root mean squared error (rRMSEtra) and Symmetric relative root mean squared error (rRMSEsym).
+#'
+#' @param pred.x A numeric vector representing the predicted values or simulations.
+#' @param obs.y A numeric vector representing the observed values.
+#'
+#' @details This function will stop with an error message if the length of `pred.x` and `obs.y` are not the same.
+#' It computes the following metrics:
+#' It computes the following metrics:
+#' \itemize{
+#'   \item \strong{APE}: Sum of absolute differences between predicted and observed values.
+#'   \item \strong{MAE}: Mean of absolute differences between predicted and observed values.
+#'   \item \strong{MAPE}: Mean of absolute percentage differences between predicted and observed values.
+#'   \item \strong{RMSE}: Square root of the mean of squared differences between predicted and observed values.
+#'   \item \strong{rRMSEtype1}: relative RMSE, calculated as RMSE divided by the mean of observed values.
+#'   \item \strong{rRMSEtype2}: relative RMSE, calculated by dividing the squared error by the square of the average of each predicted–observed pair.
+#' }
+#'
+#' @return A numeric vector with the computed values of the following metrics:
+#' \enumerate{
+#'   \item APE (Absolute Predicted Error)
+#'   \item MAE (Mean Absolute Error)
+#'   \item MAPE (Mean Absolute Percentage Error)
+#'   \item RMSE (Root Mean Squared Error)
+#'   \item rRMSEtype1 (Relative RMSE, type 1)
+#'   \item rRMSEtype2 ( Relative RMSE, type 2)
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' set.seed(123)
+#' obs.y  <- rnorm(100, mean = 100, sd = 10)
+#' pred.x <- obs.y + rnorm(100, mean = 0, sd = 5)
+#'
+#' ## Calculate error metrics
+#' metrics.(pred.x = pred.x, obs.y = obs.y)
+#' }
+#'
+#' @export
+
+metrics. <- function(pred.x,
+                     obs.y) {
+  # Check.length of pred.x and length of y whether same
+  if (length(pred.x) != length(obs.y)) {
+    stop("Error, number of simuations are different with predictions")
+  }
+  # Absolute Predicted Error (APE)
+  metrics.ape <- sum(abs(pred.x - obs.y), na.rm = T)
+
+  # Mean Absolute Error (MAE)
+  metrics.mae <- mean(abs(pred.x - obs.y), na.rm = T)
+
+  # mean absolute percentage error  (MAPE)
+  metrics.mape <- mean(abs(pred.x - obs.y) / obs.y, na.rm = T) * 100
+
+  # Root mean squared error (RMSE)
+  metrics.rmse <- sqrt(mean((pred.x - obs.y) ^ 2, na.rm = T))
+
+  # relative root mean squared error (rRMSE) (type1, traditional Relative RMSE)
+  metrics.rrmse1 <-
+    sqrt(mean((pred.x - obs.y) ^ 2, na.rm = TRUE)) / mean(obs.y, na.rm = TRUE) * 100
+
+  # relative root mean squared error (rRMSE) (type2, Symmetric Relative RMSE)
+  metrics.rrmse2 <-
+    sqrt(mean(((pred.x - obs.y) ^ 2 / ((pred.x + obs.y) / 2) ^ 2), na.rm = T)) * 100
+
+  return(
+    c(
+      metrics.ape = metrics.ape ,
+      metrics.mae = metrics.mae,
+      metrics.mape = metrics.mape ,
+      metrics.rmse =  metrics.rmse,
+      metrics.rrmse1 = metrics.rrmse1,
+      metrics.rrmse2 = metrics.rrmse2
+    )
+  )
+
+}
+
+
 #' Evaluate model performance for one-compartment PK model
 #'
 #' Computes common predictive performance metrics (e.g., APE, MAE, MAPEM, RMSE, rRMSE)
@@ -104,7 +187,7 @@ eval_perf_1cmpt <- function(dat,
   pred <- sim$cp
 
   metrics_vec <- metrics.(pred.x = pred, obs.y = obs)
-  names(metrics_vec) <- c("APE", "MAE", "MAPE", "RMSE", "rRMSE")
+  names(metrics_vec) <- c("APE", "MAE", "MAPE", "RMSE", "rRMSE1","rRMSE2")
 
   rm(sim)
   gc()
@@ -113,94 +196,169 @@ eval_perf_1cmpt <- function(dat,
 }
 
 
-#' Calculate metrics for model predictive performance evaluation
+#' Generate Unique Mixture Parameter Grid (with Deduplication and NA Removal)
 #'
-#' calculates several error metrics, including Absolute Percentage Error (APE),
-#' Mean Absolute Error (MAE), Mean Absolute Percentage Error (MAPE), Root Mean Squared Error (RMSE),
-#' and Relative Root Mean Squared Error (rRMSE) based on predicted and observed values.
+#' Constructs a grid of all combinations of `ka`, `cl`, and `vd` parameters from
+#' different sources (e.g., simpcal, graph, NCA methods), and removes combinations
+#' that are redundant based on relative tolerance. Only oral routes consider `ka_value`
+#' for deduplication. Any parameter value set that includes NA is removed up front.
 #'
-#' @param pred.x A numeric vector representing the predicted values or simulations.
-#' @param obs.y A numeric vector representing the observed values.
+#' @param route Character; administration route, e.g., `"oral"` or `"iv"`.
+#' @param sp_out_ka Numeric; ka from simpcal.
+#' @param sp_out_cl Numeric; cl from simpcal.
+#' @param sp_out_vd Numeric; vd from simpcal.
+#' @param graph_out_ka Numeric; ka from graph-based method.
+#' @param graph_out_cl Numeric; cl from graph.
+#' @param graph_out_vd Numeric; vd from graph.
+#' @param nca_fd_ka Numeric; ka from NCA FD.
+#' @param nca_fd_cl Numeric; cl from NCA FD.
+#' @param nca_fd_vd Numeric; vd from NCA FD.
+#' @param nca_efd_ka Numeric; ka from NCA eFD.
+#' @param nca_efd_cl Numeric; cl from NCA eFD.
+#' @param nca_efd_vd Numeric; vd from NCA eFD.
+#' @param nca_all_ka Numeric; ka from NCA All.
+#' @param nca_all_cl Numeric; cl from NCA All.
+#' @param nca_all_vd Numeric; vd from NCA All.
 #'
-#' @details This function will stop with an error message if the length of `pred.x` and `obs.y` are not the same.
-#' It computes the following metrics:
-#' \itemize{
-#'   \item \strong{APE}: Absolute Predicted Error (Sum of absolute differences between predicted and observed values)
-#'   \item \strong{MAE}: Mean Absolute Error (Average absolute difference between predicted and observed values)
-#'   \item \strong{MAPE}: Mean Absolute Percentage Error (Sum of absolute percentage differences)
-#'   \item \strong{RMSE}: Root Mean Squared Error (Square root of the average squared differences between predicted and observed values)
-#'   \item \strong{rRMSE}: Relative Root Mean Squared Error (Mean of relative squared differences scaled by the average of predicted and observed values)
-#' }
-#'
-#' @return A numeric vector with the computed values of the following metrics:
-#' \enumerate{
-#'   \item APE (Absolute Predicted Error)
-#'   \item MAE (Mean Absolute Error)
-#'   \item MAPE (Mean Absolute Percentage Error)
-#'   \item RMSE (Root Mean Squared Error)
-#'   \item rRMSE (Relative Root Mean Squared Error)
-#' }
-#'
-#' @examples
-#' \dontrun{
-#'   ## Define the one-compartment model
-#'   one.compartment <- function() {
-#'     ini({
-#'       tka <- log(1.57); label("Ka")
-#'       tcl <- log(2.72); label("Cl")
-#'       tv <- log(31.5); label("V")
-#'       eta.ka ~ 0.6
-#'       eta.cl ~ 0.3
-#'       eta.v ~ 0.1
-#'       add.sd <- 0.7
-#'     })
-#'     # Model block with error and model specification
-#'     model({
-#'       ka <- exp(tka + eta.ka)
-#'       cl <- exp(tcl + eta.cl)
-#'       v <- exp(tv + eta.v)
-#'       d/dt(depot) <- -ka * depot
-#'       d/dt(center) <- ka * depot - cl / v * center
-#'       cp <- center / v
-#'       cp ~ add(add.sd)
-#'     })
-#'   }
-#'
-#'   ## Perform the model fitting using nlmixr2
-#'   fit <- nlmixr2(one.compartment, theo_sd, est="saem", saemControl(print=0))
-#'
-#'   ## Calculate error metrics using the metrics function
-#'   metrics.(pred.x = fit$PRED, obs.y = fit$DV)
-#' }
-#'
-#' @export
+#' @return A `data.frame` of unique parameter combinations with source labels and values.
+#' @keywords internal
 
-metrics. <-function(pred.x,
-                    obs.y){
+hybrid_eval_perf_1cmpt <- function(route = "bolus",
+                                   sp_out_ka,
+                                   sp_out_cl,
+                                   sp_out_vd,
+                                   graph_out_ka,
+                                   graph_out_cl,
+                                   graph_out_vd,
+                                   nca_fd_ka,
+                                   nca_fd_cl,
+                                   nca_fd_vd,
+                                   nca_efd_ka,
+                                   nca_efd_cl,
+                                   nca_efd_vd,
+                                   nca_all_ka,
+                                   nca_all_cl,
+                                   nca_all_vd) {
+  # Source labels
+  all_sources <-
+    c("simpcal", "graph", "nca_fd", "nca_efd", "nca_all")
 
-  # Check.length of pred.x and length of y whether same
-  if (length(pred.x)!=length(obs.y)){
-    stop("Error, number of simuations are different with predictions")
+  # Precompiled parameter value vectors
+  ka_values <- c(
+    simpcal = sp_out_ka,
+    graph = graph_out_ka,
+    nca_fd = nca_fd_ka,
+    nca_efd = nca_efd_ka,
+    nca_all = nca_all_ka
+  )
+
+  cl_values <- c(
+    simpcal = sp_out_cl,
+    graph = graph_out_cl,
+    nca_fd = nca_fd_cl,
+    nca_efd = nca_efd_cl,
+    nca_all = nca_all_cl
+  )
+
+  vd_values <- c(
+    simpcal = sp_out_vd,
+    graph = graph_out_vd,
+    nca_fd = nca_fd_vd,
+    nca_efd = nca_efd_vd,
+    nca_all = nca_all_vd
+  )
+
+  # Remove sources with NA values
+  valid_ka_sources <- names(ka_values)[!is.na(ka_values)]
+  valid_cl_sources <- names(cl_values)[!is.na(cl_values)]
+  valid_vd_sources <- names(vd_values)[!is.na(vd_values)]
+
+
+  # Create all possible combinations
+  param_grid <- expand.grid(
+    ka_source = valid_ka_sources,
+    cl_source = valid_cl_sources,
+    vd_source = valid_vd_sources,
+    stringsAsFactors = FALSE
+  )
+
+  # Separate out base (non-hybrid) combinations: same source for ka, cl, vd
+  base_combos <- param_grid[
+    param_grid$ka_source == param_grid$cl_source &
+      param_grid$cl_source == param_grid$vd_source, ]
+
+  # Remaining hybrid combinations
+  hybrid_combos <- param_grid[
+    !(param_grid$ka_source == param_grid$cl_source &
+        param_grid$cl_source == param_grid$vd_source), ]
+
+  # Attach parameter values — no function used
+  base_combos$ka_value <- ka_values[base_combos$ka_source]
+  base_combos$cl_value <- cl_values[base_combos$cl_source]
+  base_combos$vd_value <- vd_values[base_combos$vd_source]
+
+  hybrid_combos$ka_value <- ka_values[hybrid_combos$ka_source]
+  hybrid_combos$cl_value <- cl_values[hybrid_combos$cl_source]
+  hybrid_combos$vd_value <- vd_values[hybrid_combos$vd_source]
+
+  # Tolerance-based deduplication on hybrid combinations
+  keep_idx <- rep(TRUE, nrow(hybrid_combos))
+  numeric_matrix <- as.matrix(hybrid_combos[, c("ka_value", "cl_value", "vd_value")])
+
+  within_tol <- function(x1, x2, tol = 0.2) {
+    all(abs((x1 - x2) / x2) <= tol)
   }
-  # absolute percentage error  (APE)
-  metrics.ape <- sum(abs(pred.x - obs.y),na.rm = T)
 
-  # mean absolute error (MAE)
-  metrics.mae <- mean(abs(pred.x - obs.y),na.rm = T)
+  for (i in 1:(nrow(numeric_matrix) - 1)) {
+    if (!keep_idx[i]) next
+    for (j in (i + 1):nrow(numeric_matrix)) {
+      if (!keep_idx[j]) next
+      if (within_tol(numeric_matrix[i, ], numeric_matrix[j, ])) {
+        keep_idx[j] <- FALSE
+      }
+    }
+  }
 
-  # mean absolute percentage error  (MAPE)
-  metrics.mape <-mean(abs(pred.x - obs.y)/obs.y,na.rm = T)*100
+  # Final parameter grid: base first, then deduplicated hybrid
+  param_grid_unique <- rbind(base_combos, hybrid_combos[keep_idx, ])
 
-  # Root mean squared error (RMSE)
-  metrics.rmse <- sqrt(mean((pred.x - obs.y)^2,na.rm = T))
+  progressr::handlers(
+    progressr::handler_progress(format = ":message [:bar] :percent (:current/:total)", width = 80)
+  )
 
-  # relative root mean squared error (rRMSE)
-  metrics.rrmse<- sqrt(mean(((pred.x - obs.y)^2/ ((pred.x + obs.y)/2)^2),na.rm = T))*100
+  results <- progressr::with_progress({
+    p <-progressr::progressor(steps = nrow(param_grid_unique))  # Initialize progress bar
 
-  return(c( metrics.ape=metrics.ape ,
-            metrics.mae=metrics.mae,
-            metrics.mape=metrics.mape ,
-            metrics.rmse=  metrics.rmse,
-            metrics.rrmse= metrics.rrmse))
+    lapply(seq_len(nrow(param_grid_unique)), function(i) {
+      row <- param_grid_unique[i,]
 
+      # Evaluate model performance
+      perf <- eval_perf_1cmpt(dat,
+                              "rxSolve",
+                              as.numeric(row[["ka_value"]]),
+                              as.numeric(row[["cl_value"]]),
+                              as.numeric(row[["vd_value"]]),
+                              route)
+
+      p(sprintf("Evaluating combination %d", i))
+
+      # Combine row info + performance results
+      c(as.list(row), as.list(perf))
+    })
+  })
+
+  # Convert to data.frame
+  results_df <-
+    do.call(rbind,
+            lapply(results, as.data.frame.list, stringsAsFactors = FALSE))
+
+  # Convert numeric columns
+  numeric_cols <- c("ka_value",
+                    "cl_value",
+                    "vd_value",
+                    grep("^performance", names(results_df), value = TRUE))
+  results_df[numeric_cols] <-
+    lapply(results_df[numeric_cols], as.numeric)
+
+  return(results_df)
 }

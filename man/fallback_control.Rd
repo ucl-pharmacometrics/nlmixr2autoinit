@@ -5,7 +5,7 @@
 \title{Control settings for fallback rules in parameter estimation}
 \usage{
 fallback_control(
-  enable_ka_fallback = TRUE,
+  enable_ka_fallback = FALSE,
   sigma_method_additive = "model",
   sigma_method_proportional = "model",
   sigma_fallback_fraction = 0.2

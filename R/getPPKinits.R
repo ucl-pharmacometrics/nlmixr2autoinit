@@ -84,7 +84,8 @@ getPPKinits <- function(dat, control=initsControl()) {
   .ncactrl       <- control$nca.control
   .ssctrl        <-  control$ss.control
   .fbctrl        <- control$fallback.control
-   selection.criterion <- control$selection.criterion
+   selmetrics    <- control$selmetrics
+   hybrid.base   <- control$hybrid.base
 
   ################# 1. Data preprocessing #################
   # Record start time
@@ -109,12 +110,12 @@ getPPKinits <- function(dat, control=initsControl()) {
 
   # estimate the half-life
   half_life_out <- get_hf(dat = dat,pooled = pooled_data)
-
+  half_life <-half_life_out$half_life_median
   ##################2. Single-point method  #################
   sp_result <- run_single_point(
     dat = dat,
     route = route,
-    half_life = half_life_out$half_life_median,
+    half_life = half_life,
     dose_type = dose_type,
     pooled_ctrl = .pooledctrl,
     ssctrl = .ssctrl
@@ -128,7 +129,6 @@ getPPKinits <- function(dat, control=initsControl()) {
   if (.fbctrl$enable_ka_fallback &&
       route == "oral" &&
       (is.na(sp_out$ka) || sp_out$ka < 0)){
-
       sp_out$ka <- 1
 
    used_sp_ka_fallback<- TRUE
@@ -184,6 +184,17 @@ getPPKinits <- function(dat, control=initsControl()) {
   }
 
   ###############5. Base parameter predictive performance   ##################
+
+  # This section performs model evaluation using parameters from each method separately,
+  # without mixing ka, CL, and Vd across methods (i.e., not hybrid).
+
+  if (!hybrid.base){
+    message(crayon::black(
+      paste0(
+        "Evaluating the predictive performance of calculated one-compartment model parameters",
+        strrep(".", 20)
+      )
+    ))
   base_perf.out <- list(
     simpcal = eval_perf_1cmpt(dat, "rxSolve", sp_out$ka, sp_out$cl, sp_out$vd, route),
     graph   = eval_perf_1cmpt(dat, "rxSolve", graph_out$ka, graph_out$cl, graph_out$vd, route),
@@ -212,22 +223,19 @@ getPPKinits <- function(dat, control=initsControl()) {
       route
     )
   )
-
-#######6. Summary of one-compartment parameter  ##################
-
   ka <- c(NA,NA,NA,NA,NA)
 
   if (route=="oral"){
     ka <- c(
-    sp_out$ka,
-    graph_out$ka,
-    ka_nca_fd,     # by wanger nelson
-    ka_nca_efd,         # no nca for md
-    ka_nca_all         # no nca for md
-  )
+      sp_out$ka,
+      graph_out$ka,
+      ka_nca_fd,     # by wanger nelson
+      ka_nca_efd,         # no nca for md
+      ka_nca_all         # no nca for md
+    )
   }
 
-  all.out <- data.frame(
+  base.out <- data.frame(
     method = c(
       "Single-point method",
       "Graphic analysis",
@@ -286,12 +294,20 @@ getPPKinits <- function(dat, control=initsControl()) {
       unname(base_perf.out$nca_all["RMSE"])
     ),
 
-    simrRMSE = c(
-      unname(base_perf.out$simpcal["rRMSE"]),
-      unname(base_perf.out$graph["rRMSE"]),
-      unname(base_perf.out$nca_fd["rRMSE"]),
-      unname(base_perf.out$nca_efd["rRMSE"]),
-      unname(base_perf.out$nca_all["rRMSE"])
+    simrRMSE1 = c(
+      unname(base_perf.out$simpcal["rRMSE1"]),
+      unname(base_perf.out$graph["rRMSE1"]),
+      unname(base_perf.out$nca_fd["rRMSE1"]),
+      unname(base_perf.out$nca_efd["rRMSE1"]),
+      unname(base_perf.out$nca_all["rRMSE1"])
+    ),
+
+    simrRMSE2 = c(
+      unname(base_perf.out$simpcal["rRMSE2"]),
+      unname(base_perf.out$graph["rRMSE2"]),
+      unname(base_perf.out$nca_fd["rRMSE2"]),
+      unname(base_perf.out$nca_efd["rRMSE2"]),
+      unname(base_perf.out$nca_all["rRMSE2"])
     ),
 
     time.spent = c(
@@ -303,7 +319,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     )
   )
 
-  colnames(all.out) <- c(
+  colnames(base.out) <- c(
     "Method",
     "Calculated Ka",
     "Calculated CL",
@@ -312,29 +328,82 @@ getPPKinits <- function(dat, control=initsControl()) {
     "Mean Absolute Error (MAE)",
     "Mean Absolute Percentage Error (MAPE)",
     "Root Mean Squared Error (RMSE)",
-    "Relative Root Mean Squared Error (rRMSE)",
+    "Relative Root Mean Squared Error (rRMSE1)",
+    "Relative Root Mean Squared Error (rRMSE2)",
     "Time spent"
   )
+  }
 
-  #################7. Select the base parameters by metrics####################
-  # stat_cols <- colnames(all.out)[5:9]
-  stat_cols <- c(
+  # Hybrid mode: evaluates predictive performance using mixed-source parameters.
+  if (hybrid.base){
+    message(crayon::black(
+      paste0(
+        "Evaluating the predictive performance of calculated one-compartment model parameters",
+        strrep(".", 20)
+      )
+    ))
+    message(crayon::black(
+      paste0("(hybrid mode: parameters combined across sources)", strrep(".", 20))
+    ))
+
+    base.out <- hybrid_eval_perf_1cmpt(
+      route = "oral",
+      sp_out_ka     = sp_out$ka,
+      sp_out_cl     = sp_out$cl,
+      sp_out_vd     = sp_out$vd,
+      graph_out_ka  = graph_out$ka,
+      graph_out_cl  = graph_out$cl,
+      graph_out_vd  = graph_out$vd,
+      nca_fd_ka     = ka_nca_fd,
+      nca_fd_cl     = nca_out$nca.fd.results$clobs,
+      nca_fd_vd     = nca_out$nca.fd.results$vzobs,
+      nca_efd_ka    = ka_nca_efd,
+      nca_efd_cl    = nca_out$nca.efd.results$clobs,
+      nca_efd_vd    = nca_out$nca.efd.results$vzobs,
+      nca_all_ka    = ka_nca_all,
+      nca_all_cl    = nca_out$nca.all.results$clobs,
+      nca_all_vd    = nca_out$nca.all.results$vzobs
+    )
+
+    colnames(base.out) <- c(
+      "Ka Method",
+      "CL Method",
+      "Vd Method",
+      "Calculated Ka",
+      "Calculated CL",
+      "Calculated Vd",
+      "Absolute Predicted Error (APE)",
+      "Mean Absolute Error (MAE)",
+      "Mean Absolute Percentage Error (MAPE)",
+      "Root Mean Squared Error (RMSE)",
+      "Relative Root Mean Squared Error (rRMSE1)",
+      "Relative Root Mean Squared Error (rRMSE2)"
+    )
+  }
+
+#################7. Select the base parameters by metrics####################
+
+  metrics.all <- c(
     "Absolute Predicted Error (APE)",
     "Mean Absolute Error (MAE)",
     "Mean Absolute Percentage Error (MAPE)",
     "Root Mean Squared Error (RMSE)",
-    "Relative Root Mean Squared Error (rRMSE)"
+    "Relative Root Mean Squared Error (rRMSE1)",
+    "Relative Root Mean Squared Error (rRMSE2)"
   )
 
-  all.out$min_count <- rowSums(sapply(all.out[stat_cols],function(col) {
-    col == min(col, na.rm = TRUE)
-  }))
+  # Extract the suffix (abbreviated name) from stat_cols
+  stat_keys <- sub(".*\\((.*)\\)", "\\1", stat_cols)
 
-  if (selection.criterion == "All") {
-    base.best <- all.out[which.max(all.out$min_count), ]
-  } else if (selection.criterion %in% c("APE", "MAE", "MAPE", "RMSE", "rRMSE")) {
-    base.best <- all.out[which.min(all.out[[paste0("Mean ", selection.criterion)]]), ]
-  }
+  # Select columns based on selmetrics
+  stat_cols <- stat_cols[stat_keys %in% selmetrics]
+
+  # Extract the column-wise minimum values for each performance metric
+  mins <- sapply(base.out[stat_cols], min, na.rm = TRUE)
+  lmat <- sweep(base.out[stat_cols], 2, mins, FUN = "==")
+  base.out$min_count <- rowSums(lmat, na.rm = TRUE)
+
+  base.best <- base.out[which.max(base.out$min_count), ]
 
   base.ka.best <- base.best$`Calculated Ka`
   base.cl.best <- base.best$`Calculated CL`
@@ -349,12 +418,15 @@ getPPKinits <- function(dat, control=initsControl()) {
   cat(message_text, "\n")
 
 ################# 8. Parameter Sweeping on Vmax and Km #######################
+
   message(crayon::black(
     paste0("Run parameter sweeping on nonlinear eliminiation kinetics PK parameters",strrep(".", 20))))
   sim.vmax.km.results.all <- NULL
 
+  approx.vc.value <- sp_result$approx.vc.out$approx.vc.value
+
   if (route %in% c("bolus", "infusion")) {
-    sim.vmax.km.results.all.i <- sim_sens_1cmpt_mm(
+    sim.vmax.km.results.all <- sim_sens_1cmpt_mm(
       dat = dat,
       sim_vmax = list(mode = "auto", est.cl = base.cl.best),
       sim_km   = list(mode = "auto"),
@@ -362,23 +434,17 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_ka   = list(mode = "manual", values = NA),
       route    = "iv"
     )
-    sim.vmax.km.results.all <- rbind(sim.vmax.km.results.all, sim.vmax.km.results.all.i)
-    sim.vmax.km.results.all <- sim.vmax.km.results.all %>%
-      dplyr::mutate(row_id = dplyr::row_number())
   }
 
   if (route %in% c("oral")) {
-    sim.vmax.km.results.all.i <- sim_sens_1cmpt_mm(
+    sim.vmax.km.results.all <- sim_sens_1cmpt_mm(
       dat = dat,
       sim_vmax = list(mode = "auto", est.cl = base.cl.best),
       sim_km   = list(mode = "auto"),
-      sim_vd   = list(mode = "manual", values = base.vd.best),
+      sim_vd   = list(mode = "manual", values = c(approx.vc.value, base.vd.best)),
       sim_ka   = list(mode = "manual", values = base.ka.best),
       route    = "oral"
     )
-    sim.vmax.km.results.all <- rbind(sim.vmax.km.results.all, sim.vmax.km.results.all.i)
-    sim.vmax.km.results.all <- sim.vmax.km.results.all %>%
-      dplyr::mutate(row_id = dplyr::row_number())
   }
 
   ########### 9. Parameter Sweeping on Multi-Compartmental Model Parameters#####
@@ -388,7 +454,6 @@ getPPKinits <- function(dat, control=initsControl()) {
   # Collect identified vc from single-point extra and base.best.vd
   # Two-compartment model simulation
   sim.2cmpt.results.all <- NULL
-  approx.vc.value <- sp_result$approx.vc.out$approx.vc.value
 
   if (route %in% c("bolus", "infusion")) {
     sim.2cmpt.results.all <- sim_sens_2cmpt(
@@ -400,9 +465,6 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_ka  = list(mode = "manual", values = NA),
       route   = "iv"
     )
-    sim.2cmpt.results.all <- sim.2cmpt.results.all %>%
-      dplyr::mutate(row_id = dplyr::row_number())
-
   }
 
   if (route %in% c("oral")) {
@@ -414,17 +476,14 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_q   = list(mode = "auto", auto.strategy = "scaled"),
       sim_ka  = list(mode = "manual", values = base.ka.best),
       route   = "oral"
-    )
-    sim.2cmpt.results.all <- sim.2cmpt.results.all %>%
-      dplyr::mutate(row_id = dplyr::row_number())
-
+     )
     }
 
   # Three-compartment model simulation
   sim.3cmpt.results.all <- NULL
 
   if (route %in% c("bolus", "infusion")) {
-    sim.3cmpt.results.all.i <- sim_sens_3cmpt(
+    sim.3cmpt.results.all <- sim_sens_3cmpt(
       dat = dat,
       sim_cl   = list(mode = "manual", values = base.cl.best),
       sim_vc   = list(mode = "manual", values = c(approx.vc.value, base.vd.best)),
@@ -435,14 +494,10 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_ka   = list(mode = "manual", values = NA),
       route    = "iv"
     )
-    sim.3cmpt.results.all <- rbind(sim.3cmpt.results.all, sim.3cmpt.results.all.i)
-    sim.3cmpt.results.all <- sim.3cmpt.results.all %>%
-      dplyr::mutate(row_id = dplyr::row_number())
-
   }
 
   if (route %in% c("oral")) {
-    sim.3cmpt.results.all.i <- sim_sens_3cmpt(
+    sim.3cmpt.results.all <- sim_sens_3cmpt(
       dat = dat,
       sim_cl   = list(mode = "manual", values = base.cl.best),
       sim_vc   = list(mode = "manual", values = c( approx.vc.value, base.vd.best)),
@@ -453,12 +508,55 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_ka   = list(mode = "manual", values = base.ka.best),
       route    = "oral"
     )
-    sim.3cmpt.results.all <- rbind(sim.3cmpt.results.all, sim.3cmpt.results.all.i)
-    sim.3cmpt.results.all <- sim.3cmpt.results.all %>%
-      dplyr::mutate(row_id = dplyr::row_number())
-
   }
 
+
+  colnames(sim.vmax.km.results.all) <-
+    c(
+      "Simulated Vmax",
+      "Simulated Km",
+      "Simulated Vd",
+      "Simulated Ka",
+      "Absolute Predicted Error (APE)",
+      "Mean Absolute Error (MAE)",
+      "Mean Absolute Percentage Error (MAPE)",
+      "Root Mean Squared Error (RMSE)",
+      "Relative Root Mean Squared Error (rRMSE1)",
+      "Relative Root Mean Squared Error (rRMSE2)",
+      "Time spent"
+    )
+  colnames(sim.2cmpt.results.all) <-
+    c(
+      "Simulated Vc",
+      "Simulated Vp",
+      "Simulated Q",
+      "Simulated CL",
+      "Simulated Ka",
+      "Absolute Predicted Error (APE)",
+      "Mean Absolute Error (MAE)",
+      "Mean Absolute Percentage Error (MAPE)",
+      "Root Mean Squared Error (RMSE)",
+      "Relative Root Mean Squared Error (rRMSE1)",
+      "Relative Root Mean Squared Error (rRMSE2)",
+      "Time spent"
+    )
+  colnames(sim.3cmpt.results.all) <-
+    c(
+      "Simulated Vc",
+      "Simulated Vp",
+      "Simulated Vp2",
+      "Simulated Q",
+      "Simulated Q2",
+      "Simulated CL",
+      "Simulated Ka",
+      "Absolute Predicted Error (APE)",
+      "Mean Absolute Error (MAE)",
+      "Mean Absolute Percentage Error (MAPE)",
+      "Root Mean Squared Error (RMSE)",
+      "Relative Root Mean Squared Error (rRMSE1)",
+      "Relative Root Mean Squared Error (rRMSE2)",
+      "Time spent"
+    )
 ############### 10. Residual error sigma estimation#####################
 
   method_additive <- .fbctrl$sigma_method_additive
@@ -520,60 +618,39 @@ getPPKinits <- function(dat, control=initsControl()) {
   recommended_sigma_prop_init <-sigma_prop
 
 ################## 11. Parameter Selection Selection############################
-  # Identify the columns containing the statistics
-  stat_cols <- c("APE", "MAE", "MAPE", "RMSE", "rRMSE")
 
-  sim.vmax.km.results.all$min_count <-
-    rowSums(sapply(sim.vmax.km.results.all[stat_cols], function(col)
-      col == min(col, na.rm = TRUE)))
+  # Extract the column-wise minimum values for each performance metric
+  mins <- sapply(sim.vmax.km.results.all[stat_cols], min, na.rm = TRUE)
+  lmat <- sweep(sim.vmax.km.results.all[stat_cols], 2, mins, FUN = "==")
+  sim.vmax.km.results.all$min_count <- rowSums(lmat, na.rm = TRUE)
 
-  sim.2cmpt.results.all$min_count <-
-    rowSums(sapply(sim.2cmpt.results.all[stat_cols], function(col)
-      col == min(col, na.rm = TRUE)))
+  mins <- sapply(sim.2cmpt.results.all[stat_cols], min, na.rm = TRUE)
+  lmat <- sweep(sim.2cmpt.results.all[stat_cols], 2, mins, FUN = "==")
+  sim.2cmpt.results.all$min_count <- rowSums(lmat, na.rm = TRUE)
 
-  sim.3cmpt.results.all$min_count <-
-    rowSums(sapply(sim.3cmpt.results.all[stat_cols], function(col)
-      col == min(col, na.rm = TRUE)))
+  mins <- sapply(sim.3cmpt.results.all[stat_cols], min, na.rm = TRUE)
+  lmat <- sweep(sim.3cmpt.results.all[stat_cols], 2, mins, FUN = "==")
+  sim.3cmpt.results.all$min_count <- rowSums(lmat, na.rm = TRUE)
 
-  if (selection.criterion == "All") {
-    recommended_mm     <-
+  recommended_mm <-
       sim.vmax.km.results.all[which.max(sim.vmax.km.results.all$min_count), ]
-    recommended.multi1 <-
-      sim.2cmpt.results.all[which.max(sim.2cmpt.results.all$min_count), ]
-    recommended.multi2 <-
+  recommended.multi1 <-
+    sim.2cmpt.results.all[which.max(sim.2cmpt.results.all$min_count), ]
+  recommended.multi2 <-
       sim.3cmpt.results.all[which.max(sim.3cmpt.results.all$min_count), ]
 
-  } else if (selection.criterion %in% names(list(
-    APE   = "APE",
-    MAE   = "MAE",
-    MAPE  = "MAPE",
-    RMSE  = "RMSE",
-    rRMSE = "rRMSE"
-  ))) {
-    col <- criteria_map[[selection.criterion]]
+  recommended_vmax_init <- recommended_mm$`Simulated Vmax`
+  recommended_km_init <- recommended_mm$`Simulated Km`
 
-    recommended_mm     <-
-      sim.vmax.km.results.all[which.min(sim.vmax.km.results.all[[col]]), ]
-    recommended.multi1 <-
-      sim.2cmpt.results.all[which.min(sim.2cmpt.results.all[[col]]), ]
-    recommended.multi2 <-
-      sim.3cmpt.results.all[which.min(sim.3cmpt.results.all[[col]]), ]
-  } else {
-    stop("Unknown selection.criterion: must be one of All, APE, MAE, MAPE, RMSE, rRMSE")
-  }
+  recommended_vc2cmpt_init <- recommended.multi1$`Simulated Vc`
+  recommended_vp2cmpt_init <- recommended.multi1$`Simulated Vp`
+  recommended_q2cmpt_init <- recommended.multi1$`Simulated Q`
 
-  recommended_vmax_init <- recommended_mm$Vmax
-  recommended_km_init <- recommended_mm$Km
-
-  recommended_vc2cmpt_init <- recommended.multi1$Vc
-  recommended_vp2cmpt_init <- recommended.multi1$Vp
-  recommended_q2cmpt_init <- recommended.multi1$Q
-
-  recommended_vc3cmpt_init <- recommended.multi2$Vc
-  recommended_vp3cmpt_init <- recommended.multi2$Vp1
-  recommended_vp23cmpt_init <- recommended.multi2$Vp2
-  recommended_q3cmpt_init <- recommended.multi2$Q1
-  recommended_q23cmpt_init <- recommended.multi2$Q2
+  recommended_vc3cmpt_init <- recommended.multi2$`Simulated Vc`
+  recommended_vp3cmpt_init <- recommended.multi2$`Simulated Vp`
+  recommended_vp23cmpt_init <- recommended.multi2$`Simulated Vp2`
+  recommended_q3cmpt_init <- recommended.multi2$`Simulated Q`
+  recommended_q23cmpt_init <- recommended.multi2$`Simulated Q2`
 
   # Remove these temporary global variables run before.
   # List of variables to remove
@@ -601,23 +678,12 @@ getPPKinits <- function(dat, control=initsControl()) {
   rm(list = vars_to_remove, envir = .GlobalEnv)
 
   ############## 12. Finally selection####################
-
-  end.time <- Sys.time()
-  time.spent <-
-    round(as.numeric(difftime(end.time, start.time, units = "secs")), 3)
-
-  # Part 1. ka,cl,vd.
+  #
   f_init_ka <- base.best$`Calculated Ka`[1]
   f_init_cl <- base.best$`Calculated CL`[1]
   f_init_vd <- base.best$`Calculated Vd`[1]
-
-  sel.method.ka.cl.vd <- base.best$Method[1]
-
-  # vmax.km
   f_init_vmax <- recommended_vmax_init
   f_init_km <- recommended_km_init
-  sel.method.vmax.km <- "Parameter sweeping"
-
   # Multi-compartmental parameters
   f_init_vc2cmpt <-  recommended_vc2cmpt_init
   f_init_vp2cmpt <-  recommended_vp2cmpt_init
@@ -628,44 +694,97 @@ getPPKinits <- function(dat, control=initsControl()) {
   f_init_q3cmpt <- recommended_q3cmpt_init
   f_init_q23cmpt <- recommended_q23cmpt_init
 
-  sel.method.multi <- "Parameter sweeping"
+  # Method identification
+  if (!hybrid.base) {
+    # Unified method — all parameters from one method
+    method_name <- base.best$Method[1]
 
-  if (route == "oral") {
-    sel.method.ka <- "Wanger-nelson method"
-  } else {
-    sel.method.ka <- NA
-  }
+    # Use same method for all parameters
+    sel.method.ka <- method_name
+    sel.method.cl <- method_name
+    sel.method.vd <- method_name
+    sel.method.multi <- "Parameter sweeping"
 
-  if (sel.method.ka.cl.vd == "Single-point method" &
-      route == "oral") {
-    sel.method.ka <- "Single-point method"
-    if (used_sp_ka_fallback) {
+    # Method label mapping
+    method_label_map <- c(
+      "Single-point method" = "Single-point method",
+      "Graphic analysis"    = "Methods of residuals",
+      "NCA (only first dose)" = "Wanger-nelson method",
+      "NCA (data exclude first-dose part)" = "Wanger-nelson method",
+      "NCA (all pooled)" = "Wanger-nelson method"
+    )
+
+    # Apply mapping
+    sel.method.ka <- method_label_map[[method_name]]
+    sel.method.cl <- method_label_map[[method_name]]
+    sel.method.vd <- method_label_map[[method_name]]
+
+    # Fallback handling for Ka (if applicable)
+    if (method_name == "Single-point method" &&
+        route == "oral" && isTRUE(used_sp_ka_fallback)) {
+      sel.method.ka <- "Fallback (fixed Ka)"
+    }
+
+    if (method_name == "Graphic analysis" &&
+        isTRUE(used_graph_ka_fallback)) {
+      sel.method.ka <- "Fallback (fixed Ka)"
+    }
+
+    if (method_name %in% c("NCA (only first dose)",
+                           "NCA (data exclude first-dose part)",
+                           "NCA (all pooled)") &&
+        isTRUE(used_nca_ka_fallback)) {
       sel.method.ka <- "Fallback (fixed Ka)"
     }
   }
 
-  if (sel.method.ka.cl.vd == "Graphic analysis") {
-    sel.method.ka <- "Methods of residuals"
-    if (used_graph_ka_fallback) {
+  if (hybrid.base) {
+    # Hybrid mode — parameter-level method assignment
+    sel.method.multi <- "Parameter sweeping"
+
+    # Extract method source names for each parameter
+    ka_method <- base.best$`Ka Method`[1]
+    cl_method <- base.best$`CL Method`[1]
+    vd_method <- base.best$`Vd Method`[1]
+
+    # Mapping of method source → user-friendly description
+    method_label_map <- c(
+      simpcal = "Single-point method",
+      graph   = "Methods of residuals",
+      nca_fd  = "Wanger-nelson method",
+      nca_efd = "Wanger-nelson method",
+      nca_all = "Wanger-nelson method"
+    )
+
+    # Assign base method labels
+    sel.method.ka <- method_label_map[[ka_method]]
+    sel.method.cl <- method_label_map[[cl_method]]
+    sel.method.vd <- method_label_map[[vd_method]]
+
+    # Fallback handling for Ka (if needed)
+    if (ka_method == "simpcal" &&
+        route == "oral" && isTRUE(used_sp_ka_fallback)) {
       sel.method.ka <- "Fallback (fixed Ka)"
     }
-  }
 
-  if (used_nca_ka_fallback) {
-    sel.method.ka <- "Fallback (fixed Ka)"
+    if (ka_method == "graph" && isTRUE(used_graph_ka_fallback)) {
+      sel.method.ka <- "Fallback (fixed Ka)"
+    }
+
+    if (ka_method %in% c("nca_fd", "nca_efd", "nca_all") &&
+        isTRUE(used_nca_ka_fallback)) {
+      sel.method.ka <- "Fallback (fixed Ka)"
+    }
   }
 
   init.params.out.ka <- data.frame(method = sel.method.ka,
                                    vd = f_init_ka)
-
-  init.params.out.cl <- data.frame(method = sel.method.ka.cl.vd,
+  init.params.out.cl <- data.frame(method = sel.method.cl,
                                    vd = f_init_cl)
-
-  init.params.out.vd <- data.frame(method = sel.method.ka.cl.vd,
+  init.params.out.vd <- data.frame(method = sel.method.vd,
                                    vd = f_init_vd)
-
   init.params.out.vmax.km <-
-    data.frame(method = sel.method.vmax.km,
+    data.frame(method = sel.method.multi,
                vmax = f_init_vmax,
                km =  f_init_km)
 
@@ -777,9 +896,7 @@ getPPKinits <- function(dat, control=initsControl()) {
   Recommended_inits_df$Values <- format(Recommended_inits_df$Values,
                                         scientific = FALSE,
                                         digits = 3)
-
-
-  colnames(all.out) <-
+  colnames(base.out) <-
     c(
       "Method",
       "Calculated Ka",
@@ -789,7 +906,8 @@ getPPKinits <- function(dat, control=initsControl()) {
       "Mean Absolute Error (MAE)",
       "Mean Absolute Percentage Error (MAPE)",
       "Root Mean Squared Error (RMSE)",
-      "Relative Root Mean Squared Error (rRMSE)",
+      "Relative Root Mean Squared Error (rRMSE1)",
+      "Relative Root Mean Squared Error (rRMSE2)",
       "Time spent",
       "num_min_metrics"
     )
@@ -797,11 +915,14 @@ getPPKinits <- function(dat, control=initsControl()) {
     c(
       "Simulated Vmax",
       "Simulated Km",
+      "Simulated Vd",
+      "Simulated Ka",
       "Absolute Predicted Error (APE)",
       "Mean Absolute Error (MAE)",
       "Mean Absolute Percentage Error (MAPE)",
       "Root Mean Squared Error (RMSE)",
-      "Relative Root Mean Squared Error (rRMSE)",
+      "Relative Root Mean Squared Error (rRMSE1)",
+      "Relative Root Mean Squared Error (rRMSE2)",
       "Time spent",
       "num_min_metrics"
     )
@@ -810,11 +931,14 @@ getPPKinits <- function(dat, control=initsControl()) {
       "Simulated Vc",
       "Simulated Vp",
       "Simulated Q",
+      "Simulated CL",
+      "Simulated Ka",
       "Absolute Predicted Error (APE)",
       "Mean Absolute Error (MAE)",
       "Mean Absolute Percentage Error (MAPE)",
       "Root Mean Squared Error (RMSE)",
-      "Relative Root Mean Squared Error (rRMSE)",
+      "Relative Root Mean Squared Error (rRMSE1)",
+      "Relative Root Mean Squared Error (rRMSE2)",
       "Time spent",
       "num_min_metrics"
     )
@@ -825,6 +949,8 @@ getPPKinits <- function(dat, control=initsControl()) {
       "Simulated Vp2",
       "Simulated Q",
       "Simulated Q2",
+      "Simulated CL",
+      "Simulated Ka",
       "Absolute Predicted Error (APE)",
       "Mean Absolute Error (MAE)",
       "Mean Absolute Percentage Error (MAPE)",
@@ -835,7 +961,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     )
 
   init.history <- list(
-    base.out = all.out,
+    base.out = base.out,
     single.point.out = sp_result,
     nca.out = nca_out,
     ka.wanger.nelson.out =  ka_wn,
@@ -870,8 +996,6 @@ getPPKinits <- function(dat, control=initsControl()) {
   output_env$Omegas<- getOmegas()
 
   class(output_env) <- "getPPKinits"
-
-  gc()
 
   return(output_env)
 

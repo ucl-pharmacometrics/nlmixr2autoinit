@@ -71,15 +71,15 @@ out <- sim_sens_1cmpt_mm(
 head(out)
 
 # Example 2: Oral route
-out <- sim_sens_1cmpt_mm(
-  dat = Oral_1CPTMM,
-  sim_vmax = list(mode = "auto",est.cl=4),
-  sim_km   = list(mode = "auto"),
-  sim_vd   = list(mode = "manual", values = c(70)),
-  sim_ka   = list(mode = "manual", values = c(1)),  # 1 for oral route
-  route = "oral"
-)
-head(out)
+#out <- sim_sens_1cmpt_mm(
+#  dat = Oral_1CPTMM,
+#  sim_vmax = list(mode = "auto",est.cl=1),
+#  sim_km   = list(mode = "auto"),
+#  sim_vd   = list(mode = "manual", values = c(48)),
+#  sim_ka   = list(mode = "manual", values = c(1)),  # 1 for oral route
+#  route = "oral"
+#)
+#head(out)
 }
 
 }
