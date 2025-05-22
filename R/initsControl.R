@@ -50,7 +50,7 @@ fallback_control <- function(enable_ka_fallback = FALSE,
 #'   fallback_control = fallback_control(sigma_method_additive = "fixed_fraction")
 #' )
 #'
-#' @seealso \code{\link{ss_control}}, \code{\link{pooled_control}}, \code{\link{nca_control}}, \code{\link{fallback_control}}}
+#' @seealso \code{\link{ss_control}}, \code{\link{pooled_control}}, \code{\link{nca_control}}, \code{\link{fallback_control}}
 #'
 initsControl <- function(ss.control = ss_control(),
                          pooled.control = pooled_control(),

@@ -49,5 +49,5 @@ initsControl(
 
 }
 \seealso{
-\code{\link{ss_control}}, \code{\link{pooled_control}}, \code{\link{nca_control}}, \code{\link{fallback_control}}}
+\code{\link{ss_control}}, \code{\link{pooled_control}}, \code{\link{nca_control}}, \code{\link{fallback_control}}
 }
