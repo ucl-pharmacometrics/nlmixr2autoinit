@@ -239,9 +239,9 @@ getPPKinits <- function(dat, control=initsControl()) {
     method = c(
       "Adaptive single-point method",
       "Graphic methods",
-      "Naive pooled NCA (only first-dose data)",
-      "Naive pooled NCA (data exclude first-dose data)",
-      "Naive pooled NCA (all data)"
+      "Naive pooled NCA (FD)",
+      "Naive pooled NCA (MD)",
+      "Naive pooled NCA (all)"
     ),
 
     ka = ka,
@@ -711,9 +711,9 @@ getPPKinits <- function(dat, control=initsControl()) {
     ka_label_map <- c(
       "Adaptive single-point method" = "Adaptive single-point method",
       "Graphic methods" = "Graphic methods",
-      "Naive pooled NCA (only first-dose data)" = "Wanger-nelson method",
-      "Naive pooled NCA (data exclude first-dose data)" = "Wanger-nelson method",
-      "Naive pooled NCA (all data)" = "Wanger-nelson method"
+      "Naive pooled NCA (FD)" = "Wanger-nelson method",
+      "Naive pooled NCA (MD)" = "Wanger-nelson method",
+      "Naive pooled NCA (all)" = "Wanger-nelson method"
     )
 
     # Apply mapping
@@ -749,9 +749,9 @@ getPPKinits <- function(dat, control=initsControl()) {
     method_label_map <- c(
       simpcal = "Adaptive single-point method",
       graph   = "Graphic methods",
-      nca_fd  = "Naive pooled NCA (only first-dose data)",
-      nca_efd = "Naive pooled NCA (data exclude first-dose data)",
-      nca_all = "Naive pooled NCA (all data)"
+      nca_fd  = "Naive pooled NCA (FD)",
+      nca_efd = "Naive pooled NCA (MD)",
+      nca_all = "Naive pooled NCA (all)"
     )
     # Assign base method labels
     sel.method.ka <- if (!is.na(ka_method)) method_label_map[[ka_method]] else "IV"
