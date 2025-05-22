@@ -348,6 +348,7 @@ getPPKinits <- function(dat, control=initsControl()) {
 
     base.out <- hybrid_eval_perf_1cmpt(
       route = route,
+      dat = dat,
       sp_out_ka     = sp_out$ka,
       sp_out_cl     = sp_out$cl,
       sp_out_vd     = sp_out$vd,

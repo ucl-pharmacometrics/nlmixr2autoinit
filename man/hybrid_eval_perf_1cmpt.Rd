@@ -6,6 +6,7 @@
 \usage{
 hybrid_eval_perf_1cmpt(
   route = "bolus",
+  dat,
   sp_out_ka,
   sp_out_cl,
   sp_out_vd,
@@ -25,6 +26,8 @@ hybrid_eval_perf_1cmpt(
 }
 \arguments{
 \item{route}{Character; administration route, e.g., \code{"oral"} or \code{"iv"}.}
+
+\item{dat}{A data.frame containing PK data with columns such as \code{EVID} and \code{DV}.}
 
 \item{sp_out_ka}{Numeric; ka from simpcal.}
 

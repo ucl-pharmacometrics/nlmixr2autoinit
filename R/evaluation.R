@@ -204,6 +204,7 @@ eval_perf_1cmpt <- function(dat,
 #' for deduplication. Any parameter value set that includes NA is removed up front.
 #'
 #' @param route Character; administration route, e.g., `"oral"` or `"iv"`.
+#' @param dat A data.frame containing PK data with columns such as `EVID` and `DV`.
 #' @param sp_out_ka Numeric; ka from simpcal.
 #' @param sp_out_cl Numeric; cl from simpcal.
 #' @param sp_out_vd Numeric; vd from simpcal.
@@ -226,6 +227,7 @@ eval_perf_1cmpt <- function(dat,
 #' @export
 
 hybrid_eval_perf_1cmpt <- function(route = "bolus",
+                                   dat,
                                    sp_out_ka,
                                    sp_out_cl,
                                    sp_out_vd,
