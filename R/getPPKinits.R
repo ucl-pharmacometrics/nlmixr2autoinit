@@ -237,11 +237,11 @@ getPPKinits <- function(dat, control=initsControl()) {
 
   base.out <- data.frame(
     method = c(
-      "Single-point method",
-      "Graphic analysis",
-      "NCA (only first dose)",
-      "NCA (data exclude first-dose part)",
-      "NCA (all pooled)"
+      "Adaptive single-point method",
+      "Graphic methods",
+      "Naive pooled NCA (only first-dose data)",
+      "Naive pooled NCA (data exclude first-dose data)",
+      "Naive pooled NCA (all data)"
     ),
 
     ka = ka,
@@ -707,34 +707,30 @@ getPPKinits <- function(dat, control=initsControl()) {
     sel.method.vd <- method_name
     sel.method.multi <- "Parameter sweeping"
 
-    # Method label mapping
-    method_label_map <- c(
-      "Single-point method" = "Single-point method",
-      "Graphic analysis"    = "Methods of residuals",
-      "NCA (only first dose)" = "Wanger-nelson method",
-      "NCA (data exclude first-dose part)" = "Wanger-nelson method",
-      "NCA (all pooled)" = "Wanger-nelson method"
+    # Map method name to corresponding Ka estimation label
+    ka_label_map <- c(
+      "Adaptive single-point method" = "Adaptive single-point method",
+      "Graphic methods" = "Graphic methods",
+      "Naive pooled NCA (only first-dose data)" = "Wanger-nelson method",
+      "Naive pooled NCA (data exclude first-dose data)" = "Wanger-nelson method",
+      "Naive pooled NCA (all data)" = "Wanger-nelson method"
     )
 
     # Apply mapping
-    sel.method.ka <- if (!is.na(ka_method)) method_label_map[[ka_method]] else "IV"
-    sel.method.cl <- method_label_map[[method_name]]
-    sel.method.vd <- method_label_map[[method_name]]
+    sel.method.ka <- if (!is.na(ka_method)) ka_label_map [[ka_method]] else "IV"
 
     # Fallback handling for Ka (if applicable)
-    if (method_name == "Single-point method" &&
+    if (method_name == "Adaptive single-point method" &&
         route == "oral" && isTRUE(used_sp_ka_fallback)) {
       sel.method.ka <- "Fallback (fixed Ka)"
     }
 
-    if (method_name == "Graphic analysis" &&
+    if (method_name == "Graphic methods" &&
         isTRUE(used_graph_ka_fallback)) {
       sel.method.ka <- "Fallback (fixed Ka)"
     }
 
-    if (method_name %in% c("NCA (only first dose)",
-                           "NCA (data exclude first-dose part)",
-                           "NCA (all pooled)") &&
+    if (startsWith(method_name, "Naive pooled NCA") &&
         isTRUE(used_nca_ka_fallback)) {
       sel.method.ka <- "Fallback (fixed Ka)"
     }
@@ -749,15 +745,14 @@ getPPKinits <- function(dat, control=initsControl()) {
     cl_method <- base.best$`CL Method`[1]
     vd_method <- base.best$`Vd Method`[1]
 
-    # Mapping of method source → user-friendly description
+    # Mapping of method source
     method_label_map <- c(
-      simpcal = "Single-point method",
-      graph   = "Methods of residuals",
-      nca_fd  = "Wanger-nelson method",
-      nca_efd = "Wanger-nelson method",
-      nca_all = "Wanger-nelson method"
+      simpcal = "Adaptive single-point method",
+      graph   = "Graphic methods",
+      nca_fd  = "Naive pooled NCA (only first-dose data)",
+      nca_efd = "Naive pooled NCA (data exclude first-dose data)",
+      nca_all = "Naive pooled NCA (all data)"
     )
-
     # Assign base method labels
     sel.method.ka <- if (!is.na(ka_method)) method_label_map[[ka_method]] else "IV"
     sel.method.cl <- method_label_map[[cl_method]]
