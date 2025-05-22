@@ -347,7 +347,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     ))
 
     base.out <- hybrid_eval_perf_1cmpt(
-      route = "oral",
+      route = route,
       sp_out_ka     = sp_out$ka,
       sp_out_cl     = sp_out$cl,
       sp_out_vd     = sp_out$vd,
@@ -716,7 +716,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     )
 
     # Apply mapping
-    sel.method.ka <- method_label_map[[method_name]]
+    sel.method.ka <- if (!is.na(ka_method)) method_label_map[[ka_method]] else "IV"
     sel.method.cl <- method_label_map[[method_name]]
     sel.method.vd <- method_label_map[[method_name]]
 
@@ -758,7 +758,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     )
 
     # Assign base method labels
-    sel.method.ka <- method_label_map[[ka_method]]
+    sel.method.ka <- if (!is.na(ka_method)) method_label_map[[ka_method]] else "IV"
     sel.method.cl <- method_label_map[[cl_method]]
     sel.method.vd <- method_label_map[[vd_method]]
 
@@ -987,6 +987,10 @@ getPPKinits <- function(dat, control=initsControl()) {
     "Sigma additive: stanadard deviation of additive residual additive error",
     "Sigma proportional: stanadard deviation of proportional residual additive error"
   )
+
+  end.time <- Sys.time()
+  time.spent <-
+    round(as.numeric(difftime(end.time, start.time, units = "secs")), 3)
 
   output_env <- new.env()
   output_env$Datainfo <- Datainfo

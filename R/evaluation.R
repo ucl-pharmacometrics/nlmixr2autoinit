@@ -270,69 +270,119 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
     nca_all = nca_all_vd
   )
 
-  # Remove sources with NA values
-  valid_ka_sources <- names(ka_values)[!is.na(ka_values)]
   valid_cl_sources <- names(cl_values)[!is.na(cl_values)]
   valid_vd_sources <- names(vd_values)[!is.na(vd_values)]
 
+  if (route == "oral") {
+    valid_ka_sources <- names(ka_values)[!is.na(ka_values)]
 
-  # Create all possible combinations
-  param_grid <- expand.grid(
-    ka_source = valid_ka_sources,
-    cl_source = valid_cl_sources,
-    vd_source = valid_vd_sources,
-    stringsAsFactors = FALSE
-  )
+    param_grid <- expand.grid(
+      ka_source = valid_ka_sources,
+      cl_source = valid_cl_sources,
+      vd_source = valid_vd_sources,
+      stringsAsFactors = FALSE
+    )
 
-  # Separate out base (non-hybrid) combinations: same source for ka, cl, vd
-  base_combos <- param_grid[
-    param_grid$ka_source == param_grid$cl_source &
-      param_grid$cl_source == param_grid$vd_source, ]
+    # Separate base and hybrid
+    base_combos <- param_grid[param_grid$ka_source == param_grid$cl_source &
+                                param_grid$cl_source == param_grid$vd_source,]
 
-  # Remaining hybrid combinations
-  hybrid_combos <- param_grid[
-    !(param_grid$ka_source == param_grid$cl_source &
-        param_grid$cl_source == param_grid$vd_source), ]
+    hybrid_combos <- param_grid[!(
+      param_grid$ka_source == param_grid$cl_source &
+        param_grid$cl_source == param_grid$vd_source
+    ),]
 
-  # Attach parameter values — no function used
-  base_combos$ka_value <- ka_values[base_combos$ka_source]
-  base_combos$cl_value <- cl_values[base_combos$cl_source]
-  base_combos$vd_value <- vd_values[base_combos$vd_source]
+    # Assign parameter values
+    base_combos$ka_value <- ka_values[base_combos$ka_source]
+    base_combos$cl_value <- cl_values[base_combos$cl_source]
+    base_combos$vd_value <- vd_values[base_combos$vd_source]
 
-  hybrid_combos$ka_value <- ka_values[hybrid_combos$ka_source]
-  hybrid_combos$cl_value <- cl_values[hybrid_combos$cl_source]
-  hybrid_combos$vd_value <- vd_values[hybrid_combos$vd_source]
+    hybrid_combos$ka_value <- ka_values[hybrid_combos$ka_source]
+    hybrid_combos$cl_value <- cl_values[hybrid_combos$cl_source]
+    hybrid_combos$vd_value <- vd_values[hybrid_combos$vd_source]
 
-  # Tolerance-based deduplication on hybrid combinations
-  keep_idx <- rep(TRUE, nrow(hybrid_combos))
-  numeric_matrix <- as.matrix(hybrid_combos[, c("ka_value", "cl_value", "vd_value")])
+    # Deduplication on hybrid combos
+    keep_idx <- rep(TRUE, nrow(hybrid_combos))
+    numeric_matrix <-
+      as.matrix(hybrid_combos[, c("ka_value", "cl_value", "vd_value")])
 
-  within_tol <- function(x1, x2, tol = 0.2) {
-    all(abs((x1 - x2) / x2) <= tol)
-  }
+    within_tol <- function(x1, x2, tol = 0.2) {
+      all(abs((x1 - x2) / x2) <= tol)
+    }
 
-  for (i in 1:(nrow(numeric_matrix) - 1)) {
-    if (!keep_idx[i]) next
-    for (j in (i + 1):nrow(numeric_matrix)) {
-      if (!keep_idx[j]) next
-      if (within_tol(numeric_matrix[i, ], numeric_matrix[j, ])) {
-        keep_idx[j] <- FALSE
+    for (i in 1:(nrow(numeric_matrix) - 1)) {
+      if (!keep_idx[i])
+        next
+      for (j in (i + 1):nrow(numeric_matrix)) {
+        if (!keep_idx[j])
+          next
+        if (within_tol(numeric_matrix[i,], numeric_matrix[j,])) {
+          keep_idx[j] <- FALSE
+        }
       }
     }
+
+    param_grid_unique <-
+      rbind(base_combos, hybrid_combos[keep_idx,])
+
+  } else {
+    # IV/bolus: no ka combinations
+    param_grid <- expand.grid(
+      cl_source = valid_cl_sources,
+      vd_source = valid_vd_sources,
+      stringsAsFactors = FALSE
+    )
+    param_grid$ka_source <- NA
+    param_grid$ka_value <- NA
+    param_grid$cl_value <- cl_values[param_grid$cl_source]
+    param_grid$vd_value <- vd_values[param_grid$vd_source]
+    # Separate base and hybrid combinations (by cl == vd)
+    base_combos <- param_grid[param_grid$cl_source == param_grid$vd_source,]
+
+    hybrid_combos <- param_grid[param_grid$cl_source != param_grid$vd_source,]
+
+    # Deduplicate hybrid combos based on cl/vd similarity
+    keep_idx <- rep(TRUE, nrow(hybrid_combos))
+    numeric_matrix <-
+      as.matrix(hybrid_combos[, c("cl_value", "vd_value")])
+
+    within_tol <- function(x1, x2, tol = 0.2) {
+      all(abs((x1 - x2) / x2) <= tol)
+    }
+
+    for (i in 1:(nrow(numeric_matrix) - 1)) {
+      if (!keep_idx[i])
+        next
+      for (j in (i + 1):nrow(numeric_matrix)) {
+        if (!keep_idx[j])
+          next
+        if (within_tol(numeric_matrix[i,], numeric_matrix[j,])) {
+          keep_idx[j] <- FALSE
+        }
+      }
+    }
+    # Combine base and deduplicated hybrid
+    param_grid_unique <-
+      rbind(base_combos, hybrid_combos[keep_idx,])
   }
 
-  # Final parameter grid: base first, then deduplicated hybrid
-  param_grid_unique <- rbind(base_combos, hybrid_combos[keep_idx, ])
+  # Reorder columns: ka_source, cl_source, vd_source, followed by other columns
+  param_grid_unique <- param_grid_unique[c("ka_source", "cl_source", "vd_source",
+                                           setdiff(
+                                             names(param_grid_unique),
+                                             c("ka_source", "cl_source", "vd_source")
+                                           ))]
 
   progressr::handlers(
     progressr::handler_progress(format = ":message [:bar] :percent (:current/:total)", width = 80)
   )
 
   results <- progressr::with_progress({
-    p <-progressr::progressor(steps = nrow(param_grid_unique))  # Initialize progress bar
+    p <-
+      progressr::progressor(steps = nrow(param_grid_unique))  # Initialize progress bar
 
     lapply(seq_len(nrow(param_grid_unique)), function(i) {
-      row <- param_grid_unique[i,]
+      row <- param_grid_unique[i, ]
 
       # Evaluate model performance
       perf <- eval_perf_1cmpt(dat,
@@ -359,6 +409,7 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
                     "cl_value",
                     "vd_value",
                     grep("^performance", names(results_df), value = TRUE))
+
   results_df[numeric_cols] <-
     lapply(results_df[numeric_cols], as.numeric)
 
