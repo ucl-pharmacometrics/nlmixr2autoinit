@@ -898,69 +898,6 @@ getPPKinits <- function(dat, control=initsControl()) {
   Recommended_inits_df$Values <- format(Recommended_inits_df$Values,
                                         scientific = FALSE,
                                         digits = 3)
-  colnames(base.out) <-
-    c(
-      "Method",
-      "Calculated Ka",
-      "Calculated CL",
-      "Calculated Vd",
-      "Absolute Predicted Error (APE)",
-      "Mean Absolute Error (MAE)",
-      "Mean Absolute Percentage Error (MAPE)",
-      "Root Mean Squared Error (RMSE)",
-      "Relative Root Mean Squared Error (rRMSE1)",
-      "Relative Root Mean Squared Error (rRMSE2)",
-      "Time spent",
-      "num_min_metrics"
-    )
-  colnames(sim.vmax.km.results.all) <-
-    c(
-      "Simulated Vmax",
-      "Simulated Km",
-      "Simulated Vd",
-      "Simulated Ka",
-      "Absolute Predicted Error (APE)",
-      "Mean Absolute Error (MAE)",
-      "Mean Absolute Percentage Error (MAPE)",
-      "Root Mean Squared Error (RMSE)",
-      "Relative Root Mean Squared Error (rRMSE1)",
-      "Relative Root Mean Squared Error (rRMSE2)",
-      "Time spent",
-      "num_min_metrics"
-    )
-  colnames(sim.2cmpt.results.all) <-
-    c(
-      "Simulated Vc",
-      "Simulated Vp",
-      "Simulated Q",
-      "Simulated CL",
-      "Simulated Ka",
-      "Absolute Predicted Error (APE)",
-      "Mean Absolute Error (MAE)",
-      "Mean Absolute Percentage Error (MAPE)",
-      "Root Mean Squared Error (RMSE)",
-      "Relative Root Mean Squared Error (rRMSE1)",
-      "Relative Root Mean Squared Error (rRMSE2)",
-      "Time spent",
-      "num_min_metrics"
-    )
-  colnames(sim.3cmpt.results.all) <-
-    c(
-      "Simulated Vc",
-      "Simulated Vp",
-      "Simulated Vp2",
-      "Simulated Q",
-      "Simulated Q2",
-      "Simulated CL",
-      "Simulated Ka",
-      "Absolute Predicted Error (APE)",
-      "Mean Absolute Error (MAE)",
-      "Mean Absolute Percentage Error (MAPE)",
-      "Root Mean Squared Error (RMSE)",
-      "Relative Root Mean Squared Error (rRMSE)",
-      "Time spent",
-      "num_min_metrics"
-    )
 
   init.history <- list(
     base.out = base.out,
