@@ -221,7 +221,9 @@ eval_perf_1cmpt <- function(dat,
 #' @param nca_all_vd Numeric; vd from NCA All.
 #'
 #' @return A `data.frame` of unique parameter combinations with source labels and values.
-#' @keywords internal
+#'
+#' @keywords internal#
+#' @export
 
 hybrid_eval_perf_1cmpt <- function(route = "bolus",
                                    sp_out_ka,

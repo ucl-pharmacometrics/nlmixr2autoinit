@@ -65,4 +65,4 @@ different sources (e.g., simpcal, graph, NCA methods), and removes combinations
 that are redundant based on relative tolerance. Only oral routes consider \code{ka_value}
 for deduplication. Any parameter value set that includes NA is removed up front.
 }
-\keyword{internal}
+\keyword{internal#}
