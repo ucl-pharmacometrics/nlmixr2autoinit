@@ -275,6 +275,10 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
   valid_cl_sources <- names(cl_values)[!is.na(cl_values)]
   valid_vd_sources <- names(vd_values)[!is.na(vd_values)]
 
+  within_tol <- function(x1, x2, tol = 0.2) {
+    all(abs((x1 - x2) / x2) <= tol, na.rm = TRUE)
+  }
+
   if (route == "oral") {
     valid_ka_sources <- names(ka_values)[!is.na(ka_values)]
 
@@ -285,20 +289,16 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
       stringsAsFactors = FALSE
     )
 
-    if (nrow(param_grid) == 1) {
-      param_grid$ka_value <- ka_values[param_grid$ka_source]
-      param_grid$cl_value <- cl_values[param_grid$cl_source]
-      param_grid$vd_value <- vd_values[param_grid$vd_source]
-      param_grid_unique <- param_grid
-    } else {
-    # Separate base and hybrid
-    base_combos <- param_grid[param_grid$ka_source == param_grid$cl_source &
-                                param_grid$cl_source == param_grid$vd_source,]
+  # Separate base and hybrid
+    base_combos <-
+      param_grid[param_grid$ka_source == param_grid$cl_source &
+                   param_grid$cl_source == param_grid$vd_source,]
 
-    hybrid_combos <- param_grid[!(
-      param_grid$ka_source == param_grid$cl_source &
-        param_grid$cl_source == param_grid$vd_source
-    ),]
+    hybrid_combos <-
+      param_grid[!(
+        param_grid$ka_source == param_grid$cl_source &
+          param_grid$cl_source == param_grid$vd_source
+      ), ]
 
     # Assign parameter values
     base_combos$ka_value <- ka_values[base_combos$ka_source]
@@ -309,30 +309,7 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
     hybrid_combos$cl_value <- cl_values[hybrid_combos$cl_source]
     hybrid_combos$vd_value <- vd_values[hybrid_combos$vd_source]
 
-    # Deduplication on hybrid combos
-    keep_idx <- rep(TRUE, nrow(hybrid_combos))
-    numeric_matrix <-
-      as.matrix(hybrid_combos[, c("ka_value", "cl_value", "vd_value")])
-
-    within_tol <- function(x1, x2, tol = 0.2) {
-      all(abs((x1 - x2) / x2) <= tol)
-    }
-
-    for (i in 1:(nrow(numeric_matrix) - 1)) {
-      if (!keep_idx[i])
-        next
-      for (j in (i + 1):nrow(numeric_matrix)) {
-        if (!keep_idx[j])
-          next
-        if (within_tol(numeric_matrix[i,], numeric_matrix[j,])) {
-          keep_idx[j] <- FALSE
-        }
-      }
-    }
-
-    param_grid_unique <-
-      rbind(base_combos, hybrid_combos[keep_idx,])
-    }
+    compare_cols <- c("ka_value", "cl_value", "vd_value")
 
   } else {
     # IV/bolus: no ka combinations
@@ -347,47 +324,59 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
     param_grid$cl_value <- cl_values[param_grid$cl_source]
     param_grid$vd_value <- vd_values[param_grid$vd_source]
 
-    if (nrow(param_grid) == 1) {
-      # Only one combination, no hybrid to evaluate
-      param_grid_unique <- param_grid
-    }
-    else{
     # Separate base and hybrid combinations (by cl == vd)
     base_combos <- param_grid[param_grid$cl_source == param_grid$vd_source,]
     hybrid_combos <- param_grid[param_grid$cl_source != param_grid$vd_source,]
 
-    # Deduplicate hybrid combos based on cl/vd similarity
-    keep_idx <- rep(TRUE, nrow(hybrid_combos))
-    numeric_matrix <-
-      as.matrix(hybrid_combos[, c("cl_value", "vd_value")])
+    compare_cols <- c("cl_value", "vd_value")
+  }
 
-    within_tol <- function(x1, x2, tol = 0.2) {
-      all(abs((x1 - x2) / x2) <= tol)
-    }
 
-    for (i in 1:(nrow(numeric_matrix) - 1)) {
-      if (!keep_idx[i])
-        next
-      for (j in (i + 1):nrow(numeric_matrix)) {
-        if (!keep_idx[j])
-          next
-        if (within_tol(numeric_matrix[i,], numeric_matrix[j,])) {
-          keep_idx[j] <- FALSE
+  # Deduplication
+  # Step 1: Filter hybrid combinations similar to base combinations
+  keep_base <- rep(TRUE, nrow(hybrid_combos))
+  if (nrow(base_combos) > 0 && nrow(hybrid_combos) > 0) {
+    for (i in seq_len(nrow(hybrid_combos))) {
+      hybrid_params <- as.numeric(hybrid_combos[i, compare_cols])
+
+      for (j in seq_len(nrow(base_combos))) {
+        base_params <- as.numeric(base_combos[j, compare_cols])
+        #relative error comparison (tolerance: 20%)
+        rel_diff <- abs((hybrid_params - base_params) / base_params)
+        if (all(rel_diff <= 0.2, na.rm = TRUE)) {
+          keep_base[i] <- FALSE
+          break
         }
       }
     }
-    # Combine base and deduplicated hybrid
-    param_grid_unique <-
-      rbind(base_combos, hybrid_combos[keep_idx,])
+  }
+  hybrid_filtered <- hybrid_combos[keep_base, ]
+
+  # Step 2: Remove similar combinations among the remaining hybrids
+  if (nrow(hybrid_filtered) > 1) {
+    keep_internal <- rep(TRUE, nrow(hybrid_filtered))
+    param_matrix <- as.matrix(hybrid_filtered[, compare_cols])
+    for (i in 1:(nrow(param_matrix) - 1)) {
+      if (!keep_internal[i]) next
+
+      for (j in (i + 1):nrow(param_matrix)) {
+        if (!keep_internal[j]) next
+        #relative error comparison (tolerance: 20%)
+        rel_diff <- abs((param_matrix[i, ] - param_matrix[j, ]) / param_matrix[j, ])
+        if (all(rel_diff <= 0.2, na.rm = TRUE)) {
+          keep_internal[j] <- FALSE
+        }
+      }
     }
+    hybrid_filtered <- hybrid_filtered[keep_internal, ]
   }
 
-  # Reorder columns: ka_source, cl_source, vd_source, followed by other columns
-  param_grid_unique <- param_grid_unique[c("ka_source", "cl_source", "vd_source",
-                                           setdiff(
-                                             names(param_grid_unique),
-                                             c("ka_source", "cl_source", "vd_source")
-                                           ))]
+  param_grid_unique <- rbind(base_combos, hybrid_filtered)
+
+  col_order <- c("ka_source", "cl_source", "vd_source",
+                   setdiff(names(param_grid_unique),
+                           c("ka_source", "cl_source", "vd_source")))
+  param_grid_unique <- param_grid_unique[, col_order]
 
   progressr::handlers(
     progressr::handler_progress(format = ":message [:bar] :percent (:current/:total)", width = 80)
