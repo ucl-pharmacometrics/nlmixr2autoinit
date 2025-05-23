@@ -382,6 +382,12 @@ getPPKinits <- function(dat, control=initsControl()) {
     )
   }
 
+  cols_to_format <-
+    c("Calculated Ka", "Calculated CL", "Calculated Vd")
+  base.out[cols_to_format] <-
+    lapply(base.out[cols_to_format], function(x)
+      signif(as.numeric(x), digits = 3))
+
 #################7. Select the base parameters by metrics####################
 
   # Full list of available performance metric column names
@@ -412,9 +418,9 @@ getPPKinits <- function(dat, control=initsControl()) {
   base.vd.best <- base.best$`Calculated Vd`
 
   message_text <- paste0(
-    "Base PK parameter analysis finished. Estimated ka: ", signif(base.ka.best, 3),
-    ", estimated CL: ", signif(base.cl.best, 3),
-    ", estimated Vd: ", signif(base.vd.best, 3)
+    "Base PK parameter analysis finished. Estimated ka: ", base.ka.best,
+    ", estimated CL: ", base.cl.best,
+    ", estimated Vd: ", base.vd.best
   )
 
   cat(message_text, "\n")
