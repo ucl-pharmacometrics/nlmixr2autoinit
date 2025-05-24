@@ -201,8 +201,7 @@ get_pooled_data <- function(dat,
     efd_data <- dat %>%
       dplyr::filter(
         (dose_number != 1 & EVID == 0 & tad_check) |
-          (dose_number != 1 & EVID == 1) |
-          (dose_number == 1 & iiobs > 0)
+          (dose_number == 1 & iiobs > 0 & tad_check)
       ) %>%
       dplyr::arrange(ID, resetflag, TIME, dplyr::desc(AMT))
 
