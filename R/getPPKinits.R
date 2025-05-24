@@ -156,6 +156,7 @@ getPPKinits <- function(dat, control=initsControl()) {
   ###################4. Naive pooled NCA   ##################
   nca_out <- run_pooled_nca(dat,
                             dose_type=dose_type,
+                            pooled=pooled_data,
                             route=route,
                             pooled_ctrl=pooled_control(),
                             nca_ctrl=nca_control()

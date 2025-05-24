@@ -16,6 +16,11 @@
 #'   \item 1 - Use observed \eqn{AUC_{0 \rightarrow \mathrm{last}}} for clearance
 #' }
 #' @param nlastpoints Number of terminal points for slope estimation (default = 3).
+#' @param slope.method Method for estimating terminal slope (\eqn{\lambda_z}):
+#' \itemize{
+#'   \item \code{"bestfitforce"} - Force estimation using decreasing number of terminal points if best-fit fails (default)
+#'   \item \code{"bestfit"} - Use automated best-fit selection based on adjusted R-squared
+#' }
 #' @param duration Infusion duration (required if \code{route = "infusion"}).
 #' @param route Administration route:
 #' \itemize{
@@ -67,9 +72,11 @@ getnca <- function(x,
                    ss = 0,
                    duration =NULL,
                    nlastpoints = 3,
+                   slope.method = c("bestfitforce", "bestfit"),
                    route = c("bolus", "oral", "infusion")) {
   # Record start time
   start.time <- Sys.time()
+
 
   # safe check
   trapezoidal.rule <- tryCatch(
@@ -100,6 +107,21 @@ getnca <- function(x,
           paste(shQuote(c(
             "bolus", "oral", "infusion"
           )), collapse = ", ")
+        ),
+        call. = FALSE
+      )
+    }
+  )
+
+  slope.method <- tryCatch(
+    match.arg(slope.method, choices = c("bestfitforce","bestfit")),
+    error = function(e) {
+      stop(
+        sprintf(
+          "Invalid value for `%s`: '%s'. Must be one of: %s.",
+          "slope.method",
+          as.character(slope.method),
+          paste(shQuote(c("bestfitforce","bestfit")), collapse = ", ")
         ),
         call. = FALSE
       )
@@ -194,13 +216,24 @@ getnca <- function(x,
     messages <- c(messages, "Invalid trapezoidal rule specified")
   }
 
-  slope_result <- find_best_lambdaz(
-    time = dat$TIME,
-    conc = dat$DV,
-    route = route,
-    duration=duration,
-    nlastpoints = nlastpoints
-  )
+  if (slope.method == "bestfit") {
+    slope_result <- find_best_lambdaz(
+      time = dat$TIME,
+      conc = dat$DV,
+      route = route,
+      duration = duration,
+      nlastpoints = nlastpoints
+    )
+  } else if (slope.method == "bestfitforce") {
+    slope_result <- force_find_lambdaz(
+      time = dat$TIME,
+      conc = dat$DV,
+      route = route,
+      duration = duration,
+      nlastpoints = nlastpoints
+    )
+  }
+
 
   # Terminal Phase Analysis
   ke <- slope_result$lambdaz

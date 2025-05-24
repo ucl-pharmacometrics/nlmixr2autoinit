@@ -7,15 +7,20 @@
 nca_control(
   trapezoidal.rule = c("linear_up_log_down", "linear"),
   duration = NULL,
-  nlastpoints = 3
+  nlastpoints = 3,
+  slope.method = "bestfitforce"
 )
 }
 \arguments{
 \item{nlastpoints}{Integer. Number of terminal points for half-life regression.}
 
-\item{trapezoidal_rule}{Integer. 1 = linear, 2 = linear-up log-down (default = 1).}
+\item{slope.method}{Method for estimating terminal slope (\eqn{\lambda_z}):
+\itemize{
+\item \code{"bestfitforce"} - Force estimation using decreasing number of terminal points if best-fit fails (default)
+\item \code{"bestfit"} - Use automated best-fit selection based on adjusted R-squared
+}}
 
-\item{half_life}{Numeric or NA. Optional fixed half-life override.}
+\item{trapezoidal_rule}{Integer. 1 = linear, 2 = linear-up log-down (default = 1).}
 }
 \value{
 A list with NCA control parameters.

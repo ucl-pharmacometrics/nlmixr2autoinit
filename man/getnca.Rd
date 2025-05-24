@@ -12,6 +12,7 @@ getnca(
   ss = 0,
   duration = NULL,
   nlastpoints = 3,
+  slope.method = c("bestfitforce", "bestfit"),
   route = c("bolus", "oral", "infusion")
 )
 }
@@ -37,6 +38,12 @@ getnca(
 \item{duration}{Infusion duration (required if \code{route = "infusion"}).}
 
 \item{nlastpoints}{Number of terminal points for slope estimation (default = 3).}
+
+\item{slope.method}{Method for estimating terminal slope (\eqn{\lambda_z}):
+\itemize{
+\item \code{"bestfitforce"} - Force estimation using decreasing number of terminal points if best-fit fails (default)
+\item \code{"bestfit"} - Use automated best-fit selection based on adjusted R-squared
+}}
 
 \item{route}{Administration route:
 \itemize{

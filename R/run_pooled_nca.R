@@ -1,9 +1,12 @@
 #' Control settings for non-compartmental analysis (NCA)
 #'
 #' @param trapezoidal_rule Integer. 1 = linear, 2 = linear-up log-down (default = 1).
-#' @param half_life Numeric or NA. Optional fixed half-life override.
 #' @param nlastpoints Integer. Number of terminal points for half-life regression.
-#'
+#' @param slope.method Method for estimating terminal slope (\eqn{\lambda_z}):
+#' \itemize{
+#'   \item \code{"bestfitforce"} - Force estimation using decreasing number of terminal points if best-fit fails (default)
+#'   \item \code{"bestfit"} - Use automated best-fit selection based on adjusted R-squared
+#' }
 #' @return A list with NCA control parameters.
 #' @export
 #' @examples
@@ -11,10 +14,12 @@
 nca_control <-
   function(trapezoidal.rule = c("linear_up_log_down", "linear"),
            duration=NULL,
-           nlastpoints = 3) {
+           nlastpoints = 3,
+           slope.method= "bestfitforce") {
     list(trapezoidal.rule = trapezoidal.rule ,
          duration = duration,
-         nlastpoints = nlastpoints)
+         nlastpoints = nlastpoints,
+         slope.method=slope.method)
   }
 
 #' Perform Non-Compartmental Analysis (NCA) on Pooled Pharmacokinetic Data
