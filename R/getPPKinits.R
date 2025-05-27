@@ -412,6 +412,10 @@ getPPKinits <- function(dat, control=initsControl()) {
   lmat <- sweep(base.out[stat_cols], 2, mins, FUN = "==")
   base.out$min_count <- rowSums(lmat, na.rm = TRUE)
 
+  if (length(stat_cols)==1){
+    base.out$metrics.rank = rank(base.out[[stat_cols]],)
+  }
+
   base.best <- base.out[which.max(base.out$min_count), ]
 
   base.ka.best <- base.best$`Calculated Ka`
@@ -437,7 +441,8 @@ getPPKinits <- function(dat, control=initsControl()) {
   if (route %in% c("bolus", "infusion")) {
     sim.vmax.km.results.all <- sim_sens_1cmpt_mm(
       dat = dat,
-      sim_vmax = list(mode = "auto", est.cl = base.cl.best),
+      # sim_vmax = list(mode = "auto", est.cl = base.cl.best),
+      sim_vmax = list(mode = "auto", est.cl = base.out[base.out$metrics.rank<=2,]$`Calculated CL`),
       sim_km   = list(mode = "auto"),
       sim_vd   = list(mode = "manual", values = base.vd.best),
       sim_ka   = list(mode = "manual", values = NA),
@@ -448,7 +453,8 @@ getPPKinits <- function(dat, control=initsControl()) {
   if (route %in% c("oral")) {
     sim.vmax.km.results.all <- sim_sens_1cmpt_mm(
       dat = dat,
-      sim_vmax = list(mode = "auto", est.cl = base.cl.best),
+      # sim_vmax = list(mode = "auto", est.cl = base.cl.best),
+      sim_vmax = list(mode = "auto", est.cl = base.out[base.out$metrics.rank<=2,]$`Calculated CL`),
       sim_km   = list(mode = "auto"),
       sim_vd   = list(mode = "manual", values = c(approx.vc.value, base.vd.best)),
       sim_ka   = list(mode = "manual", values = base.ka.best),
