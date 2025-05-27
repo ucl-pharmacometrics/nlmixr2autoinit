@@ -149,7 +149,7 @@ sim_sens_1cmpt_mm <- function(dat,
       dplyr::pull(value)
 
     # obtain the observed cmax
-    dat.obs <- dat[dat$EVID == 0, ]
+    dat.obs <- dat[dat$EVID == 0,]
     pop.cmax <- aggregate(dat.obs$DV,
                           list(dat.obs$ID),
                           FUN = max,
@@ -157,23 +157,28 @@ sim_sens_1cmpt_mm <- function(dat,
     cmax <- mean(pop.cmax$x, trim = 0.05, na.rm = T)
     km_range <- c(4, 2, 1, 0.5, 0.25, 0.125, 0.1, 0.05) * cmax
     conc_range <- c(0.05, 0.1, 0.25, 0.5, 0.75) * cmax
-    combs <- expand.grid(Km = km_range, Conc = conc_range, cl=cl_values )
+    combs <-
+      expand.grid(Km = km_range, Conc = conc_range, cl = cl_values)
     combs$Vmax <- (combs$Km + combs$Conc) * combs$cl
     param_grid <- combs %>% dplyr::select(Vmax, Km)
-   #  Filter combinations similar to each other
+    #  Filter combinations similar to each other
     keep <- rep(TRUE, nrow(param_grid))
     for (i in 1:(nrow(param_grid) - 1)) {
-      if (!keep[i]) next
+      if (!keep[i])
+        next
       for (j in (i + 1):nrow(param_grid)) {
-        if (!keep[j]) next
-        vmax_diff <- abs((param_grid$Vmax[i] - param_grid$Vmax[j]) / param_grid$Vmax[j])
-        km_diff <- abs((param_grid$Km[i] - param_grid$Km[j]) / param_grid$Km[j])
+        if (!keep[j])
+          next
+        vmax_diff <-
+          abs((param_grid$Vmax[i] - param_grid$Vmax[j]) / param_grid$Vmax[j])
+        km_diff <-
+          abs((param_grid$Km[i] - param_grid$Km[j]) / param_grid$Km[j])
         if (vmax_diff <= 0.2 && km_diff <= 0.2) {
           keep[j] <- FALSE
         }
       }
     }
-    param_grid <- param_grid[keep, ]
+    param_grid <- param_grid[keep,]
 
   } else {
     if (is.null(sim_vmax$values) || all(is.na(sim_vmax$values))) {
@@ -865,6 +870,10 @@ sim_sens_3cmpt <- function(dat,
         NA_real_
     ) %>% dplyr::select(Vc, Vp1, Vp2, Q1, Q2, CL, Ka)
   }
+
+  # k21,k31 boundary was set 5
+  param_grid <- param_grid%>%
+    dplyr::filter(Q1 / Vp1 <= 5, Q2 / Vp2 <= 5)
 
   # --- Simulations ---
   start_time <- Sys.time()
