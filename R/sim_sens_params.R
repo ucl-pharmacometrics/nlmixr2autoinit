@@ -157,9 +157,9 @@ sim_sens_1cmpt_mm <- function(dat,
     cmax <- mean(pop.cmax$x, trim = 0.05, na.rm = T)
     km_range <- c(4, 2, 1, 0.5, 0.25, 0.125, 0.1, 0.05) * cmax
     conc_range <- c(0.05, 0.1, 0.25, 0.5, 0.75) * cmax
-    combs <<- expand.grid(Km = km_range, Conc = conc_range, cl=cl_values )
-    combs$Vmax <<- (combs$Km + combs$Conc) * combs$cl
-    param_grid <<- combs %>% dplyr::select(Vmax, Km)
+    combs <- expand.grid(Km = km_range, Conc = conc_range, cl=cl_values )
+    combs$Vmax <- (combs$Km + combs$Conc) * combs$cl
+    param_grid <- combs %>% dplyr::select(Vmax, Km)
    #  Filter combinations similar to each other
     keep <- rep(TRUE, nrow(param_grid))
     for (i in 1:(nrow(param_grid) - 1)) {
