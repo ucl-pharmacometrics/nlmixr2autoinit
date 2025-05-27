@@ -406,7 +406,7 @@ sim_sens_2cmpt <- function(dat,
          call. = FALSE)
   }
 
-  # Deduplicate similar values if valus are close
+  # Deduplicate similar values if values are close
   vc_values <- na.omit(vc_values)%>%
     sort() %>%
     tibble::tibble(value = .) %>%

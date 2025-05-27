@@ -474,7 +474,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     sim.2cmpt.results.all <- sim_sens_2cmpt(
       dat = dat,
       sim_cl  = list(mode = "manual", values = base.cl.best),
-      sim_vc  = list(mode = "manual", values = c( approx.vc.value, base.vd.best)),
+      sim_vc  = list(mode = "manual", values = c( approx.vc.value, base.out[base.out$metrics.rank<=2,]$`Calculated Vd`)),
       sim_vp  = list(mode = "auto"),
       sim_q   = list(mode = "auto", auto.strategy = "scaled"),
       sim_ka  = list(mode = "manual", values = NA),
@@ -486,7 +486,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     sim.2cmpt.results.all <- sim_sens_2cmpt(
       dat = dat,
       sim_cl  = list(mode = "manual", values = base.cl.best),
-      sim_vc  = list(mode = "manual", values = c( approx.vc.value, base.vd.best)),
+      sim_vc  = list(mode = "manual", values = c(approx.vc.value, base.out[base.out$metrics.rank<=2,]$`Calculated Vd`)),
       sim_vp  = list(mode = "auto"),
       sim_q   = list(mode = "auto", auto.strategy = "scaled"),
       sim_ka  = list(mode = "manual", values = base.ka.best),
@@ -501,7 +501,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     sim.3cmpt.results.all <- sim_sens_3cmpt(
       dat = dat,
       sim_cl   = list(mode = "manual", values = base.cl.best),
-      sim_vc   = list(mode = "manual", values = c(approx.vc.value, base.vd.best)),
+      sim_vc   = list(mode = "manual", values = c(approx.vc.value, base.out[base.out$metrics.rank<=2,]$`Calculated Vd`)),
       sim_vp   = list(mode = "auto"),
       sim_vp2  = list(mode = "auto"),
       sim_q    = list(mode = "auto", auto.strategy = "scaled"),
@@ -515,7 +515,7 @@ getPPKinits <- function(dat, control=initsControl()) {
     sim.3cmpt.results.all <- sim_sens_3cmpt(
       dat = dat,
       sim_cl   = list(mode = "manual", values = base.cl.best),
-      sim_vc   = list(mode = "manual", values = c( approx.vc.value, base.vd.best)),
+      sim_vc   = list(mode = "manual", values = c(approx.vc.value, base.out[base.out$metrics.rank<=2,]$`Calculated Vd`)),
       sim_vp   = list(mode = "auto"),
       sim_vp2  = list(mode = "auto"),
       sim_q    = list(mode = "auto", auto.strategy = "scaled"),
