@@ -259,7 +259,7 @@ Fit_1cmpt_mm_iv <- function(data,
   # Return only predicted concentrations if requested
   if (return.pred.only) {
     sim_out <-
-      data.frame(cp = fit.1cmpt.mm.lst$cp, DV = fit.1cmpt.mm.lst$DV)
+      data.frame(cp = fit.1cmpt.mm.lst$cp)
     return(sim_out)
   }
 

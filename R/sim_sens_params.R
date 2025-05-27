@@ -138,7 +138,15 @@ sim_sens_1cmpt_mm <- function(dat,
       stop("Auto mode for Vmax/Km requires `sim_vmax$est.cl`.",
            call. = FALSE)
     }
-    cl <- sim_vmax$est.cl
+    cl_values<- sim_vmax$est.cl
+    # Deduplicate similar values if valus are close
+    cl_values <- na.omit(cl_values)%>%
+      sort() %>%
+      tibble::tibble(value = .) %>%
+      dplyr::mutate(prev = dplyr::lag(value),
+                    rel_diff = abs(value - prev) / prev) %>%
+      dplyr::filter(is.na(rel_diff) | rel_diff > 0.2) %>%
+      dplyr::pull(value)
 
     # obtain the observed cmax
     dat.obs <- dat[dat$EVID == 0, ]
@@ -149,9 +157,24 @@ sim_sens_1cmpt_mm <- function(dat,
     cmax <- mean(pop.cmax$x, trim = 0.05, na.rm = T)
     km_range <- c(4, 2, 1, 0.5, 0.25, 0.125, 0.1, 0.05) * cmax
     conc_range <- c(0.05, 0.1, 0.25, 0.5, 0.75) * cmax
-    combs <- expand.grid(Km = km_range, Conc = conc_range)
-    combs$Vmax <- (combs$Km + combs$Conc) * cl
-    param_grid <- combs %>% dplyr::select(Vmax, Km)
+    combs <<- expand.grid(Km = km_range, Conc = conc_range, cl=cl_values )
+    combs$Vmax <<- (combs$Km + combs$Conc) * combs$cl
+    param_grid <<- combs %>% dplyr::select(Vmax, Km)
+   #  Filter combinations similar to each other
+    keep <- rep(TRUE, nrow(param_grid))
+    for (i in 1:(nrow(param_grid) - 1)) {
+      if (!keep[i]) next
+      for (j in (i + 1):nrow(param_grid)) {
+        if (!keep[j]) next
+        vmax_diff <- abs((param_grid$Vmax[i] - param_grid$Vmax[j]) / param_grid$Vmax[j])
+        km_diff <- abs((param_grid$Km[i] - param_grid$Km[j]) / param_grid$Km[j])
+        if (vmax_diff <= 0.2 && km_diff <= 0.2) {
+          keep[j] <- FALSE
+        }
+      }
+    }
+    param_grid <- param_grid[keep, ]
+
   } else {
     if (is.null(sim_vmax$values) || all(is.na(sim_vmax$values))) {
       stop("No candidate Vmax values available for parameter sweeping.",
@@ -233,9 +256,6 @@ sim_sens_1cmpt_mm <- function(dat,
 
   return(sim.1cmpt.mm.results.all)
 }
-
-
-
 
 #' Parameter sweeping for a two-compartment pharmacokinetic model
 #'
