@@ -476,8 +476,13 @@ sim_sens_2cmpt <- function(dat,
                                   CL = sim_cl$values) %>%
       dplyr::mutate(Ka = NA_real_)
   }
+
   param_grid <- param_grid %>%
     dplyr::select(Vc, Vp, Q, CL, Ka)
+
+  # k21 boundary was set 5
+  param_grid <- param_grid%>%
+    dplyr::filter(Q / Vp <= 5)
 
   # === Begin Simulation ===
   start_time <- Sys.time()
