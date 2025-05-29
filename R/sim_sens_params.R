@@ -454,7 +454,7 @@ sim_sens_2cmpt <- function(dat,
     )
     cl_value <- sim_cl$values[1]
     if (strategy == "scaled") {
-      q_values <- c(cl_value / 2, cl_value, cl_value * 2)
+      q_values <- c(cl_value / 4, cl_value / 2, cl_value, cl_value * 2)
     } else {
       q_values <- c(1, 10, 100)
     }
@@ -802,7 +802,7 @@ sim_sens_3cmpt <- function(dat,
   q1_values <- if (sim_q$mode == "auto") {
     cl_val <- sim_cl$values[1]
     if (sim_q$auto.strategy == "scaled")
-      c(cl_val / 2, cl_val, cl_val * 2)
+      c(cl_val / 4, cl_val / 2, cl_val, cl_val * 2)
     else
       c(1, 10, 100)
   } else {
