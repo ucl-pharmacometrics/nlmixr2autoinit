@@ -416,7 +416,13 @@ getPPKinits <- function(dat, control=initsControl()) {
     base.out$metrics.rank = rank(base.out[[stat_cols]],)
   }
 
-  base.best <- base.out[which.max(base.out$min_count), ]
+  base.best <- base.out %>%
+    dplyr::arrange(
+      `Relative Root Mean Squared Error (rRMSE2)`,
+      `Mean Absolute Percentage Error (MAPE)`
+    ) %>%
+    filter(min_count == max(min_count)) %>%
+    slice(1)
 
   base.ka.best <- base.best$`Calculated Ka`
   base.cl.best <- base.best$`Calculated CL`
@@ -647,12 +653,29 @@ getPPKinits <- function(dat, control=initsControl()) {
   lmat <- sweep(sim.3cmpt.results.all[stat_cols], 2, mins, FUN = "==")
   sim.3cmpt.results.all$min_count <- rowSums(lmat, na.rm = TRUE)
 
-  recommended_mm <-
-      sim.vmax.km.results.all[which.max(sim.vmax.km.results.all$min_count), ]
-  recommended.multi1 <-
-    sim.2cmpt.results.all[which.max(sim.2cmpt.results.all$min_count), ]
-  recommended.multi2 <-
-      sim.3cmpt.results.all[which.max(sim.3cmpt.results.all$min_count), ]
+  recommended_mm <- sim.vmax.km.results.all %>%
+    arrange(
+      `Relative Root Mean Squared Error (rRMSE2)`,
+      `Mean Absolute Percentage Error (MAPE)`
+    ) %>%
+    filter(min_count == max(min_count)) %>%
+    slice(1)  # Take the first row in case of ties
+
+  recommended.multi1 <- sim.2cmpt.results.all %>%
+    arrange(
+      `Relative Root Mean Squared Error (rRMSE2)`,
+      `Mean Absolute Percentage Error (MAPE)`
+    ) %>%
+    filter(min_count == max(min_count)) %>%
+    slice(1)
+
+  recommended.multi2 <- sim.3cmpt.results.all %>%
+    arrange(
+      `Relative Root Mean Squared Error (rRMSE2)`,
+      `Mean Absolute Percentage Error (MAPE)`
+    ) %>%
+    filter(min_count == max(min_count)) %>%
+    slice(1)
 
   recommended_vmax_init <- recommended_mm$`Simulated Vmax`
   recommended_km_init <- recommended_mm$`Simulated Km`
