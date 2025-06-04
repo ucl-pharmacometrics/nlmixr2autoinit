@@ -938,8 +938,8 @@ getPPKinits <- function(dat, control=initsControl()) {
     graph.out =   graph_out,
     sim.vmax.km = sim.vmax.km.results.all,
     sim.2cmpt = sim.2cmpt.results.all,
-    sim.3cmpt = sim.3cmpt.results.all
-
+    sim.3cmpt = sim.3cmpt.results.all,
+    sigma.out = sigma.out
   )
 
   params.descriptions <- c(
