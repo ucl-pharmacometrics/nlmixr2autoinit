@@ -12,7 +12,7 @@ library(nlmixr2autoinit)
 inits.out<-getPPKinits(dat = Bolus_1CPT)
 # Infometrics                               Value          
 # ----------------------------------------  ---------------
-#   Dose Route                                bolus          
+#  Dose Route                                bolus          
 # Dose Type                                 combined_doses 
 # Total Number of Subjects                  120            
 # Total Number of Observations              6951           
@@ -21,7 +21,7 @@ inits.out<-getPPKinits(dat = Bolus_1CPT)
 # Subjects with Multiple-Dose Data          120            
 # Observations after Multiple Doses         4675           
 # ----------------------------------------  ------
-#   Estimating half-life....................
+# Estimating half-life....................
 # Half-life estimation complete: Estimated t½ = 11.26 h
 # Evaluating the predictive performance of calculated one-compartment model parameters....................
 # (hybrid mode: parameters combined across sources)....................
@@ -51,7 +51,7 @@ inits.out<-getPPKinits(dat = Bolus_1CPT)
 # 15 Sigma proportional           Model-based     0.114
 # 
 # Time spent :
-#   [1] "53.291s"
+# [1] "53.291s"
 # 
 # ETA variances and derived covariances:
 #   Parameters                  Methods Values
@@ -82,7 +82,7 @@ inits.out<-getPPKinits(dat = Bolus_1CPT)
 # 25    cor.eta_q_q2 eta_corr_derived (r=0.1)   0.01
 # 
 # Parameter descriptions:
-#   [1] "Ka: absorption constant rate"                                                       
+# [1] "Ka: absorption constant rate"                                                       
 # [2] "CL: clearance"                                                                      
 # [3] "Vd: volumn of distribution"                                                         
 # [4] "Vmax: maximum metobolic rate"                                                       
@@ -143,7 +143,7 @@ inits.out<-getPPKinits(dat = Oral_1CPT)
 # 15 Sigma proportional        Model-based     0.105
 # 
 # Time spent :
-#   [1] "39.635s"
+# [1] "39.635s"
 # 
 # ETA variances and derived covariances:
 #   Parameters                  Methods Values
@@ -174,7 +174,7 @@ inits.out<-getPPKinits(dat = Oral_1CPT)
 # 25    cor.eta_q_q2 eta_corr_derived (r=0.1)   0.01
 # 
 # Parameter descriptions:
-#   [1] "Ka: absorption constant rate"                                                       
+# [1] "Ka: absorption constant rate"                                                       
 # [2] "CL: clearance"                                                                      
 # [3] "Vd: volumn of distribution"                                                         
 # [4] "Vmax: maximum metobolic rate"                                                       
