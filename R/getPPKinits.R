@@ -103,6 +103,23 @@ getPPKinits <- function(dat, control=initsControl()) {
   dat <- dat %>%
     dplyr::mutate(ID = ID + (resetflag - 1) * max(dat$ID, na.rm = TRUE))
 
+  # Adjusting CMT column name for internal model calculation
+  if (route == "oral") {
+    # Define expected CMT based on EVID
+    expected_cmt <- ifelse(dat$EVID == 1, "depot",
+                           ifelse(dat$EVID == 0, "centre", dat$CMT))
+
+    # Check if any value is different
+    if (any(dat$CMT != expected_cmt)) {
+      dat$CMT <- expected_cmt
+    }
+  } else {
+    # For bolus or infusion: all CMT should be "centre"
+    if (any(dat$CMT != "centre")) {
+      dat$CMT <- "centre"
+    }
+  }
+
   # obtain the pooled data
   pooled_data <- get_pooled_data(dat,
                                  dose_type,
