@@ -453,7 +453,7 @@ getPPKinits <- function(dat, control=initsControl()) {
                      `Mean Absolute Percentage Error (MAPE)`) %>%
       dplyr::filter(min_count == max(min_count)) %>%
       dplyr::slice(1)
-
+  }
   base.ka.best <- base.best$`Calculated Ka`
   base.cl.best <- base.best$`Calculated CL`
   base.vd.best <- base.best$`Calculated Vd`
