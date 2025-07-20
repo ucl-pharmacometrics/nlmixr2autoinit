@@ -441,6 +441,19 @@ getPPKinits <- function(dat, control=initsControl()) {
     dplyr::filter(min_count == max(min_count)) %>%
     dplyr::slice(1)
 
+  # Defensive check: if selected model has rRMSE1 > 10x the global minimum, fallback to rRMSE1 + MAPE
+  rRMSE1_selected <-
+    base.best$`Relative Root Mean Squared Error (rRMSE1)`
+  rRMSE1_min <-
+    min(base.out$`Relative Root Mean Squared Error (rRMSE1)`, na.rm = TRUE)
+
+  if (rRMSE1_selected > 10 * rRMSE1_min) {
+    base.best <- base.out %>%
+      dplyr::arrange(`Relative Root Mean Squared Error (rRMSE1)`,
+                     `Mean Absolute Percentage Error (MAPE)`) %>%
+      dplyr::filter(min_count == max(min_count)) %>%
+      dplyr::slice(1)
+
   base.ka.best <- base.best$`Calculated Ka`
   base.cl.best <- base.best$`Calculated CL`
   base.vd.best <- base.best$`Calculated Vd`
