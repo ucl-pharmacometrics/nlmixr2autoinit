@@ -447,13 +447,27 @@ getPPKinits <- function(dat, control=initsControl()) {
   rRMSE1_min <-
     min(base.out$`Relative Root Mean Squared Error (rRMSE1)`, na.rm = TRUE)
 
-  if (rRMSE1_selected > 10 * rRMSE1_min) {
+  # Only apply defensive fallback when rRMSE2 is the only selected metric
+  if (identical(selmetrics, "rRMSE2") &&
+      rRMSE1_selected > 10 * rRMSE1_min) {
+    # Define fallback metric set
+    fallback_metrics <- c("Relative Root Mean Squared Error (rRMSE1)")
+
+    # Recalculate min_count using fallback metrics
+    fallback_mins <-
+      sapply(base.out[fallback_metrics], min, na.rm = TRUE)
+    fallback_lmat <-
+      sweep(base.out[fallback_metrics], 2, fallback_mins, FUN = "==")
+    base.out$min_count <- rowSums(fallback_lmat, na.rm = TRUE)
+
+    # Re-select best model using fallback metrics
     base.best <- base.out %>%
       dplyr::arrange(`Relative Root Mean Squared Error (rRMSE1)`,
                      `Mean Absolute Percentage Error (MAPE)`) %>%
       dplyr::filter(min_count == max(min_count)) %>%
       dplyr::slice(1)
   }
+
   base.ka.best <- base.best$`Calculated Ka`
   base.cl.best <- base.best$`Calculated CL`
   base.vd.best <- base.best$`Calculated Vd`
