@@ -487,7 +487,7 @@ sim_sens_2cmpt <- function(dat,
 
   # k21 boundary was set (0.01,5)
   param_grid <- param_grid%>%
-    dplyr::filter(Q / Vp <= 5, Q/Vp >0.01)
+    dplyr::filter(Q / Vp <= 5, Q/Vp >0.001)
 
   # === Begin Simulation ===
   start_time <- Sys.time()
@@ -873,7 +873,7 @@ sim_sens_3cmpt <- function(dat,
 
   # k21,k31 boundary was set (0.01,5)
   param_grid <- param_grid%>%
-    dplyr::filter(Q1 / Vp1 <= 5, Q2 / Vp2 <= 5, Q1/Vp1 >0.01, Q1/Vp2>0.01)
+    dplyr::filter(Q1 / Vp1 <= 5, Q2 / Vp2 <= 5, Q1/Vp1 >0.001, Q1/Vp2>0.001)
 
   # --- Simulations ---
   start_time <- Sys.time()
