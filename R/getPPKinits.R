@@ -488,6 +488,13 @@ getPPKinits <- function(dat, control=initsControl()) {
 
   approx.vc.value <- sp_result$approx.vc.out$approx.vc.value
 
+  # defensive fallback
+  if (is.na(approx.vc.value)) {
+    approx.vc.value <-
+      c(signif(base.out[base.out$metrics.rank == 1, ]$`Calculated Vd` / 5, 3),
+        signif(base.out[base.out$metrics.rank == 1, ]$`Calculated Vd` / 10, 3))
+  }
+
   if (route %in% c("bolus", "infusion")) {
     sim.vmax.km.results.all <- sim_sens_1cmpt_mm(
       dat = dat,
