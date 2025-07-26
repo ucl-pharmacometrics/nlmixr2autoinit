@@ -11,7 +11,7 @@ nmpkconvert <- function(dat) {
   # Extract the dose and concentration
   dat.dose <- dat[dat$EVID %in% c(1, 101, 4),]
   dat.conc <- dat[dat$EVID == 0,]
-  rownames(dat.dose) <- suppressWarnings(suppressMessages(seq(1, nrow(dat.dose), 1)))
+  suppressWarnings(suppressMessages(rownames(dat.dose) <- seq(1, nrow(dat.dose), 1)))
   # Identify rows with ADDL > 0, output as logical vector
   addl_rows <- dat.dose$ADDL > 0
   # Expand rows where ADDL > 0
