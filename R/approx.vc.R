@@ -134,7 +134,6 @@ approx.vc <- function(dat = NULL,
 
   if (any(dat$EVID == 0 & dat$dose_number == 1, na.rm = TRUE)) {
     datobs_fd <- dat[dat$EVID == 0 & dat$dose_number == 1,]
-
     cmax_by_group_sd <- datobs_fd %>%
       dplyr::group_by(ID, dose_number) %>%
       dplyr::slice_max(order_by = DV, with_ties = FALSE) %>%
@@ -150,16 +149,22 @@ approx.vc <- function(dat = NULL,
             cmax_by_group_sd$rateobs / cmax_by_group_sd$DV,
           3
         )
+    } else if (route == "bolus") {
+      cmax_by_group_sd$vd <-
+        signif(cmax_by_group_sd$dose / cmax_by_group_sd$DV, 3)
+    } else if (route == "oral") {
+      # Compute absorbed fraction: F = 1 - exp(-Ka * t)
+      ka_val <- 1.0 # assumed
+      absorbed_frac <- 1 - exp(-ka_val * cmax_by_group_sd$TIME)
+      cmax_by_group_sd$vd <-
+        signif((cmax_by_group_sd$dose * absorbed_frac) / cmax_by_group_sd$DV,
+               3)
     }
-    cmax_by_group_sd$vd <-
-      signif(cmax_by_group_sd$dose / cmax_by_group_sd$DV, 3)
   }
 
   # Accumulation ratio was borrowed to approximately estimate the Cmax after single dose
   if (length(single_point_base.lst$cl_df) > 1) {
-
     dat.ss.obs <- single_point_base.lst$cl_df
-
     dat.ss.obs$Rac <-
       1 / (1 - exp(-(log(2) / half_life) * dat.ss.obs$dose_interval))
 
@@ -170,19 +175,27 @@ approx.vc <- function(dat = NULL,
 
     cmax_by_group_md <-
       cmax_by_group_md[cmax_by_group_md$tad < half_life * 0.2, ]
-
     if (route == "infusion") {
       cmax_by_group_md$vd <- signif(
-        pmin(cmax_by_group_md$TIME, cmax_by_group_md$durationobs) *
+        pmin(cmax_by_group_md$tad, cmax_by_group_md$durationobs) *
           cmax_by_group_md$rateobs /
           (cmax_by_group_md$DV / cmax_by_group_md$Rac),
         3
       )
+    } else if (route == "bolus") {
+      cmax_by_group_md$vd <-
+        signif(cmax_by_group_md$dose /
+                 (cmax_by_group_md$DV / cmax_by_group_md$Rac),
+               3)
+    } else if (route == "oral") {
+      ka_val <- 1.0 # assumed
+      absorbed_frac <- 1 - exp(-ka_val * cmax_by_group_md$tad)
+      cmax_by_group_md$vd <- signif(
+        (cmax_by_group_md$dose * absorbed_frac) /
+          (cmax_by_group_md$DV / cmax_by_group_md$Rac),
+        3
+      )
     }
-
-    cmax_by_group_md$vd <-
-      signif(cmax_by_group_md$dose /
-               (cmax_by_group_md$DV / cmax_by_group_md$Rac),3)
   }
 
   cmax_by_group <- rbind(
