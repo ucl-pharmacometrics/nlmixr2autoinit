@@ -490,9 +490,9 @@ getPPKinits <- function(dat, control=initsControl()) {
 
   # defensive fallback
   if (is.na(approx.vc.value)) {
-    approx.vc.value <-
-      c(signif(base.out[base.out$metrics.rank == 1, ]$`Calculated Vd` / 5, 3),
-        signif(base.out[base.out$metrics.rank == 1, ]$`Calculated Vd` / 10, 3))
+    approx.vc.value <-suppressWarnings(c(signif(base.out[base.out$metrics.rank == 1, ]$`Calculated Vd` / 5, 3),
+        signif(base.out[base.out$metrics.rank == 1, ]$`Calculated Vd` / 10, 3)))
+
   }
 
   if (route %in% c("bolus", "infusion")) {
