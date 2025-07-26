@@ -91,6 +91,7 @@ run_single_point_extra <- function(dat = NULL,
   # obtain volume of distribution through cmax
   approx.vc.out <- approx.vc(
     dat = dat,
+    route = route,
     single_point_base.lst = single_point_base.lst,
     half_life = half_life
   )
