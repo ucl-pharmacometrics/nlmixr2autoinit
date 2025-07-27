@@ -468,6 +468,30 @@ getPPKinits <- function(dat, control=initsControl()) {
       dplyr::slice(1)
   }
 
+  # Prefer NCA
+  if (identical(selmetrics, "rRMSE2")) {
+    rrmse2_best <- base.out %>%
+      dplyr::arrange(`Relative Root Mean Squared Error (rRMSE2)`) %>%
+      dplyr::slice(1)
+
+    if (!(tolower(rrmse2_best$`CL Method`) == "nca" &&
+          tolower(rrmse2_best$`Vd Method`) == "nca")) {
+
+      nca_candidates <- base.out %>%
+        dplyr::filter(tolower(`CL Method`) == "nca" &
+                        tolower(`Vd Method`) == "nca")
+
+      nca_better <- nca_candidates %>%
+        dplyr::filter(
+          `Relative Root Mean Squared Error (rRMSE1)` < rrmse2_best$`Relative Root Mean Squared Error (rRMSE1)`
+        )
+      if (nrow(nca_better) > 0) {
+        base.best <- nca_better %>%
+          dplyr::arrange(`Relative Root Mean Squared Error (rRMSE1)`) %>%
+          dplyr::slice(1)
+      }
+    }
+  }
   base.ka.best <- base.best$`Calculated Ka`
   base.cl.best <- base.best$`Calculated CL`
   base.vd.best <- base.best$`Calculated Vd`
