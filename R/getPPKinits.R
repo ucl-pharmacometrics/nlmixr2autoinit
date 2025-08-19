@@ -1,6 +1,6 @@
 #' Automated Pipeline for Initial Estimates in Population Pharmacokinetic Modeling
 #'
-#' This function provides a comprehensive and automated framework to generate initial parameter estimates
+#' Provides a comprehensive and automated framework to generate initial parameter estimates
 #' for population pharmacokinetic (PK) models. It implements a non-iterative, model-informed strategy,
 #' incorporating naive pooled non-compartmental analysis (NCA), graphical residual-based estimation,
 #' adaptive single-point heuristics, and parameter sweeping for nonlinear and multi-compartmental models.
@@ -18,6 +18,12 @@
 #'   - `ss.control`: Controls for steady-state or single-sample estimation methods (see `ss_control()`).
 #'   - `fallback.control`: Rules for applying fallback mechanisms when primary estimation methods fail or return invalid values, including options for fixed `ka` values and sigma fallback strategies (see `fallback_control()`).
 #'   - `selmetrics`: A character vector specifying model selection metrics used to evaluate parameter performance. Valid choices include "APE", "MAE", "MAPE", "RMSE", "rRMSE1", and "rRMSE2".
+#'   - `hybrid.base`: Logical. If `TRUE`, enables hybrid evaluation mode, where model performance is assessed using
+#'     mixed parameter combinations across methods (e.g., combining `ka` from NCA, `cl` from graphical methods, and `vd` from steady-state).
+#'     If `FALSE`, evaluation is performed separately within each estimation method. Default is `TRUE`.
+#'   - `preferNCA`: Logical. If `TRUE` and `selmetrics == "rRMSE2"`, the function first selects the best method by rRMSE2.
+#'     If that method is not NCA-based, it then checks whether a purely NCA-based method exists with a lower rRMSE1.
+#'     If so, the NCA method will be chosen instead. This expresses a preference for NCA methods without enforcing them. Default is `TRUE`.
 #'
 #' @return An environment of class `getPPKinits`, containing:
 #' \itemize{
@@ -86,6 +92,7 @@ getPPKinits <- function(dat, control=initsControl()) {
   .fbctrl        <- control$fallback.control
    selmetrics    <- control$selmetrics
    hybrid.base   <- control$hybrid.base
+   preferNCA     <- control$preferNCA
 
   ################# 1. Data preprocessing #################
   # Record start time
@@ -469,7 +476,8 @@ getPPKinits <- function(dat, control=initsControl()) {
   }
 
   # Prefer NCA
-  if (identical(selmetrics, "rRMSE2")) {
+  if (preferNCA) {
+    if (identical(selmetrics, "rRMSE2")) {
     rrmse2_best <- base.out %>%
       dplyr::arrange(`Relative Root Mean Squared Error (rRMSE2)`) %>%
       dplyr::slice(1)
@@ -495,6 +503,8 @@ getPPKinits <- function(dat, control=initsControl()) {
       }
     }
   }
+  }
+
   base.ka.best <- base.best$`Calculated Ka`
   base.cl.best <- base.best$`Calculated CL`
   base.vd.best <- base.best$`Calculated Vd`

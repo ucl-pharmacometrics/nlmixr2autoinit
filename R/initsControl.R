@@ -41,6 +41,13 @@ fallback_control <- function(enable_ka_fallback = FALSE,
 #' separately for each parameter estimation method (e.g., using only \code{simpcal},
 #' only \code{nca}, etc.). This allows more flexible exploration of parameter set
 #' synergies across estimation strategies. Default is \code{TRUE}.
+#' @param preferNCA Logical.
+#' If \code{TRUE} and \code{selmetrics == "rRMSE2"}, the function will first
+#' select the best method by the lowest rRMSE2. If that method is not NCA-based,
+#' it will then check whether a purely NCA-based method exists with a lower
+#' rRMSE1 than the rRMSE2-best method. If such a candidate exists, the NCA
+#' method will be selected instead. This option expresses a preference for NCA
+#' methods without enforcing them. Default is \code{TRUE}.
 #'
 #' @return A named list combining all control modules.
 #' @export
@@ -57,14 +64,16 @@ initsControl <- function(ss.control = ss_control(),
                          nca.control = nca_control(),
                          fallback.control = fallback_control(),
                          selmetrics= "rRMSE2",
-                         hybrid.base= TRUE) {
+                         hybrid.base = TRUE,
+                         preferNCA=TRUE) {
   list(
     ss.control = ss.control,
     pooled.control = pooled.control,
     nca.control = nca.control,
     fallback.control = fallback.control,
     selmetrics= selmetrics,
-    hybrid.base =hybrid.base
+    hybrid.base =hybrid.base,
+    preferNCA=preferNCA
   )
 }
 
