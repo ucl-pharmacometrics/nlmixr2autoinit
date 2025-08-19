@@ -17,6 +17,12 @@ getPPKinits(dat, control = initsControl())
 \item \code{ss.control}: Controls for steady-state or single-sample estimation methods (see \code{ss_control()}).
 \item \code{fallback.control}: Rules for applying fallback mechanisms when primary estimation methods fail or return invalid values, including options for fixed \code{ka} values and sigma fallback strategies (see \code{fallback_control()}).
 \item \code{selmetrics}: A character vector specifying model selection metrics used to evaluate parameter performance. Valid choices include "APE", "MAE", "MAPE", "RMSE", "rRMSE1", and "rRMSE2".
+\item \code{hybrid.base}: Logical. If \code{TRUE}, enables hybrid evaluation mode, where model performance is assessed using
+mixed parameter combinations across methods (e.g., combining \code{ka} from NCA, \code{cl} from graphical methods, and \code{vd} from steady-state).
+If \code{FALSE}, evaluation is performed separately within each estimation method. Default is \code{TRUE}.
+\item \code{preferNCA}: Logical. If \code{TRUE} and \code{selmetrics == "rRMSE2"}, the function first selects the best method by rRMSE2.
+If that method is not NCA-based, it then checks whether a purely NCA-based method exists with a lower rRMSE1.
+If so, the NCA method will be chosen instead. This expresses a preference for NCA methods without enforcing them. Default is \code{TRUE}.
 }}
 }
 \value{
@@ -34,7 +40,7 @@ An environment of class \code{getPPKinits}, containing:
 }
 }
 \description{
-This function provides a comprehensive and automated framework to generate initial parameter estimates
+Provides a comprehensive and automated framework to generate initial parameter estimates
 for population pharmacokinetic (PK) models. It implements a non-iterative, model-informed strategy,
 incorporating naive pooled non-compartmental analysis (NCA), graphical residual-based estimation,
 adaptive single-point heuristics, and parameter sweeping for nonlinear and multi-compartmental models.
