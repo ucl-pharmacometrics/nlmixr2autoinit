@@ -1,91 +1,69 @@
-#' Approximate volume of distribution based on Cmax
+#' Approximate volume of distribution from observed Cmax
 #'
-#' Approximates the volume of distribution (\eqn{V_d}) using observed \eqn{C_{\mathrm{max}}} values.
-#' The calculation assumes rapid absorption (\eqn{k_a \gg k_e}), meaning that \eqn{C_{\mathrm{max}}} occurs shortly after dosing, before significant elimination has taken place.
-#' To ensure this assumption, \eqn{C_{\mathrm{max}}} points are filtered to those occurring within \eqn{0.2 \cdot \mathrm{half-life}}, a time window where elimination is minimal.
+#' Estimates the volume of distribution (\eqn{V_d}) from observed peak
+#' concentrations (\eqn{C_{\mathrm{max}}}) in single- or multiple-dose data.
 #'
-#' @param dat A data frame containing pharmacokinetic data, including observed concentrations (\code{DV}), time after dose (\code{tad}), dose, and route information.
-#' @param half_life The half-life of the drug, used to filter \eqn{C_{\mathrm{max}}} points to the early phase of elimination.
-#' @param route The route of administration, either `"bolus"` (default) or `"infusion"`. Determines the formula for \(V_d\) calculation.
-#' @return The trimmed geometric mean of the approximated \(V_d\), calculated across individuals.
+#' @param dat A data frame containing pharmacokinetic data, including observed
+#' concentrations (\code{DV}), time after dose (\code{tad}), dose, and route information.
+#' @param half_life The elimination half-life of the compound, used to identify
+#' early-phase \eqn{C_{\mathrm{max}}} values.
+#' @param single_point_base.lst Optional list object returned by
+#' \code{\link{run_single_point_base}()}. If not supplied, it will be generated
+#' internally from \code{dat}.
+#' @param route Route of administration. One of \code{"bolus"}, \code{"oral"},
+#' or \code{"infusion"} (default = \code{"bolus"}).
+#' @param dose_type Optional string specifying the dosing type, passed to
+#' \code{\link{run_single_point_base}()}.
+#' @param pooled_ctrl Control object created by \code{\link{pooled_control}()},
+#' defining data pooling options.
+#' @param ssctrl Control object created by \code{\link{ss_control}()},
+#' defining steady-state control options.
+#'
+#' @return A list containing:
+#' \describe{
+#'   \item{approx.vc.value}{The trimmed geometric mean (\eqn{5\%}) of individual \eqn{V_d} estimates.}
+#'   \item{approx.vc.dat}{Combined data frame of individual \eqn{V_d} estimates across doses.}
+#'   \item{approx.vc.dat.sd}{Filtered single-dose subset used for estimation.}
+#'   \item{approx.vc.dat.md}{Filtered multiple-dose subset used for estimation.}
+#' }
+#'
 #' @details
-#' - **Rapid Absorption Assumption:**
-#'   When \eqn{k_a \gg k_e}, most of the absorption is completed before elimination significantly impacts the drug concentration. Under this assumption, \eqn{C_{\mathrm{max}}} is dominated by absorption rather than elimination.
+#' The function estimates the apparent volume of distribution (\eqn{V_d})
+#' from observed \eqn{C_{\mathrm{max}}} values for each subject and dose.
 #'
-#' - **Why \eqn{0.2 \cdot \mathrm{half-life}}:**
-#'   - At \eqn{0.2 \cdot \mathrm{half-life}}, less than 13% of the drug is eliminated. This is derived from the intravenous (IV) exponential decay model:
-#'     \deqn{\mathrm{Elimination\ Fraction} = 1 - e^{-k_e \cdot t}}
-#'     Substituting \eqn{t = 0.2 \cdot \mathrm{half-life}} and \eqn{k_e = \ln(2) / \mathrm{half-life}}:
-#'     \deqn{\mathrm{Elimination\ Fraction} = 1 - e^{-\ln(2) \cdot 0.2} \approx 0.13}
-#'     This ensures the selected \eqn{C_{\mathrm{max}}} points primarily reflect absorption dynamics.
+#' The calculation is route-dependent:
+#' \itemize{
+#'   \item \strong{Bolus:} \eqn{V_d = \mathrm{Dose} / C_{\mathrm{max}}}
+#'   \item \strong{Infusion:} \eqn{V_d = (\mathrm{Rate} \times t_{\mathrm{inf}}) / C_{\mathrm{max}}}
+#'   \item \strong{Oral:} \eqn{V_d = (\mathrm{Dose} \times F) / C_{\mathrm{max}}}, with \eqn{F = 1 - e^{-k_a t}}
+#' }
 #'
-#' - **Data Filtering:**
-#'   - Observed data (\code{EVID == 0}) is grouped by \code{ID} and \code{dose_number}.
-#'   - The \eqn{C_{\mathrm{max}}} for each group is identified and further filtered to include only points where \eqn{tad < 0.2 \cdot \mathrm{half-life}}.
+#' For multiple-dose data, steady-state concentrations are corrected to
+#' single-dose equivalents using the accumulation ratio:
+#' \deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \tau}}}
+#' where \eqn{k_e = \ln(2)/t_{1/2}} and \eqn{\tau} is the dosing interval.
 #'
-#' - **Volume of Distribution Calculation (single-dose):**
-#'   - For bolus administration:
-#'     \deqn{V_d = \frac{\mathrm{Dose}}{C_{\mathrm{max}}}}
-#'   - For infusion:
-#'     \deqn{V_d = \frac{\mathrm{Rate} \cdot \min(\mathrm{Time}, \mathrm{Duration})}{C_{\mathrm{max}}}}
+#' Individual \eqn{V_d} estimates are summarized using a trimmed geometric mean
+#' (\code{\link{trimmed_geom_mean}()}) to provide a robust estimate across subjects.
 #'
-#' - **Summary of \eqn{V_d} values:**
-#'   - Individual \eqn{V_d} values are summarized using a trimmed geometric mean (\eqn{10\%}) to reduce the impact of outliers.
+#' @importFrom dplyr group_by slice_max ungroup
 #'
-#' - **Accumulation Ratio (\eqn{R_{\mathrm{ac}}}):**
-#'   - For multiple-dose scenarios, the accumulation ratio is calculated as:
-#'     \deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \cdot \tau}}}
-#'     where:
-#'       - \eqn{k_e = \frac{\ln(2)}{\mathrm{half-life}}} is the elimination rate constant.
-#'       - \eqn{\tau} is the dosing interval (\code{dose_interval}).
-#'   - The accumulation ratio represents the steady-state concentration relative to the single-dose concentration.
-#'
-#' - **Volume of Distribution Calculation (multiple-dose):**
-#'   - For infusion routes:
-#'     \deqn{V_d = \frac{\mathrm{Rate} \cdot \min(\mathrm{Time}, \mathrm{Duration})}{C_{\mathrm{max}} / R_{\mathrm{ac}}}}
-#'       - \eqn{\mathrm{Rate}} is the infusion rate.
-#'       - \eqn{\min(\mathrm{Time}, \mathrm{Duration})} represents the shorter of infusion time or observation time.
-#'       - \eqn{C_{\mathrm{max}} / R_{\mathrm{ac}}} adjusts the observed concentration to reflect single-dose dynamics.
-#'   - For bolus or other routes:
-#'     \deqn{V_d = \frac{\mathrm{Dose}}{C_{\mathrm{max}} / R_{\mathrm{ac}}}}
-#'       - \eqn{\mathrm{Dose}} is the administered dose.
-#'
+#' @seealso
+#' \code{\link{run_single_point_base}}, \code{\link{trimmed_geom_mean}},
+#' \code{\link{pooled_control}}, \code{\link{ss_control}}
 #'
 #' @examples
 #' \dontrun{
-#' # Example 1: Bolus administration
-#' dat<-Bolus_2CPT
+#' dat <- Bolus_1CPT
 #' out <- processData(dat)
-#' fdat<- out$dat
-#' froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
+#' fdat <- out$dat
+#' froute <- out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
 #' half_life <- get_hf(dat = fdat)$half_life_median
-#' approx.vc(dat=fdat,half_life = half_life,route=froute)
-#'
-#' # Example 2: Oral administration
-#' dat<-Oral_2CPT
-#' out <- processData(dat)
-#' fdat<- out$dat
-#' froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-#' half_life <- get_hf(dat = fdat)$half_life_median
-#' approx.vc(dat=fdat,half_life = half_life,route=froute)
-#'
-#' # Example 3: Theno_sd
-#' dat<-theo_sd
-#' out <- processData(dat)
-#' fdat<- out$dat
-#' froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-#' half_life <- get_hf(dat = fdat)$half_life_median
-#' approx.vc(dat=fdat,half_life = half_life,route=froute)
-#'
-#' # Example 3: Theno_md
-#' dat<-theo_md
-#' out <- processData(dat)
-#' fdat<- out$dat
-#' froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-#' half_life <- get_hf(dat = fdat)$half_life_median
-#' approx.vc(dat=fdat,half_life = half_life,route=froute)
+#' res <- approx.vc(dat = fdat, half_life = half_life, route = froute)
+#' res$approx.vc.value
 #' }
 #' @export
+
 
 approx.vc <- function(dat = NULL,
                       half_life = NULL,
@@ -94,7 +72,6 @@ approx.vc <- function(dat = NULL,
                       dose_type = NULL,
                       pooled_ctrl = pooled_control(),
                       ssctrl = ss_control()) {
-
   # Ensure half-life is provided
   if (is.null(half_life)) {
     stop("No half-life provided for approximate volume of distribution calculation.")
@@ -107,8 +84,11 @@ approx.vc <- function(dat = NULL,
       stop(sprintf(
         "Invalid `route`: '%s'. Must be one of: %s.",
         as.character(route),
-        paste(shQuote(c("bolus", "oral", "infusion")), collapse = ", ")
-      ), call. = FALSE)
+        paste(shQuote(c(
+          "bolus", "oral", "infusion"
+        )), collapse = ", ")
+      ),
+      call. = FALSE)
     }
   )
 
@@ -133,14 +113,14 @@ approx.vc <- function(dat = NULL,
   approx.vc.value <- NA
 
   if (any(dat$EVID == 0 & dat$dose_number == 1, na.rm = TRUE)) {
-    datobs_fd <- dat[dat$EVID == 0 & dat$dose_number == 1,]
+    datobs_fd <- dat[dat$EVID == 0 & dat$dose_number == 1, ]
     cmax_by_group_sd <- datobs_fd %>%
       dplyr::group_by(ID, dose_number) %>%
       dplyr::slice_max(order_by = DV, with_ties = FALSE) %>%
       dplyr::ungroup()
 
     cmax_by_group_sd <-
-      cmax_by_group_sd[cmax_by_group_sd$tad < half_life * 0.2,]
+      cmax_by_group_sd[cmax_by_group_sd$tad < half_life * 0.2, ]
 
     if (route == "infusion") {
       cmax_by_group_sd$vd <-
@@ -174,7 +154,7 @@ approx.vc <- function(dat = NULL,
       dplyr::ungroup()
 
     cmax_by_group_md <-
-      cmax_by_group_md[cmax_by_group_md$tad < half_life * 0.2, ]
+      cmax_by_group_md[cmax_by_group_md$tad < half_life * 0.2,]
     if (route == "infusion") {
       cmax_by_group_md$vd <- signif(
         pmin(cmax_by_group_md$tad, cmax_by_group_md$durationobs) *
