@@ -2,7 +2,7 @@
 % Please edit documentation in R/approx.vc.R
 \name{approx.vc}
 \alias{approx.vc}
-\title{Approximate volume of distribution based on Cmax}
+\title{Approximate volume of distribution from observed Cmax}
 \usage{
 approx.vc(
   dat = NULL,
@@ -15,108 +15,72 @@ approx.vc(
 )
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data, including observed concentrations (\code{DV}), time after dose (\code{tad}), dose, and route information.}
+\item{dat}{A data frame containing pharmacokinetic data, including observed
+concentrations (\code{DV}), time after dose (\code{tad}), dose, and route information.}
 
-\item{half_life}{The half-life of the drug, used to filter \eqn{C_{\mathrm{max}}} points to the early phase of elimination.}
+\item{half_life}{The elimination half-life of the compound, used to identify
+early-phase \eqn{C_{\mathrm{max}}} values.}
 
-\item{route}{The route of administration, either \code{"bolus"} (default) or \code{"infusion"}. Determines the formula for \(V_d\) calculation.}
+\item{single_point_base.lst}{Optional list object returned by
+\code{\link{run_single_point_base}()}. If not supplied, it will be generated
+internally from \code{dat}.}
+
+\item{route}{Route of administration. One of \code{"bolus"}, \code{"oral"},
+or \code{"infusion"} (default = \code{"bolus"}).}
+
+\item{dose_type}{Optional string specifying the dosing type, passed to
+\code{\link{run_single_point_base}()}.}
+
+\item{pooled_ctrl}{Control object created by \code{\link{pooled_control}()},
+defining data pooling options.}
+
+\item{ssctrl}{Control object created by \code{\link{ss_control}()},
+defining steady-state control options.}
 }
 \value{
-The trimmed geometric mean of the approximated \(V_d\), calculated across individuals.
+A list containing:
+\describe{
+\item{approx.vc.value}{The trimmed geometric mean (\eqn{5\%}) of individual \eqn{V_d} estimates.}
+\item{approx.vc.dat}{Combined data frame of individual \eqn{V_d} estimates across doses.}
+\item{approx.vc.dat.sd}{Filtered single-dose subset used for estimation.}
+\item{approx.vc.dat.md}{Filtered multiple-dose subset used for estimation.}
+}
 }
 \description{
-Approximates the volume of distribution (\eqn{V_d}) using observed \eqn{C_{\mathrm{max}}} values.
-The calculation assumes rapid absorption (\eqn{k_a \gg k_e}), meaning that \eqn{C_{\mathrm{max}}} occurs shortly after dosing, before significant elimination has taken place.
-To ensure this assumption, \eqn{C_{\mathrm{max}}} points are filtered to those occurring within \eqn{0.2 \cdot \mathrm{half-life}}, a time window where elimination is minimal.
+Estimates the volume of distribution (\eqn{V_d}) from observed peak
+concentrations (\eqn{C_{\mathrm{max}}}) in single- or multiple-dose data.
 }
 \details{
+The function estimates the apparent volume of distribution (\eqn{V_d})
+from observed \eqn{C_{\mathrm{max}}} values for each subject and dose.
+
+The calculation is route-dependent:
 \itemize{
-\item \strong{Rapid Absorption Assumption:}
-When \eqn{k_a \gg k_e}, most of the absorption is completed before elimination significantly impacts the drug concentration. Under this assumption, \eqn{C_{\mathrm{max}}} is dominated by absorption rather than elimination.
-\item \strong{Why \eqn{0.2 \cdot \mathrm{half-life}}:}
-\itemize{
-\item At \eqn{0.2 \cdot \mathrm{half-life}}, less than 13\% of the drug is eliminated. This is derived from the intravenous (IV) exponential decay model:
-\deqn{\mathrm{Elimination\ Fraction} = 1 - e^{-k_e \cdot t}}
-Substituting \eqn{t = 0.2 \cdot \mathrm{half-life}} and \eqn{k_e = \ln(2) / \mathrm{half-life}}:
-\deqn{\mathrm{Elimination\ Fraction} = 1 - e^{-\ln(2) \cdot 0.2} \approx 0.13}
-This ensures the selected \eqn{C_{\mathrm{max}}} points primarily reflect absorption dynamics.
+\item \strong{Bolus:} \eqn{V_d = \mathrm{Dose} / C_{\mathrm{max}}}
+\item \strong{Infusion:} \eqn{V_d = (\mathrm{Rate} \times t_{\mathrm{inf}}) / C_{\mathrm{max}}}
+\item \strong{Oral:} \eqn{V_d = (\mathrm{Dose} \times F) / C_{\mathrm{max}}}, with \eqn{F = 1 - e^{-k_a t}}
 }
-\item \strong{Data Filtering:}
-\itemize{
-\item Observed data (\code{EVID == 0}) is grouped by \code{ID} and \code{dose_number}.
-\item The \eqn{C_{\mathrm{max}}} for each group is identified and further filtered to include only points where \eqn{tad < 0.2 \cdot \mathrm{half-life}}.
-}
-\item \strong{Volume of Distribution Calculation (single-dose):}
-\itemize{
-\item For bolus administration:
-\deqn{V_d = \frac{\mathrm{Dose}}{C_{\mathrm{max}}}}
-\item For infusion:
-\deqn{V_d = \frac{\mathrm{Rate} \cdot \min(\mathrm{Time}, \mathrm{Duration})}{C_{\mathrm{max}}}}
-}
-\item \strong{Summary of \eqn{V_d} values:}
-\itemize{
-\item Individual \eqn{V_d} values are summarized using a trimmed geometric mean (\eqn{10\%}) to reduce the impact of outliers.
-}
-\item \strong{Accumulation Ratio (\eqn{R_{\mathrm{ac}}}):}
-\itemize{
-\item For multiple-dose scenarios, the accumulation ratio is calculated as:
-\deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \cdot \tau}}}
-where:
-\itemize{
-\item \eqn{k_e = \frac{\ln(2)}{\mathrm{half-life}}} is the elimination rate constant.
-\item \eqn{\tau} is the dosing interval (\code{dose_interval}).
-}
-\item The accumulation ratio represents the steady-state concentration relative to the single-dose concentration.
-}
-\item \strong{Volume of Distribution Calculation (multiple-dose):}
-\itemize{
-\item For infusion routes:
-\deqn{V_d = \frac{\mathrm{Rate} \cdot \min(\mathrm{Time}, \mathrm{Duration})}{C_{\mathrm{max}} / R_{\mathrm{ac}}}}
-\itemize{
-\item \eqn{\mathrm{Rate}} is the infusion rate.
-\item \eqn{\min(\mathrm{Time}, \mathrm{Duration})} represents the shorter of infusion time or observation time.
-\item \eqn{C_{\mathrm{max}} / R_{\mathrm{ac}}} adjusts the observed concentration to reflect single-dose dynamics.
-}
-\item For bolus or other routes:
-\deqn{V_d = \frac{\mathrm{Dose}}{C_{\mathrm{max}} / R_{\mathrm{ac}}}}
-\itemize{
-\item \eqn{\mathrm{Dose}} is the administered dose.
-}
-}
-}
+
+For multiple-dose data, steady-state concentrations are corrected to
+single-dose equivalents using the accumulation ratio:
+\deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \tau}}}
+where \eqn{k_e = \ln(2)/t_{1/2}} and \eqn{\tau} is the dosing interval.
+
+Individual \eqn{V_d} estimates are summarized using a trimmed geometric mean
+(\code{\link{trimmed_geom_mean}()}) to provide a robust estimate across subjects.
 }
 \examples{
 \dontrun{
-# Example 1: Bolus administration
-dat<-Bolus_2CPT
+dat <- Bolus_1CPT
 out <- processData(dat)
-fdat<- out$dat
-froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
+fdat <- out$dat
+froute <- out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
 half_life <- get_hf(dat = fdat)$half_life_median
-approx.vc(dat=fdat,half_life = half_life,route=froute)
-
-# Example 2: Oral administration
-dat<-Oral_2CPT
-out <- processData(dat)
-fdat<- out$dat
-froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-half_life <- get_hf(dat = fdat)$half_life_median
-approx.vc(dat=fdat,half_life = half_life,route=froute)
-
-# Example 3: Theno_sd
-dat<-theo_sd
-out <- processData(dat)
-fdat<- out$dat
-froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-half_life <- get_hf(dat = fdat)$half_life_median
-approx.vc(dat=fdat,half_life = half_life,route=froute)
-
-# Example 3: Theno_md
-dat<-theo_md
-out <- processData(dat)
-fdat<- out$dat
-froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-half_life <- get_hf(dat = fdat)$half_life_median
-approx.vc(dat=fdat,half_life = half_life,route=froute)
+res <- approx.vc(dat = fdat, half_life = half_life, route = froute)
+res$approx.vc.value
 }
+}
+\seealso{
+\code{\link{run_single_point_base}}, \code{\link{trimmed_geom_mean}},
+\code{\link{pooled_control}}, \code{\link{ss_control}}
 }
