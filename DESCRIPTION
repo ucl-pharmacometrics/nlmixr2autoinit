@@ -12,15 +12,12 @@ Depends:
     nlmixr2est
 Imports:
     dplyr,
-    nlmixr2,
-    nlmixr2est,
     tidyr,
     crayon,
     purrr,
     knitr,
     magrittr
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

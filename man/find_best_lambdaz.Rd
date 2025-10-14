@@ -2,7 +2,7 @@
 % Please edit documentation in R/find_best_lambdaz.R
 \name{find_best_lambdaz}
 \alias{find_best_lambdaz}
-\title{Find the best terminal elimination rate constant (Lambda Z)}
+\title{Find the best terminal elimination rate constant (lambdaz)}
 \usage{
 find_best_lambdaz(
   time,
@@ -34,14 +34,14 @@ equivalent (default = 1e-4). Used when selecting between fits with similar goodn
 \value{
 A list containing:
 \itemize{
-\item \code{lambdaz}: Estimated terminal elimination rate constant (λ_z), or NA if no valid fit
+\item \code{lambdaz}: Estimated terminal elimination rate constant (\eqn{\lambda_z}), or NA if no valid fit
 \item \code{UsedPoints}: Number of data points used in the optimal fit
-\item \code{adj.r.squared}: Adjusted R-squared value of the optimal regression
+\item \code{adj.r.squared}: Adjusted R-squared value (\eqn{R^2}) of the optimal regression
 \item \code{message}: Character vector containing diagnostic messages/warnings
 }
 }
 \description{
-Identifies the optimal terminal phase for lambda-z estimation using a systematic
+Identifies the optimal terminal phase for lambdaz estimation using a systematic
 log-linear regression approach with adjusted R-squared optimization criteria.
 }
 \details{
@@ -53,7 +53,7 @@ The algorithm implements the following decision logic:
 \item For each candidate phase:
 \itemize{
 \item Performs log-concentration vs. time linear regression
-\item Requires negative regression slope (positive λ_z)
+\item Requires negative regression slope (positive \eqn{\lambda_z})
 \item Calculates adjusted R-squared metric
 }
 \item Selects the optimal phase based on:
@@ -71,7 +71,7 @@ conc <- c(12, 8, 5, 3, 2, 1.5, 1)
 result <- find_best_lambdaz(time, conc)
 
 # With infusion route specification
-result_infusion <- find_best_lambdaz(time, conc, route = "infusion")
+result_infusion <- find_best_lambdaz(time, conc, route = "bolus",duration=1)
 
 # Custom threshold settings
 result_custom <- find_best_lambdaz(time, conc, adj_r_squared_threshold = 0.8, tolerance = 0.001)

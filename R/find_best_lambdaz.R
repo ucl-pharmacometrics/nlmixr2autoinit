@@ -1,6 +1,6 @@
-#' Find the best terminal elimination rate constant (Lambda Z)
+#' Find the best terminal elimination rate constant (lambdaz)
 #'
-#' Identifies the optimal terminal phase for lambda-z estimation using a systematic
+#' Identifies the optimal terminal phase for lambdaz estimation using a systematic
 #' log-linear regression approach with adjusted R-squared optimization criteria.
 #'
 #' @param time Numeric vector of observation time points.
@@ -17,9 +17,9 @@
 #'
 #' @return A list containing:
 #' \itemize{
-#'   \item \code{lambdaz}: Estimated terminal elimination rate constant (λ_z), or NA if no valid fit
+#'   \item \code{lambdaz}: Estimated terminal elimination rate constant (\eqn{\lambda_z}), or NA if no valid fit
 #'   \item \code{UsedPoints}: Number of data points used in the optimal fit
-#'   \item \code{adj.r.squared}: Adjusted R-squared value of the optimal regression
+#'   \item \code{adj.r.squared}: Adjusted R-squared value (\eqn{R^2}) of the optimal regression
 #'   \item \code{message}: Character vector containing diagnostic messages/warnings
 #' }
 #'
@@ -32,7 +32,7 @@
 #'   \item For each candidate phase:
 #'   \itemize{
 #'     \item Performs log-concentration vs. time linear regression
-#'     \item Requires negative regression slope (positive λ_z)
+#'     \item Requires negative regression slope (positive \eqn{\lambda_z})
 #'     \item Calculates adjusted R-squared metric
 #'   }
 #'   \item Selects the optimal phase based on:
@@ -50,7 +50,7 @@
 #' result <- find_best_lambdaz(time, conc)
 #'
 #' # With infusion route specification
-#' result_infusion <- find_best_lambdaz(time, conc, route = "infusion")
+#' result_infusion <- find_best_lambdaz(time, conc, route = "bolus",duration=1)
 #'
 #' # Custom threshold settings
 #' result_custom <- find_best_lambdaz(time, conc, adj_r_squared_threshold = 0.8, tolerance = 0.001)
@@ -145,7 +145,7 @@ find_best_lambdaz <- function(time,
     current_r2 <- s$adj.r.squared
     current_slope <- coef(fit)[2]
 
-    # Catch invalid R² or slope
+    # Catch invalid Rsquare or slope
     if (is.na(current_r2) ||
         is.nan(current_r2) ||
         is.na(current_slope) || is.nan(current_slope)) {
@@ -167,7 +167,7 @@ find_best_lambdaz <- function(time,
     update <- FALSE
     if (current_r2 > best_r2 + tolerance) {
       update <- TRUE
-      reason <- "higher R²"
+      reason <- "higher Rsquare"
     } else if (abs(current_r2 - best_r2) < tolerance &&
                point_count > best_points) {
       update <- TRUE
@@ -180,7 +180,7 @@ find_best_lambdaz <- function(time,
       best_r2 <- current_r2
       best_fit <- fit
       last_best_msg <- sprintf(
-        "Selected %d points (%s) R²=%.4f λz=%.4f",
+        "Selected %d points (%s) Rsquare=%.4f lambdaz=%.4f",
         point_count,
         reason,
         current_r2,
@@ -202,7 +202,7 @@ find_best_lambdaz <- function(time,
     final_msgs <- c(
       final_msgs,
       sprintf(
-        "WARNING: R² %.4f < threshold %.2f",
+        "WARNING: Rsquare %.4f < threshold %.2f",
         best_r2,
         adj_r_squared_threshold
       )
