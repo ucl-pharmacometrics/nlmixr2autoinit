@@ -24,7 +24,7 @@ bin.time(
 \item For other methods: \code{"auto"} uses Sturges' rule: \code{ceiling(log2(n)) + 1}
 }}
 
-\item{method}{Binning strategy (default = \code{"quantile"}). Options:
+\item{bin.method}{Binning strategy (default = \code{"quantile"}). Options:
 \itemize{
 \item \code{"quantile"}: Equal-frequency binning by empirical quantiles
 \item \code{"jenks"}: Natural breaks (minimizes intra-bin variance)

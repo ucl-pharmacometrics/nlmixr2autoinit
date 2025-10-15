@@ -34,8 +34,6 @@ One of \code{"first_dose"}, \code{"repeated_doses"}, or \code{"combined_doses"}.
 are rounded to the nearest whole unit before comparing. This allows for
 small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
 }}
-
-\item{...}{Additional arguments passed to \code{bin.time()}, such as \code{nbins} or \code{bin.method}.}
 }
 \value{
 A list containing one or more of the following elements, depending on the \code{dose_type}:

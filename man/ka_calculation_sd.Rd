@@ -41,7 +41,7 @@ for \code{ka} numerically using \code{uniroot()}:
 
 The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
 between the predicted and observed concentrations equal to zero. The reasonable range for
-\code{ka} is set as \link{0.01, 1000} for root-finding.
+\code{ka} is set as \code{[0.01, 1000]} for root-finding.
 
 Additional safeguards include ensuring that \code{ka > ke} to avoid flip-flop kinetics, and rejecting
 values of \code{Ct} that exceed the model-predicted maximum concentration. In such cases, the function

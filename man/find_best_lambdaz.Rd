@@ -25,8 +25,15 @@ find_best_lambdaz(
 \item "infusion" - Includes Tmax point in terminal phase evaluation
 }}
 
+\item{duration}{Numeric (optional). Duration of infusion administration, in the same
+time units as \code{time}. Required only when \code{route = "infusion"}. Used to determine
+the first post-infusion observation time for terminal phase regression.}
+
 \item{adj_r_squared_threshold}{Minimum acceptable adjusted R-squared value for valid
 estimation (default = 0.7). Values below this threshold will generate warnings.}
+
+\item{nlastpoints}{Integer. Minimum number of terminal points (from the end of the profile)
+to include when evaluating candidate regression segments for \eqn{\lambda_z}. Default is \code{3}.}
 
 \item{tolerance}{Threshold for considering adjusted R-squared values statistically
 equivalent (default = 1e-4). Used when selecting between fits with similar goodness-of-fit.}
