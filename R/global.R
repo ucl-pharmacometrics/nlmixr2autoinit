@@ -110,4 +110,7 @@ if (getRversion() >= "3.5.0") {
     "DVstd", "DOSE", "vd", "interval", "durationobs", "Rac",
     "Css_avg_i", "recent_ii", "SteadyState"
   ))
+
+  # ------------------------ Fit function  -----------------------
+  utils::globalVariables(c("/", "/<-", "dt", "centre", "depot", "A1", "A2", "A3"))
 }
