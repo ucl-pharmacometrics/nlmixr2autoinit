@@ -56,6 +56,7 @@
 #')
 #' }
 #' @export
+#'
 
 Fit_1cmpt_iv <- function(data,
                          est.method,

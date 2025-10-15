@@ -138,7 +138,7 @@ get_hf <- function(dat,
   # Final message
   message_text <- paste0(
     crayon::green("Half-life estimation complete: "),
-    "Estimated t½ = ", half_life_median, " h"
+    "Estimated t1/2 = ", half_life_median, " h"
   )
   message(message_text)
 

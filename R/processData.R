@@ -330,7 +330,7 @@ invalid_groups <- dat %>%
 if (nrow(invalid_groups) > 0) {
   stop(
     paste(
-      "Package requires ≤2 distinct CMT values. Found",
+      "Package requires <=2 distinct CMT values. Found",
       length(unique(invalid_groups$ID)),
       "subjects with >2 CMT values",
       "(not suitable for metabolites/multi-site analysis)."
@@ -486,7 +486,7 @@ summary_doseinfo <- data.frame(
 )
 # Format output ----
 summary_doseinfo_output <-
-  paste(capture.output(knitr::kable(summary_doseinfo, format = "simple")),
+  paste(utils::capture.output(knitr::kable(summary_doseinfo, format = "simple")),
         collapse = "\n")
 
 # Footnote generation

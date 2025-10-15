@@ -105,9 +105,7 @@ pooled_control <- function(nbins = 10,
 #'                           are rounded to the nearest whole unit before comparing. This allows for
 #'                           small deviations (e.g., a `tad` of 24.3 is treated as within a 24-unit interval).}
 #'   }
-#'
-#' @param ... Additional arguments passed to `bin.time()`, such as `nbins` or `bin.method`.
-#'
+
 #' @details
 #' For `"repeated_doses"` and `"combined_doses"` data types, the function determines the most
 #' common dosing interval (`most_common_ii`) based on dosing records (`EVID == 1`). This interval is

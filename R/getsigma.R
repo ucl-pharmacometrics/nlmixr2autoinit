@@ -142,7 +142,7 @@ getsigmas <- function(group_df, nlastpoints = 3) {
   }
 
   # Select elimination phase data
-  elim_df <- tail(group_df[elim_start:nrow(group_df), ], nlastpoints)
+  elim_df <- utils::tail(group_df[elim_start:nrow(group_df), ], nlastpoints)
 
   if (any(elim_df$DV <= 0)) {
     return(tibble::tibble(
@@ -155,14 +155,14 @@ getsigmas <- function(group_df, nlastpoints = 3) {
 
   # Perform regression
   model_obj <- lm(log(elim_df$DV) ~ elim_df$TIME)
-  intercept <- coef(model_obj)[1]
-  slope <- coef(model_obj)[2]
+  intercept <- stats::coef(model_obj)[1]
+  slope <- stats::coef(model_obj)[2]
   ipred <- exp(intercept + slope * elim_df$TIME)
 
   residuals_additive <- ipred - elim_df$DV
   residuals_proportional <- (elim_df$DV / ipred) - 1
-  sd_additive <- sd(residuals_additive)
-  sd_proportional <- sd(residuals_proportional)
+  sd_additive <- stats::sd(residuals_additive)
+  sd_proportional <- stats::sd(residuals_proportional)
 
   tibble::tibble(
     intercept = intercept,

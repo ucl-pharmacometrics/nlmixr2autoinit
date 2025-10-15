@@ -8,15 +8,18 @@ Authors@R: c(person("Zhonghui","Huang", role = c("aut", "cre"), email = "zhonghu
 Description: This package provides various methods for calculating pharmacokinetic parameters, which can be used as initial estimates in population pharmacokinetic modelling. 
 Depends:
     R (>= 3.5.0),
-    nlmixr2,
-    nlmixr2est
+    nlmixr2
 Imports:
+    nlmixr2est,
     dplyr,
     tidyr,
     crayon,
     purrr,
     knitr,
-    magrittr
+    magrittr,
+    progressr,
+    tibble,
+    vpc
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

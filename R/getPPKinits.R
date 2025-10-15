@@ -85,6 +85,13 @@
 
 getPPKinits <- function(dat, control=initsControl()) {
 
+  # load control
+  nlmixr2est::nlsControl()
+  nlmixr2est::nlmControl()
+  nlmixr2est::nlminbControl()
+  nlmixr2est::saemControl()
+  nlmixr2est::foceiControl()
+
   # Unpack control components
   .pooledctrl    <- control$pooled.control
   .ncactrl       <- control$nca.control
@@ -1066,47 +1073,45 @@ getPPKinits <- function(dat, control=initsControl()) {
 
 #' Print method for `getPPKinits` objects
 #'
-#' This function prints a summary of the results from the initial parameter estimation pipeline,
-#' including data information, recommended initial estimates, and parameter descriptions.
+#' Prints a summary of the results from the initial parameter estimation pipeline,
+#' including recommended initial estimates, ETA variance estimates, and parameter descriptions.
 #' It is the default S3 `print` method for objects of class `getPPKinits`.
 #'
-#' @param env An environment of class `getPPKinits` containing the initial parameter estimation results.
+#' @param x An object of class `getPPKinits` containing the initial parameter estimation results.
 #' Expected components include:
 #' \itemize{
 #'   \item \code{Recommended_initial_estimates}: A data frame with estimated values and selection methods.
 #'   \item \code{Parameter.descriptions}: A character vector explaining the meaning of each parameter.
-#'   \item \code{time.spent} (optional): Time taken to compute the estimates.
+#'   \item \code{time.spent}: Time taken to compute the estimates.
 #' }
+#' @param ... Additional arguments (for compatibility with the generic \code{print()}).
 #'
 #' @return Prints a formatted summary to the console.
 #'
 #' @examples
 #' \dontrun{
-#' # Assume `env` is the output from getPPKinits()
-#' print(env)
+#' # Assume `obj` is the output from getPPKinits()
+#' print(obj)
 #' }
 #'
 #' @export
-#'
-# Define a custom print method for the 'getPPKinits' by S3 method
-print.getPPKinits <- function(env, ...) {
-  cat("===============Initial Parameter Estimation Summary ===============\n")
-  # cat("Data information:\n")
-  # message(crayon::black(env$Datainfo))
 
+print.getPPKinits <- function(x, ...) {
+
+  cat("===============Initial Parameter Estimation Summary ===============\n")
   cat("\nRecommended initial estimates :\n")
-  print(head(env$Recommended_initial_estimates, 15))
+  print(utils::head(x$Recommended_initial_estimates, 15))
 
   cat("\nTime spent :\n")
-  print(paste0(env$time.spent,"s"))
+  print(paste0(x$time.spent,"s"))
 
-  if (!is.null(env$Omegas)) {
+  if (!is.null(x$Omegas)) {
     cat("\nETA variances and derived covariances:\n")
-    print(env$Omegas)
+    print(x$Omegas)
   }
 
   cat("\nParameter descriptions:\n")
-  print(env$Parameter.descriptions)
+  print(x$Parameter.descriptions)
 
   cat("\n=============== End of Summary ===============\n")
 }

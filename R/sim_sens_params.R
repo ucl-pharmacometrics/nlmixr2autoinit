@@ -111,7 +111,7 @@ sim_sens_1cmpt_mm <- function(dat,
   }
 
   # Deduplicate similar values if values are close
-  vd_values <- na.omit(vd_values) %>%
+  vd_values <- stats::na.omit(vd_values) %>%
     sort() %>%
     tibble::tibble(value = .) %>%
     dplyr::mutate(prev = dplyr::lag(value),
@@ -140,7 +140,7 @@ sim_sens_1cmpt_mm <- function(dat,
     }
     cl_values<- sim_vmax$est.cl
     # Deduplicate similar values if valus are close
-    cl_values <- na.omit(cl_values)%>%
+    cl_values <- stats::na.omit(cl_values)%>%
       sort() %>%
       tibble::tibble(value = .) %>%
       dplyr::mutate(prev = dplyr::lag(value),
@@ -407,7 +407,7 @@ sim_sens_2cmpt <- function(dat,
   }
 
   # Deduplicate similar values if values are close
-  vc_values <- na.omit(vc_values)%>%
+  vc_values <- stats::na.omit(vc_values)%>%
     sort() %>%
     tibble::tibble(value = .) %>%
     dplyr::mutate(prev = dplyr::lag(value),
@@ -717,7 +717,7 @@ sim_sens_3cmpt <- function(dat,
          call. = FALSE)
   }
 
-  vc_values <- na.omit(vc_values) %>%
+  vc_values <- stats::na.omit(vc_values) %>%
     sort() %>%
     tibble::tibble(value = .) %>%
     dplyr::mutate(prev = dplyr::lag(value),

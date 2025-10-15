@@ -536,7 +536,7 @@ run_single_point_base <- function(dat,
 #'   If no values remain after trimming, returns `NA`.
 #'
 trimmed_geom_mean <- function(x, trim = 0, na.rm = TRUE) {
-  if (na.rm) x <- na.omit(x)  # Remove NA values if na.rm is TRUE
+  if (na.rm) x <- stats::na.omit(x)  # Remove NA values if na.rm is TRUE
 
   # Sort the vector and apply trimming
   x <- sort(x)

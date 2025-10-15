@@ -31,7 +31,7 @@ getOmegas <- function() {
   )
 
   # Assign all ETA variances to 0.1
-  eta_values <- setNames(rep(0.1, length(eta_names)), eta_names)
+  eta_values <- stats::setNames(rep(0.1, length(eta_names)), eta_names)
 
   # Omega blocks defining which correlations to include
   omega_block1 <- c("eta.vmax", "eta.km")
@@ -41,7 +41,7 @@ getOmegas <- function() {
   # Combine all correlation pairs from the blocks
   make_combinations <-
     function(block)
-      combn(block, 2, simplify = FALSE)
+      utils::combn(block, 2, simplify = FALSE)
   correlation_pairs <-
     c(make_combinations(omega_block1),
       make_combinations(omega_block2))

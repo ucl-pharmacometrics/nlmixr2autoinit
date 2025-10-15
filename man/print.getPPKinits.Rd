@@ -4,29 +4,31 @@
 \alias{print.getPPKinits}
 \title{Print method for \code{getPPKinits} objects}
 \usage{
-\method{print}{getPPKinits}(env, ...)
+\method{print}{getPPKinits}(x, ...)
 }
 \arguments{
-\item{env}{An environment of class \code{getPPKinits} containing the initial parameter estimation results.
+\item{x}{An object of class \code{getPPKinits} containing the initial parameter estimation results.
 Expected components include:
 \itemize{
 \item \code{Recommended_initial_estimates}: A data frame with estimated values and selection methods.
 \item \code{Parameter.descriptions}: A character vector explaining the meaning of each parameter.
-\item \code{time.spent} (optional): Time taken to compute the estimates.
+\item \code{time.spent}: Time taken to compute the estimates.
 }}
+
+\item{...}{Additional arguments (for compatibility with the generic \code{print()}).}
 }
 \value{
 Prints a formatted summary to the console.
 }
 \description{
-This function prints a summary of the results from the initial parameter estimation pipeline,
-including data information, recommended initial estimates, and parameter descriptions.
+Prints a summary of the results from the initial parameter estimation pipeline,
+including recommended initial estimates, ETA variance estimates, and parameter descriptions.
 It is the default S3 \code{print} method for objects of class \code{getPPKinits}.
 }
 \examples{
 \dontrun{
-# Assume `env` is the output from getPPKinits()
-print(env)
+# Assume `obj` is the output from getPPKinits()
+print(obj)
 }
 
 }

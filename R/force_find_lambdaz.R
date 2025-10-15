@@ -99,7 +99,7 @@ force_find_lambdaz <- function(time, conc, ...) {
       }
     } else {
       for (k in seq(length(time) - 1, 2, by = -1)) {
-        fallback_points <- tail(data.frame(time = time, conc = conc), k)
+        fallback_points <- utils::tail(data.frame(time = time, conc = conc), k)
         fit <- try(lm(log(fallback_points$conc) ~ fallback_points$time), silent = TRUE)
         if (inherits(fit, "try-error"))
           next

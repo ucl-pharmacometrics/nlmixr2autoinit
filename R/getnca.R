@@ -240,8 +240,8 @@ getnca <- function(x,
 
   if (!is.na(ke) && ke > 0) {
     half_life <- log(2) / ke
-    C_last <- tail(dat$DV[dat$DV > 0], 1)
-    t_last <- tail(dat$TIME[dat$DV > 0], 1)
+    C_last <- utils::tail(dat$DV[dat$DV > 0], 1)
+    t_last <- utils::tail(dat$TIME[dat$DV > 0], 1)
 
     auc_inf <- C_last / ke
     auc0_inf <- auct + auc_inf

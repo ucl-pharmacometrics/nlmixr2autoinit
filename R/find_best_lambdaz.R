@@ -10,8 +10,13 @@
 #'     \item "bolus" (default) - Excludes time of maximum concentration (Tmax) point
 #'     \item "infusion" - Includes Tmax point in terminal phase evaluation
 #'   }
+#' @param duration Numeric (optional). Duration of infusion administration, in the same
+#'   time units as `time`. Required only when `route = "infusion"`. Used to determine
+#'   the first post-infusion observation time for terminal phase regression.
 #' @param adj_r_squared_threshold Minimum acceptable adjusted R-squared value for valid
 #'   estimation (default = 0.7). Values below this threshold will generate warnings.
+#' @param nlastpoints Integer. Minimum number of terminal points (from the end of the profile)
+#'   to include when evaluating candidate regression segments for \eqn{\lambda_z}. Default is `3`.
 #' @param tolerance Threshold for considering adjusted R-squared values statistically
 #'   equivalent (default = 1e-4). Used when selecting between fits with similar goodness-of-fit.
 #'
@@ -143,7 +148,7 @@ find_best_lambdaz <- function(time,
     # Extract parameters
     s <- summary(fit)
     current_r2 <- s$adj.r.squared
-    current_slope <- coef(fit)[2]
+    current_slope <- stats::coef(fit)[2]
 
     # Catch invalid Rsquare or slope
     if (is.na(current_r2) ||

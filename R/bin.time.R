@@ -15,7 +15,7 @@
 #' @param nbins Number of bins or `"auto"`:
 #'   - For `method = "quantile"`: `"auto"` defaults to 10 (deciles)
 #'   - For other methods: `"auto"` uses Sturges' rule: `ceiling(log2(n)) + 1`
-#' @param method Binning strategy (default = `"quantile"`). Options:
+#' @param bin.method Binning strategy (default = `"quantile"`). Options:
 #'   - `"quantile"`: Equal-frequency binning by empirical quantiles
 #'   - `"jenks"`: Natural breaks (minimizes intra-bin variance)
 #'   - `"kmeans"`, `"pretty"`, `"sd"`, `"equal"`, `"density"`: other methods from `classInt`
@@ -102,8 +102,8 @@ bin.time <- function(dat,
   bin_limits.df <-
     data.frame(
       Group = seq_along(brks[-1]),
-      Lower = head(brks, -1),
-      Upper = tail(brks, -1)
+      Lower = utils::head(brks, -1),
+      Upper = utils::tail(brks, -1)
     )
 
   list(

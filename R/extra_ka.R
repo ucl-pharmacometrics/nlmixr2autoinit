@@ -109,7 +109,7 @@ ka_wanger_nelson<-function(dat,
 #'
 #' The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
 #' between the predicted and observed concentrations equal to zero. The reasonable range for
-#' \code{ka} is set as [0.01, 1000] for root-finding.
+#' \code{ka} is set as \code{[0.01, 1000]} for root-finding.
 #'
 #' Additional safeguards include ensuring that \code{ka > ke} to avoid flip-flop kinetics, and rejecting
 #' values of \code{Ct} that exceed the model-predicted maximum concentration. In such cases, the function
@@ -186,7 +186,7 @@ ka_calculation_sd <- function(cl,     # Clearance of the drug (L/hr)
 
   # Try solving via uniroot safely
   solution <- tryCatch({
-    uniroot(ka.equation_sd, lower = ka_lower, upper = ka_upper)
+    stats::uniroot(ka.equation_sd, lower = ka_lower, upper = ka_upper)
   }, error = function(e) {
     return(structure(NULL, class = "try-error", message = e$message))
   })
@@ -239,7 +239,7 @@ ka_calculation_sd <- function(cl,     # Clearance of the drug (L/hr)
 #'
 #' The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
 #' between the predicted and observed concentrations equal to zero. The reasonable range for
-#' \code{ka} is set as [0.01, 1000] for root-finding.
+#' \code{ka} is set as \code{[0.01, 1000]} for root-finding.
 #'
 #' @examples
 #' # Example usage:
@@ -320,7 +320,7 @@ ka_calculation_md <- function(cl,      # Clearance of the drug (L/hr)
 
   # Try solving with uniroot
   solution <- tryCatch({
-    uniroot(ka.equation_md, lower = ka_lower, upper = ka_upper)
+    stats::uniroot(ka.equation_md, lower = ka_lower, upper = ka_upper)
   }, error = function(e) {
     return(structure(NULL, class = "try-error", message = e$message))
   })
