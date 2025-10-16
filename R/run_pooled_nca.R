@@ -4,7 +4,7 @@
 #' including numerical integration method, duration, number of terminal points, and
 #' slope estimation strategy.
 #'
-#' @param trapezoidal_rule Character. Method for trapezoidal AUC integration:
+#' @param trapezoidal.rule Character. Method for trapezoidal AUC integration:
 #' \itemize{
 #'   \item \code{"linear"} - Linear trapezoidal rule (default)
 #'   \item \code{"linear_up_log_down"} - Linear-up / log-down rule
@@ -12,7 +12,7 @@
 #' @param duration Numeric. Optional. Duration of the observation window (same units as time).
 #' Used to restrict the integration or define the evaluation range.
 #' @param nlastpoints Integer. Number of terminal points for half-life regression (default = 3).
-#' @param slope_method Character. Method for estimating the terminal slope (\eqn{\lambda_z}):
+#' @param slope.method Character. Method for estimating the terminal slope (\eqn{\lambda_z}):
 #' \itemize{
 #'   \item \code{"bestfitforce"} - Force estimation using decreasing number of terminal points if best-fit fails (default)
 #'   \item \code{"bestfit"} - Use automated best-fit selection based on adjusted R-squared

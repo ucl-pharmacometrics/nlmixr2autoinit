@@ -31,19 +31,11 @@
 #'
 #' @examples
 #'
-# dat <- Bolus_1CPT
-# # prepare data
-# dat <- nmpkconvert(dat)
-# dat <- calculate_tad(dat)
-# dat$DVstd <- dat$DV / dat$dose
-#'
-#' # Default: Equal-frequency binning into deciles
+#' dat <- Bolus_1CPT
+#' dat <- nmpkconvert(dat)
+#' dat <- calculate_tad(dat)
+#' dat$DVstd <- dat$DV / dat$dose
 #' bin.time(dat)
-#'
-#' \dontrun{
-#' # Jenks binning with auto-selected bin count
-#' bin.time(dat, method = "jenks")
-#' }
 #'
 #' @importFrom stats quantile aggregate
 #' @export

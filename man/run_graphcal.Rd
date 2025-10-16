@@ -58,7 +58,7 @@ dat <- processData(dat)$dat
 run_graphcal(dat, route="oral")
 
 # Example 3 (infusion case).
-Approximate calculation. only use when the infusion duration is very short
+# Approximate calculation. only use when the infusion duration is very short
 
 dat <- Infusion_1CPT
 dat <- processData(dat)$dat
