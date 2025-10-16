@@ -39,6 +39,17 @@ This must be a list that may contain one or more of the following named elements
 }
 If not supplied, the function will compute pooled data automatically.}
 
+\item{pooled_ctrl}{A list of control options created by \code{\link{pooled_control}}.
+Controls time binning and data preprocessing during pooled analysis.
+\describe{
+\item{\code{nbins}}{Number of bins to use when binning data.}
+\item{\code{bin_method}}{Method used for time binning. One of:
+\code{"quantile"}, \code{"jenks"}, \code{"kmeans"}, \code{"pretty"}, \code{"sd"}, \code{"equal"}, or \code{"density"}.}
+\item{\code{tad_rounding}}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
+are rounded to the nearest whole unit before comparing. This allows for
+small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
+}}
+
 \item{nca_ctrl}{A list of NCA control settings created by \code{\link{nca_control}}.
 Controls numerical integration, slope estimation, and regression point selection for NCA.
 \describe{

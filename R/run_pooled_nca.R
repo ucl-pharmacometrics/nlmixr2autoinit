@@ -65,7 +65,7 @@ nca_control <-
 #'   \describe{
 #'     \item{`nbins`}{Number of bins to use when binning data.}
 #'     \item{`bin_method`}{Method used for time binning. One of:
-#'       `"quantile"`, `"jenks"`, `"kmeans"`, `"pretty"`, `"sd"`, `"equal"`, or `"density"`.
+#'       `"quantile"`, `"jenks"`, `"kmeans"`, `"pretty"`, `"sd"`, `"equal"`, or `"density"`.}
 #'     \item{`tad_rounding`}{Logical. If TRUE (default), both `tad` and the most common dosing interval
 #'                           are rounded to the nearest whole unit before comparing. This allows for
 #'                           small deviations (e.g., a `tad` of 24.3 is treated as within a 24-unit interval).}
