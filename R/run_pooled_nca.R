@@ -1,14 +1,26 @@
 #' Control settings for non-compartmental analysis (NCA)
 #'
-#' @param trapezoidal_rule Integer. 1 = linear, 2 = linear-up log-down (default = 1).
-#' @param nlastpoints Integer. Number of terminal points for half-life regression.
-#' @param slope.method Method for estimating terminal slope (\eqn{\lambda_z}):
+#' Defines control parameters used in non-compartmental pharmacokinetic analysis (NCA),
+#' including numerical integration method, duration, number of terminal points, and
+#' slope estimation strategy.
+#'
+#' @param trapezoidal_rule Character. Method for trapezoidal AUC integration:
+#' \itemize{
+#'   \item \code{"linear"} - Linear trapezoidal rule (default)
+#'   \item \code{"linear_up_log_down"} - Linear-up / log-down rule
+#' }
+#' @param duration Numeric. Optional. Duration of the observation window (same units as time).
+#' Used to restrict the integration or define the evaluation range.
+#' @param nlastpoints Integer. Number of terminal points for half-life regression (default = 3).
+#' @param slope_method Character. Method for estimating the terminal slope (\eqn{\lambda_z}):
 #' \itemize{
 #'   \item \code{"bestfitforce"} - Force estimation using decreasing number of terminal points if best-fit fails (default)
 #'   \item \code{"bestfit"} - Use automated best-fit selection based on adjusted R-squared
 #' }
+#'
 #' @return A list with NCA control parameters.
 #' @export
+#'
 #' @examples
 #' nca_control()
 nca_control <-
@@ -35,6 +47,10 @@ nca_control <-
 #'     \item{\code{"repeated_doses"}}: Analysis of doses beyond the first (e.g., steady-state)
 #'     \item{\code{"combined_doses"}}: Analysis combining first and repeated doses
 #'   }
+#'
+#' @param route Character string indicating the administration route.
+#' One of \code{"bolus"}, \code{"oral"}, or \code{"infusion"}.
+#'
 #' @param pooled (Optional) A precomputed pooled data list as returned by \code{\link{get_pooled_data}}.
 #'               This must be a list that may contain one or more of the following named elements:
 #'   \describe{
@@ -43,7 +59,26 @@ nca_control <-
 #'     \item{\code{datpooled_all}}{Binned data combining first and repeated doses}
 #'   }
 #'               If not supplied, the function will compute pooled data automatically.
-#' @param ... Additional arguments passed to \code{\link{bin.time}} and \code{\link{getnca}}.
+#'
+#' @param pooled_ctrl A list of control options created by \code{\link{pooled_control}}.
+#'   Controls time binning and data preprocessing during pooled analysis.
+#'   \describe{
+#'     \item{`nbins`}{Number of bins to use when binning data.}
+#'     \item{`bin_method`}{Method used for time binning. One of:
+#'       `"quantile"`, `"jenks"`, `"kmeans"`, `"pretty"`, `"sd"`, `"equal"`, or `"density"`.
+#'     \item{`tad_rounding`}{Logical. If TRUE (default), both `tad` and the most common dosing interval
+#'                           are rounded to the nearest whole unit before comparing. This allows for
+#'                           small deviations (e.g., a `tad` of 24.3 is treated as within a 24-unit interval).}
+#'   }
+#' @param nca_ctrl A list of NCA control settings created by \code{\link{nca_control}}.
+#'   Controls numerical integration, slope estimation, and regression point selection for NCA.
+#'   \describe{
+#'     \item{`trapezoidal_rule`}{Specifies the trapezoidal integration method:
+#'     \code{"linear"} or \code{"linear_up_log_down"} (default).}
+#'     \item{`nlastpoints`}{Number of terminal points used in half-life regression (default = 3).}
+#'     \item{`slope.method`}{Method for estimating terminal slope (\eqn{\lambda_z}): \code{"bestfit"} or
+#'     \code{"bestfitforce"} (default).}
+#'   }
 #'
 #' @return A named list containing:
 #'   \itemize{
@@ -84,7 +119,7 @@ nca_control <-
 #' run_pooled_nca(fdat, dose_type = "combined_doses", route=froute)
 #'
 #'
-#' # Example 4: Infusion case
+#' # Example 3: Infusion case
 #' dat <- Infusion_1CPT
 #' out <- processData(dat)
 #' fdat<- out$dat

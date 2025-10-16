@@ -17,29 +17,11 @@ is_ss(df, ssctrl = ss_control(), half_life = NA)
 \item \code{tad}: Time after the last dose.
 }}
 
-\item{half_life}{Numeric. The drug's half-life. Required if \code{ss_method} is \code{"combined"} or \code{"half_life_based"}.}
+\item{ssctrl}{A list created by \code{\link{ss_control}()}, specifying control settings
+for steady-state evaluation. See \code{\link{ss_control}} for details on available options.}
 
-\item{ss_method}{Character. Method to determine steady state. One of:
-\itemize{
-\item \code{"combined"} (default): Uses the smaller of the fixed dose count (\code{no.doses}) and the estimate based on half-life.
-\item \code{"fixed_doses"}: Uses only a fixed number of doses (\code{no.doses}).
-\item \code{"half_life_based"}: Uses half-life and dose interval to estimate required doses.
-}}
-
-\item{no.doses}{Integer. Number of fixed doses assumed to reach steady state (default = 5).}
-
-\item{no.half_lives}{Integer. Number of half-lives assumed to reach steady state (default = 5).}
-
-\item{allowed_interval_variation}{Numeric. Acceptable fractional variation in dose interval (default = 0.25).}
-
-\item{allowed_dose_variation}{Numeric. Acceptable fractional variation in dose amount (default = 0.20).}
-
-\item{min_doses_required}{Integer. Minimum number of doses required regardless of method (default = 3).}
-
-\item{tad_rounding}{Logical. If TRUE (default = TRUE), rounding is applied only when checking
-whether an observation (\code{tad}) falls within the most recent dosing interval.
-Specifically, \code{tad} and the interval are rounded to the nearest whole time unit before comparison.
-This allows tolerance for small deviations (e.g., 24.3 is treated as within a 24-unit interval).}
+\item{half_life}{Numeric. The drug's half-life. Required if \code{ss_method} in \code{ssctrl} is
+\code{"combined"} or \code{"half_life_based"}.}
 }
 \value{
 A data frame similar to \code{df} with additional columns:
@@ -55,21 +37,10 @@ based on user-defined criteria. It supports three methods: using a fixed number 
 using a fixed number of half-lives, or combining both criteria.
 }
 \examples{
-\dontrun{
 # Example usage
-df <- data.frame(
-  ID = rep(1, 14),
-  EVID = c(1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0),
-  SSflag = rep(0, 14),  # Initialize SSflag as 0
-  TIME = 1:14,
-  AMT = c(100, 0, 0, 100, 0, 0, 100, 100, 100, 100, 100, 0, 0, 0),
-  tad = runif(14)
-)
-is_ss(df)
-
-dat <- Bolus_1CPT
+dat <- pheno_sd
 dat <- processData(dat)$dat
-out <- is_ss(df = dat, half_life = 11)
-head(out)
-}
+out<-is_ss(df = dat)
+out[out$SteadyState == TRUE & !is.na(out$SteadyState),
+           c("ID", "TIME", "DV", "EVID", "SteadyState")]
 }

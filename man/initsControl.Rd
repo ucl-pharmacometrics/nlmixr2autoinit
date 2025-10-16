@@ -15,6 +15,14 @@ initsControl(
 )
 }
 \arguments{
+\item{ss.control}{Output of \code{ss_control()}.}
+
+\item{pooled.control}{Output of \code{pooled_control()}.}
+
+\item{nca.control}{Output of \code{nca_control()}.}
+
+\item{fallback.control}{Output of \code{fallback_control()}.}
+
 \item{selmetrics}{A character string (or vector) specifying which model performance
 metric(s) to evaluate. Must be one or more of: \code{"APE"}, \code{"MAE"},
 \code{"MAPE"}, \code{"RMSE"}, \code{"rRMSE1"}, \code{"rRMSE2"}. Default is
@@ -22,11 +30,11 @@ metric(s) to evaluate. Must be one or more of: \code{"APE"}, \code{"MAE"},
 
 \item{hybrid.base}{Logical. If \code{TRUE}, enables hybrid evaluation mode,
 where model performance is assessed using mixed parameter combinations across
-methods (e.g., combining \code{ka} from NCA, \code{cl} from graphical method,
-and \code{vd} from steady-state). If \code{FALSE}, evaluation is performed
-separately for each parameter estimation method (e.g., using only \code{simpcal},
-only \code{nca}, etc.). This allows more flexible exploration of parameter set
-synergies across estimation strategies. Default is \code{TRUE}.}
+methods (e.g., combining \code{ka} from NCA, \code{cl} from graphic methods,
+and \code{vd} from adaptive single-point method). If \code{FALSE}, evaluation
+is performed separately for each parameter estimation method (e.g., using only
+\code{simpcal}, only \code{nca}, etc.). This allows more flexible exploration
+of parameter set synergies across estimation strategies. Default is \code{TRUE}.}
 
 \item{preferNCA}{Logical.
 If \code{TRUE} and \code{selmetrics == "rRMSE2"}, the function will first
@@ -35,14 +43,6 @@ it will then check whether a purely NCA-based method exists with a lower
 rRMSE1 than the rRMSE2-best method. If such a candidate exists, the NCA
 method will be selected instead. This option expresses a preference for NCA
 methods without enforcing them. Default is \code{TRUE}.}
-
-\item{pooled_control}{Output of \code{pooled_control()}.}
-
-\item{nca_control}{Output of \code{nca_control()}.}
-
-\item{selection_control}{Output of \code{selection_control()}.}
-
-\item{fallback_control}{Output of \code{fallback_control()}.}
 }
 \value{
 A named list combining all control modules.
@@ -52,8 +52,8 @@ Aggregates all modular control functions into one structured list.
 }
 \examples{
 initsControl(
-  pooled_control = pooled_control(nbins = 8),
-  fallback_control = fallback_control(sigma_method_additive = "fixed_fraction")
+  pooled.control = pooled_control(nbins = 8),
+  fallback.control = fallback_control(sigma_method_additive = "fixed_fraction")
 )
 
 }

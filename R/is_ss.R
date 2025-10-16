@@ -1,18 +1,44 @@
 #' Internal control builder for steady-state evaluation
 #'
-#' Used internally to build a list of control options for `is_ss()`.
+#' Constructs a list of control parameters used by \code{\link{is_ss}()} to
+#' determine pharmacokinetic steady state.
 #'
-#' @param ... Control parameters (see `?is_ss` for details). Common options include:
-#'   - `ss_method`
-#'   - `no.doses`
-#'   - `no.half_lives`
-#'   - `allowed_interval_variation`
-#'   - `allowed_dose_variation`
-#'   - `min_doses_required`
-#'   - `tad_rounding`
+#' @param ss_method Character. Method used to determine steady state.
+#'   One of:
+#'   \itemize{
+#'     \item \code{"combined"} (default): Uses the smaller of the dose-based
+#'       estimate (\code{no.doses}) and the half-life-based estimate
+#'       (\code{no.half_lives}).
+#'     \item \code{"fixed_doses"}: Considers steady state reached after
+#'       \code{no.doses} administrations.
+#'     \item \code{"half_life_based"}: Uses the drug half-life and dosing
+#'       interval to estimate the required number of doses.
+#'   }
+#' @param no.doses Integer. Number of doses assumed to reach steady state
+#'   when \code{ss_method = "fixed_doses"} or part of the \code{"combined"} method.
+#'   Default is 5.
+#' @param no.half_lives Integer. Number of half-lives required to reach
+#'   steady state when using \code{"half_life_based"} or \code{"combined"} methods.
+#'   Default is 5.
+#' @param allowed_interval_variation Numeric. Acceptable fractional variation in
+#'   dose interval (e.g., 0.25 allows ±25% variation). Default is 0.25.
+#' @param allowed_dose_variation Numeric. Acceptable fractional variation in
+#'   dose amount (e.g., 0.20 allows ±20% variation). Default is 0.20.
+#' @param min_doses_required Integer. Minimum number of doses that must be
+#'   administered regardless of method. Default is 3.
+#' @param tad_rounding Logical. If \code{TRUE} (default), applies rounding when
+#'   comparing observation times (\code{tad}) to dosing intervals, allowing
+#'   small numerical deviations (e.g., 24.3 ≈ 24).
 #'
-#' @return A list of steady-state control parameters.
-#' @keywords internal
+#' @return A named list containing the steady-state control parameters.
+#'   The returned object is typically passed as the \code{ssctrl} argument
+#'   to \code{\link{is_ss}()}.
+#'
+#' @seealso \code{\link{is_ss}}
+#' @export
+#' @examples
+#' ss_control()
+#' ss_control(ss_method = "fixed_doses", no.doses = 4)
 #'
 ss_control <-
   function(ss_method = c("combined", "fixed_doses", "half_life_based"),
@@ -66,46 +92,23 @@ ss_control <-
 #'   - `TIME`: Observation or dosing time.
 #'   - `AMT`: Dose amount.
 #'   - `tad`: Time after the last dose.
-#' @param ss_method Character. Method to determine steady state. One of:
-#'   - `"combined"` (default): Uses the smaller of the fixed dose count (`no.doses`) and the estimate based on half-life.
-#'   - `"fixed_doses"`: Uses only a fixed number of doses (`no.doses`).
-#'   - `"half_life_based"`: Uses half-life and dose interval to estimate required doses.
-#' @param no.doses Integer. Number of fixed doses assumed to reach steady state (default = 5).
-#' @param no.half_lives Integer. Number of half-lives assumed to reach steady state (default = 5).
-#' @param half_life Numeric. The drug's half-life. Required if `ss_method` is `"combined"` or `"half_life_based"`.
-#' @param allowed_interval_variation Numeric. Acceptable fractional variation in dose interval (default = 0.25).
-#' @param allowed_dose_variation Numeric. Acceptable fractional variation in dose amount (default = 0.20).
-#' @param min_doses_required Integer. Minimum number of doses required regardless of method (default = 3).
-#'
-#' @param tad_rounding Logical. If TRUE (default = TRUE), rounding is applied only when checking
-#' whether an observation (`tad`) falls within the most recent dosing interval.
-#' Specifically, `tad` and the interval are rounded to the nearest whole time unit before comparison.
-#' This allows tolerance for small deviations (e.g., 24.3 is treated as within a 24-unit interval).
+#' @param ssctrl A list created by \code{\link{ss_control}()}, specifying control settings
+#'   for steady-state evaluation. See \code{\link{ss_control}} for details on available options.
+#' @param half_life Numeric. The drug's half-life. Required if `ss_method` in `ssctrl` is
+#'   `"combined"` or `"half_life_based"`.
 #'
 #' @return A data frame similar to `df` with additional columns:
 #'   - `SteadyState`: Logical, indicating whether each observation has reached steady state.
 #'   - `recent_ii`: Numeric, the most recent dosing interval for observations marked as steady state.
 #'   - `SS.method`: Character, description of the method used to identify steady state.
 #'
-#'
 #' @examples
-#' \dontrun{
 #' # Example usage
-#' df <- data.frame(
-#'   ID = rep(1, 14),
-#'   EVID = c(1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0),
-#'   SSflag = rep(0, 14),  # Initialize SSflag as 0
-#'   TIME = 1:14,
-#'   AMT = c(100, 0, 0, 100, 0, 0, 100, 100, 100, 100, 100, 0, 0, 0),
-#'   tad = runif(14)
-#' )
-#' is_ss(df)
-#'
-#' dat <- Bolus_1CPT
+#' dat <- pheno_sd
 #' dat <- processData(dat)$dat
-#' out <- is_ss(df = dat, half_life = 11)
-#' head(out)
-#' }
+#' out<-is_ss(df = dat)
+#' out[out$SteadyState == TRUE & !is.na(out$SteadyState),
+#'            c("ID", "TIME", "DV", "EVID", "SteadyState")]
 
 is_ss <- function(df,
                   ssctrl = ss_control(),

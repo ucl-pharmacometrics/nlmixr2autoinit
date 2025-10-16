@@ -21,21 +21,31 @@ run_npd_1cmpt_mm_oral(
 \item{dat}{A data frame containing pharmacokinetic data. Must include columns
 such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT}.}
 
-\item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
+\item{est.method}{The estimation method in nlmixr2 to use. The default value is "nls".}
 
-\item{input.ka}{A numeric value for the initial estimate of the log-transformed absorption rate constant. Default is 1.}
+\item{input.ka}{A numeric value for the initial estimate of the log-transformed absorption rate constant.
+Default is 1.}
 
-\item{input.add}{A numeric value for the additive error model. Default is Default is 1.}
+\item{input.vmax}{A numeric value for the initial estimate of Vmax (maximum rate of metabolism).
+Default is \code{exp(1)}. This serves as the initial value for \eqn{V_{max}} in the
+nonlinear Michaelis-Menten oral absorption model.}
 
-\item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},}
+\item{input.km}{A numeric value for the initial estimate of Km (Michaelis constant).
+Default is \code{exp(1)}. This defines the concentration at which the rate of metabolism
+is half of \eqn{V_{max}}.}
 
-\item{npdmm_inputvmax}{A numeric value for the initial estimate of the Vmax. Default is 1.}
+\item{input.cl}{A numeric value for the clearance (CL) parameter. Default is \code{exp(1)}.
+This value is also used for Vmax and Km calculation when \code{km_threshold = TRUE}.}
 
-\item{npdmm_inputkm}{A numeric value for the initial estimate of the Km. Default is 1.}
+\item{input.vd}{A numeric value for the initial estimate of the apparent volume of distribution (Vd).
+Default is \code{exp(1)}.}
 
-\item{npdmm_inputcl}{A numeric value for clearance for Vmax and Km calculation when km_threshold is set to True.}
+\item{input.add}{A numeric value for the additive error model. Default is 1.
+Adjust this if observed data show a different level of additive residual variability.}
 
-\item{npdmm_inputvd}{A numeric value for the initial estimate of the volume of distribution (Vd). Default is 1.}
+\item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},
+initial estimates for \eqn{V_{max}} and \eqn{K_m} are adjusted based on the
+observed maximum concentration and clearance.}
 }
 \value{
 A list with the following elements:
@@ -61,8 +71,6 @@ If \code{km_threshold = TRUE}, this function first calculates initial estimates 
 based on the observed maximum concentration in the dataset and referenced clearance. This approach ensures
 that the value of \eqn{K_m} is adjusted to lie between the linear and nonlinear regimes, providing a more robust
 starting estimate when there is uncertainty about whether the model follows linear or nonlinear kinetics.
-This adjustment ensures that the fitting process does not result in \eqn{K_m} values too far from reality,
-regardless of whether the dynamics are linear or nonlinear.
 }
 \examples{
 \dontrun{

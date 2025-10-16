@@ -30,6 +30,9 @@ such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT}.}
 
 \item{npdmm_inputvd}{A numeric value for the initial estimate of volume of distribution (Vd). Default is exp(1).}
 
+\item{input.add}{A numeric value representing the additive residual error component
+included in the model fitting. Default is 1.}
+
 \item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},
 initial estimates for \eqn{V_{max}} and \eqn{K_m} will be set based on the
 observed maximum concentration in the dataset and referenced clearance.}

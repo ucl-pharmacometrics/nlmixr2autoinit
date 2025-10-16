@@ -12,21 +12,30 @@ nca_control(
 )
 }
 \arguments{
-\item{nlastpoints}{Integer. Number of terminal points for half-life regression.}
+\item{duration}{Numeric. Optional. Duration of the observation window (same units as time).
+Used to restrict the integration or define the evaluation range.}
 
-\item{slope.method}{Method for estimating terminal slope (\eqn{\lambda_z}):
+\item{nlastpoints}{Integer. Number of terminal points for half-life regression (default = 3).}
+
+\item{trapezoidal_rule}{Character. Method for trapezoidal AUC integration:
+\itemize{
+\item \code{"linear"} - Linear trapezoidal rule (default)
+\item \code{"linear_up_log_down"} - Linear-up / log-down rule
+}}
+
+\item{slope_method}{Character. Method for estimating the terminal slope (\eqn{\lambda_z}):
 \itemize{
 \item \code{"bestfitforce"} - Force estimation using decreasing number of terminal points if best-fit fails (default)
 \item \code{"bestfit"} - Use automated best-fit selection based on adjusted R-squared
 }}
-
-\item{trapezoidal_rule}{Integer. 1 = linear, 2 = linear-up log-down (default = 1).}
 }
 \value{
 A list with NCA control parameters.
 }
 \description{
-Control settings for non-compartmental analysis (NCA)
+Defines control parameters used in non-compartmental pharmacokinetic analysis (NCA),
+including numerical integration method, duration, number of terminal points, and
+slope estimation strategy.
 }
 \examples{
 nca_control()

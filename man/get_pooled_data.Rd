@@ -26,14 +26,7 @@ One of \code{"first_dose"}, \code{"repeated_doses"}, or \code{"combined_doses"}.
 \item \code{"combined_doses"} merges both first and repeated dose data into a single dataset for pooled analysis.
 }}
 
-\item{pooled_ctrl}{A list of control options created by \code{pooled_control()}. Includes:
-\describe{
-\item{\code{nbins}}{Number of bins to use when binning data.}
-\item{\code{bin_method}}{Method used for time binning (e.g., \code{"equal"}, \code{"quantile"}).}
-\item{\code{tad_rounding}}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
-are rounded to the nearest whole unit before comparing. This allows for
-small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
-}}
+\item{pooled_ctrl}{A list of control options created by \code{\link{pooled_control}}.}
 }
 \value{
 A list containing one or more of the following elements, depending on the \code{dose_type}:
@@ -53,8 +46,6 @@ common dosing interval (\code{most_common_ii}) based on dosing records (\code{EV
 used to assess whether post-dose observations fall within the relevant dosing window.
 If \code{tad_rounding} is TRUE, both the observed time after dose (\code{tad}) and the interval are rounded
 before comparison, making the method more robust to minor time variations.
-
-The function then filters, bins, and returns the appropriate datasets for analysis.
 }
 \examples{
 \dontrun{

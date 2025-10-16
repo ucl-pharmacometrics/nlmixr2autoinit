@@ -20,6 +20,9 @@ run_pooled_nca(
 \item{dat}{A data frame containing pharmacokinetic data. Required columns depend on
 the specified \code{dose_type} (see Details).}
 
+\item{route}{Character string indicating the administration route.
+One of \code{"bolus"}, \code{"oral"}, or \code{"infusion"}.}
+
 \item{dose_type}{Type of analysis to perform. One of:
 \itemize{
 \item{\code{"first_dose"}}: First-dose analysis (default)
@@ -36,7 +39,15 @@ This must be a list that may contain one or more of the following named elements
 }
 If not supplied, the function will compute pooled data automatically.}
 
-\item{...}{Additional arguments passed to \code{\link{bin.time}} and \code{\link{getnca}}.}
+\item{nca_ctrl}{A list of NCA control settings created by \code{\link{nca_control}}.
+Controls numerical integration, slope estimation, and regression point selection for NCA.
+\describe{
+\item{\code{trapezoidal_rule}}{Specifies the trapezoidal integration method:
+\code{"linear"} or \code{"linear_up_log_down"} (default).}
+\item{\code{nlastpoints}}{Number of terminal points used in half-life regression (default = 3).}
+\item{\code{slope.method}}{Method for estimating terminal slope (\eqn{\lambda_z}): \code{"bestfit"} or
+\code{"bestfitforce"} (default).}
+}}
 }
 \value{
 A named list containing:
@@ -84,7 +95,7 @@ pooled <- get_pooled_data(dat, dose_type = "first_dose")
 run_pooled_nca(fdat, dose_type = "combined_doses", route=froute)
 
 
-# Example 4: Infusion case
+# Example 3: Infusion case
 dat <- Infusion_1CPT
 out <- processData(dat)
 fdat<- out$dat

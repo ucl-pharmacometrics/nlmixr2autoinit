@@ -3,7 +3,23 @@
 #' Extends the single-point pharmacokinetic calculations by incorporating additional logic to derive clearance (\eqn{CL}), volume of distribution (\eqn{V_d}), and absorption rate constant (\eqn{k_a}) based on the availability of data. The function evaluates which parameters were not successfully calculated in the \code{single_point_base} step and uses appropriate methods to estimate missing parameters.
 #'
 #' @param single_point_base.lst A list object returned by \code{single_point_base}, containing preprocessed data and initial calculations for \eqn{CL} and \eqn{V_d}.
-#'
+#' @param dat A data frame of pharmacokinetic observations.
+#' @param half_life Numeric. half-life (in the same time units as
+#' the data). Used to derive missing \eqn{CL} or \eqn{V_d} when needed and to
+#' restrict oral \eqn{k_a} calculations to the absorption phase.
+#' @param route Character. Administration route; one of \code{"bolus"},
+#' \code{"oral"}, or \code{"infusion"}. Determines which single-point rules and
+#' fallbacks are applied.
+#' @param dose_type Optional character string indicating the dosing scenario for
+#' alignment with pooled processing, e.g., \code{"first_dose"},
+#' \code{"repeated_doses"}, or \code{"combined_doses"}.
+#' @param pooled_ctrl A list of pooled-analysis control options created by
+#' \code{\link{pooled_control}}. Controls time binning and TAD rounding used if
+#' additional pooled summaries are needed.
+#' @param ssctrl A list of steady-state control options created by
+#' \code{\link{ss_control}}. Governs assumptions and thresholds used when
+#' interpreting or approximating steady-state behavior in single-point logic.
+
 #' @return A list containing:
 #' \itemize{
 #'   \item \code{singlepoint.results}: A data frame with estimated \eqn{k_a}, \eqn{CL}, \eqn{V_d}, and processing time.

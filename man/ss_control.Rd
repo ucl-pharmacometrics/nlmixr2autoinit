@@ -15,21 +15,53 @@ ss_control(
 )
 }
 \arguments{
-\item{...}{Control parameters (see \code{?is_ss} for details). Common options include:
+\item{ss_method}{Character. Method used to determine steady state.
+One of:
 \itemize{
-\item \code{ss_method}
-\item \code{no.doses}
-\item \code{no.half_lives}
-\item \code{allowed_interval_variation}
-\item \code{allowed_dose_variation}
-\item \code{min_doses_required}
-\item \code{tad_rounding}
+\item \code{"combined"} (default): Uses the smaller of the dose-based
+estimate (\code{no.doses}) and the half-life-based estimate
+(\code{no.half_lives}).
+\item \code{"fixed_doses"}: Considers steady state reached after
+\code{no.doses} administrations.
+\item \code{"half_life_based"}: Uses the drug half-life and dosing
+interval to estimate the required number of doses.
 }}
+
+\item{no.doses}{Integer. Number of doses assumed to reach steady state
+when \code{ss_method = "fixed_doses"} or part of the \code{"combined"} method.
+Default is 5.}
+
+\item{no.half_lives}{Integer. Number of half-lives required to reach
+steady state when using \code{"half_life_based"} or \code{"combined"} methods.
+Default is 5.}
+
+\item{allowed_interval_variation}{Numeric. Acceptable fractional variation in
+dose interval (e.g., 0.25 allows ±25\% variation). Default is 0.25.}
+
+\item{allowed_dose_variation}{Numeric. Acceptable fractional variation in
+dose amount (e.g., 0.20 allows ±20\% variation). Default is 0.20.}
+
+\item{min_doses_required}{Integer. Minimum number of doses that must be
+administered regardless of method. Default is 3.}
+
+\item{tad_rounding}{Logical. If \code{TRUE} (default), applies rounding when
+comparing observation times (\code{tad}) to dosing intervals, allowing
+small numerical deviations (e.g., 24.3 ≈ 24).}
 }
 \value{
-A list of steady-state control parameters.
+A named list containing the steady-state control parameters.
+The returned object is typically passed as the \code{ssctrl} argument
+to \code{\link{is_ss}()}.
 }
 \description{
-Used internally to build a list of control options for \code{is_ss()}.
+Constructs a list of control parameters used by \code{\link{is_ss}()} to
+determine pharmacokinetic steady state.
 }
-\keyword{internal}
+\examples{
+ss_control()
+ss_control(ss_method = "fixed_doses", no.doses = 4)
+
+}
+\seealso{
+\code{\link{is_ss}}
+}

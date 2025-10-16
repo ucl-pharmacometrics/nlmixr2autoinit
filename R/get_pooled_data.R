@@ -1,16 +1,25 @@
-#' Control settings for pooled analysis
+#' Control settings for pooled pharmacokinetic analysis
 #'
-#' Controls time binning and preprocessing used in pooled pharmacokinetic analysis.
+#' Defines control parameters for time binning and preprocessing in pooled
+#' pharmacokinetic (PK) analysis. These parameters are typically passed to
+#' \code{\link{get_pooled_data}}.
 #'
-#' @param nbins Integer or "auto". Number of time bins. Default is 10.
+#' @param nbins Integer or "auto". Number of time bins used to group observations.
+#' Default is 10. If set to `"auto"`, the number of bins will be determined automatically.
 #' @param bin_method Character. Binning method to use. One of:
-#'   "quantile", "jenks", "kmeans", "pretty", "sd", "equal", "density".
+#'   `"quantile"`, `"jenks"`, `"kmeans"`, `"pretty"`, `"sd"`, `"equal"`, `"density"`.
+#' Controls how time bins are created.
+#' @param tad_rounding Logical. If TRUE (default), both `tad` and the most common dosing interval
+#' are rounded to the nearest whole unit before comparing. This allows for
+#' small deviations (e.g., a `tad` of 24.3 is treated as within a 24-unit interval).
 #'
 #' @return A named list of pooled control parameters.
+#' @seealso \code{\link{get_pooled_data}}
 #' @export
 #'
 #' @examples
-#' pooled_control(nbins = 8, bin_method = "jenks")
+#' pooled_control()
+
 pooled_control <- function(nbins = 10,
                            bin_method = c("quantile",
                                           "jenks",
@@ -97,14 +106,7 @@ pooled_control <- function(nbins = 10,
 #'   - `"repeated_doses"` processes doses beyond the first and their post-dose observations.
 #'   - `"combined_doses"` merges both first and repeated dose data into a single dataset for pooled analysis.
 #'
-#' @param pooled_ctrl A list of control options created by `pooled_control()`. Includes:
-#'   \describe{
-#'     \item{`nbins`}{Number of bins to use when binning data.}
-#'     \item{`bin_method`}{Method used for time binning (e.g., `"equal"`, `"quantile"`).}
-#'     \item{`tad_rounding`}{Logical. If TRUE (default), both `tad` and the most common dosing interval
-#'                           are rounded to the nearest whole unit before comparing. This allows for
-#'                           small deviations (e.g., a `tad` of 24.3 is treated as within a 24-unit interval).}
-#'   }
+#' @param pooled_ctrl A list of control options created by \code{\link{pooled_control}}.
 
 #' @details
 #' For `"repeated_doses"` and `"combined_doses"` data types, the function determines the most
@@ -113,7 +115,6 @@ pooled_control <- function(nbins = 10,
 #' If `tad_rounding` is TRUE, both the observed time after dose (`tad`) and the interval are rounded
 #' before comparison, making the method more robust to minor time variations.
 #'
-#' The function then filters, bins, and returns the appropriate datasets for analysis.
 #'
 #' @return A list containing one or more of the following elements, depending on the `dose_type`:
 #'   \describe{

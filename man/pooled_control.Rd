@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_pooled_data.R
 \name{pooled_control}
 \alias{pooled_control}
-\title{Control settings for pooled analysis}
+\title{Control settings for pooled pharmacokinetic analysis}
 \usage{
 pooled_control(
   nbins = 10,
@@ -11,17 +11,28 @@ pooled_control(
 )
 }
 \arguments{
-\item{nbins}{Integer or "auto". Number of time bins. Default is 10.}
+\item{nbins}{Integer or "auto". Number of time bins used to group observations.
+Default is 10. If set to \code{"auto"}, the number of bins will be determined automatically.}
 
 \item{bin_method}{Character. Binning method to use. One of:
-"quantile", "jenks", "kmeans", "pretty", "sd", "equal", "density".}
+\code{"quantile"}, \code{"jenks"}, \code{"kmeans"}, \code{"pretty"}, \code{"sd"}, \code{"equal"}, \code{"density"}.
+Controls how time bins are created.}
+
+\item{tad_rounding}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
+are rounded to the nearest whole unit before comparing. This allows for
+small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
 }
 \value{
 A named list of pooled control parameters.
 }
 \description{
-Controls time binning and preprocessing used in pooled pharmacokinetic analysis.
+Defines control parameters for time binning and preprocessing in pooled
+pharmacokinetic (PK) analysis. These parameters are typically passed to
+\code{\link{get_pooled_data}}.
 }
 \examples{
-pooled_control(nbins = 8, bin_method = "jenks")
+pooled_control()
+}
+\seealso{
+\code{\link{get_pooled_data}}
 }

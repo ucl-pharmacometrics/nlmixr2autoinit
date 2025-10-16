@@ -7,6 +7,12 @@
 #' @param dat A data frame with at least two columns: `DV` (drug concentration)
 #' and `TIME` (time points of measurement).
 #'
+#' @param nca.out (Optional) An object containing results from a prior NCA
+#' computation (e.g., output from \code{getnca()}). If not provided, the function
+#' internally calls \code{getnca()} to estimate AUC and the elimination rate
+#' constant (\code{ke}). Providing \code{nca.out} can save computation time when
+#' NCA results are already available.
+#'
 #' @details
 #' The function calculates the absorption rate constant (ka) as follows:
 #' \itemize{
@@ -22,11 +28,10 @@
 #'
 #' @examples
 #'
-#' # data frame from nlmixr2data
+#' # Calculate ka for the first subject from Oral_1CPT
 #' dat<-Oral_1CPT[Oral_1CPT$ID==1 &Oral_1CPT$SD==1&Oral_1CPT$EVID==0,]
 #' dat<-data.frame(TIME=dat$TIME,DV=dat$DV)
 #' ka_wanger_nelson(dat=dat)$ka
-#' ka_wanger_nelson(dat=dat)$dat_out_wanger_nelson
 #'
 #' @export
 #'

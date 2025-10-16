@@ -26,21 +26,21 @@ fallback_control <- function(enable_ka_fallback = FALSE,
 #'
 #' Aggregates all modular control functions into one structured list.
 #'
-#' @param pooled_control Output of `pooled_control()`.
-#' @param nca_control Output of `nca_control()`.
-#' @param selection_control Output of `selection_control()`.
-#' @param fallback_control Output of `fallback_control()`.
+#' @param ss.control Output of `ss_control()`.
+#' @param pooled.control Output of `pooled_control()`.
+#' @param nca.control Output of `nca_control()`.
+#' @param fallback.control Output of `fallback_control()`.
 #' @param selmetrics A character string (or vector) specifying which model performance
 #' metric(s) to evaluate. Must be one or more of: \code{"APE"}, \code{"MAE"},
 #' \code{"MAPE"}, \code{"RMSE"}, \code{"rRMSE1"}, \code{"rRMSE2"}. Default is
 #' \code{"rRMSE2"}.
 #' @param hybrid.base Logical. If \code{TRUE}, enables hybrid evaluation mode,
 #' where model performance is assessed using mixed parameter combinations across
-#' methods (e.g., combining \code{ka} from NCA, \code{cl} from graphical method,
-#' and \code{vd} from steady-state). If \code{FALSE}, evaluation is performed
-#' separately for each parameter estimation method (e.g., using only \code{simpcal},
-#' only \code{nca}, etc.). This allows more flexible exploration of parameter set
-#' synergies across estimation strategies. Default is \code{TRUE}.
+#' methods (e.g., combining \code{ka} from NCA, \code{cl} from graphic methods,
+#' and \code{vd} from adaptive single-point method). If \code{FALSE}, evaluation
+#' is performed separately for each parameter estimation method (e.g., using only
+#' \code{simpcal}, only \code{nca}, etc.). This allows more flexible exploration
+#' of parameter set synergies across estimation strategies. Default is \code{TRUE}.
 #' @param preferNCA Logical.
 #' If \code{TRUE} and \code{selmetrics == "rRMSE2"}, the function will first
 #' select the best method by the lowest rRMSE2. If that method is not NCA-based,
@@ -53,8 +53,8 @@ fallback_control <- function(enable_ka_fallback = FALSE,
 #' @export
 #' @examples
 #' initsControl(
-#'   pooled_control = pooled_control(nbins = 8),
-#'   fallback_control = fallback_control(sigma_method_additive = "fixed_fraction")
+#'   pooled.control = pooled_control(nbins = 8),
+#'   fallback.control = fallback_control(sigma_method_additive = "fixed_fraction")
 #' )
 #'
 #' @seealso \code{\link{ss_control}}, \code{\link{pooled_control}}, \code{\link{nca_control}}, \code{\link{fallback_control}}

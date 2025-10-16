@@ -12,6 +12,14 @@
 #'     \item{\code{"combined_doses"}}: Analysis combining first and repeated doses
 #'   }
 #' @param pooled Optional externally provided pooled data. If \code{NULL}, the data will be pooled internally.
+#' @param pooled_ctrl A list of control options created by \code{\link{pooled_control}}.
+#'   \describe{
+#'     \item{`nbins`}{Number of bins to use when binning data.}
+#'     \item{`bin_method`}{Method used for time binning (e.g., `"equal"`, `"quantile"`).}
+#'     \item{`tad_rounding`}{Logical. If TRUE (default), both `tad` and the most common dosing interval
+#'                           are rounded to the nearest whole unit before comparing. This allows for
+#'                           small deviations (e.g., a `tad` of 24.3 is treated as within a 24-unit interval).}
+#'   }
 #' @param ... Additional arguments passed to \code{bin.time} or to the graphical calculation functions.
 #'
 #' @return A list containing graphical estimation results, including clearance, volume of distribution, terminal slope,

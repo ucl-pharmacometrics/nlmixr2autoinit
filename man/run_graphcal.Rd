@@ -27,6 +27,15 @@ run_graphcal(
 
 \item{pooled}{Optional externally provided pooled data. If \code{NULL}, the data will be pooled internally.}
 
+\item{pooled_ctrl}{A list of control options created by \code{\link{pooled_control}}.
+\describe{
+\item{\code{nbins}}{Number of bins to use when binning data.}
+\item{\code{bin_method}}{Method used for time binning (e.g., \code{"equal"}, \code{"quantile"}).}
+\item{\code{tad_rounding}}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
+are rounded to the nearest whole unit before comparing. This allows for
+small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
+}}
+
 \item{...}{Additional arguments passed to \code{bin.time} or to the graphical calculation functions.}
 }
 \value{
