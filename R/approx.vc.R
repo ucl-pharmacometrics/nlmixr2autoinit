@@ -18,13 +18,7 @@
 #' @param ssctrl Control object created by \link{ss_control}(),
 #' defining steady-state control options.
 #'
-#' @return
-#' \describe{
-#'   \item{approx.vc.value}{Trimmed geometric mean (\eqn{5\%}) of individual \eqn{V_d} estimates.}
-#'   \item{approx.vc.dat}{Combined data frame of individual \eqn{V_d} estimates across doses.}
-#'   \item{approx.vc.dat.sd}{Filtered single-dose subset used for estimation.}
-#'   \item{approx.vc.dat.md}{Filtered multiple-dose subset used for estimation.}
-#' }
+#' @return A list containing individual and population Vd estimates and related dose-level data.
 #'
 #' @details
 #' Estimates individual apparent volumes of distribution (\eqn{V_d})
@@ -53,7 +47,7 @@
 #' \code{\link{pooled_control}}, \code{\link{ss_control}}
 #'
 #' @examples
-#' out <- suppressMessages(processData(Bolus_1CPT[Bolus_1CPT$SS == 99,]))
+#' out <- suppressMessages(processData(Bolus_1CPT))
 #' approx.vc(
 #'   dat = out$dat,
 #'   half_life = get_hf(dat = out$dat)$half_life_median,

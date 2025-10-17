@@ -2,7 +2,7 @@
 % Please edit documentation in R/bin.time.R
 \name{bin.time}
 \alias{bin.time}
-\title{Bin PK time-concentration data using quantile or algorithmic binning}
+\title{Bin time-concentration data using quantile or algorithmic binning}
 \usage{
 bin.time(
   dat,
@@ -13,22 +13,28 @@ bin.time(
 \arguments{
 \item{dat}{A data frame containing PK data. Must include:
 \itemize{
-\item \code{tad}: time after dose
-\item \code{DVstd}: standardized concentration (e.g., DV/dose)
-\item \code{EVID}: (optional) event ID; rows with \code{EVID == 0} will be used
+\item tad: time after dose
+\item DVstd: standardized concentration (e.g., DV/dose)
+\item EVID: optional event ID column used to filter observations (EVID == 0)
 }}
 
-\item{nbins}{Number of bins or \code{"auto"}:
-\itemize{
-\item For \code{method = "quantile"}: \code{"auto"} defaults to 10 (deciles)
-\item For other methods: \code{"auto"} uses Sturges' rule: \code{ceiling(log2(n)) + 1}
-}}
+\item{nbins}{Number of bins or "auto".
+If a numeric value is provided (e.g., 8) and bin.method = "quantile",
+that number of equal-frequency bins is used.
+When "auto" is specified:
+for bin.method = "quantile", 10 bins (deciles) are used;
+for other methods, bin count selection is delegated to
+vpc::auto_bin (type = bin.method, n_bins = "auto").
+If a numeric nbins is supplied with non-quantile methods,
+it is passed to vpc::auto_bin as the target number of bins.}
 
-\item{bin.method}{Binning strategy (default = \code{"quantile"}). Options:
+\item{bin.method}{Binning strategy (default = "quantile").
+Available options are:
 \itemize{
-\item \code{"quantile"}: Equal-frequency binning by empirical quantiles
-\item \code{"jenks"}: Natural breaks (minimizes intra-bin variance)
-\item \code{"kmeans"}, \code{"pretty"}, \code{"sd"}, \code{"equal"}, \code{"density"}: other methods from \code{classInt}
+\item quantile: equal-frequency binning by empirical quantiles
+\item jenks: natural breaks minimizing within-bin variance
+\item kmeans, pretty, sd, equal, density: alternative binning
+methods from vpc::auto_bin
 }}
 }
 \value{
@@ -42,17 +48,14 @@ A list containing:
 }
 }
 \description{
-Bins pharmacokinetic (PK) data by time, using either equal-frequency (quantile)
-binning or algorithmic methods supported by the \code{vpc} package, such as Jenks
-natural breaks or k-means clustering.
+Bins data by time, using either equal-frequency (quantile)
+binning or algorithmic methods supported by the \code{vpc} package
 }
 \details{
-This function supports both quantile-based binning (used in NCA) and
-adaptive binning strategies (used in VPC), with optional automatic
-bin count determination.
+Supports quantile-based and adaptive (VPC-style) binning methods,
+with optional automatic determination of the number of bins.
 }
 \examples{
-
 dat <- Bolus_1CPT
 dat <- nmpkconvert(dat)
 dat <- calculate_tad(dat)

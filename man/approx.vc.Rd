@@ -37,12 +37,7 @@ defining data pooling options.}
 defining steady-state control options.}
 }
 \value{
-\describe{
-\item{approx.vc.value}{Trimmed geometric mean (\eqn{5\%}) of individual \eqn{V_d} estimates.}
-\item{approx.vc.dat}{Combined data frame of individual \eqn{V_d} estimates across doses.}
-\item{approx.vc.dat.sd}{Filtered single-dose subset used for estimation.}
-\item{approx.vc.dat.md}{Filtered multiple-dose subset used for estimation.}
-}
+A list containing individual and population Vd estimates and related dose-level data.
 }
 \description{
 Estimates the volume of distribution (\eqn{V_d}) from observed peak
@@ -71,7 +66,7 @@ The function returns separate subsets for single- and multiple-dose data
 and the final summary statistic (\code{approx.vc.value}).
 }
 \examples{
-out <- suppressMessages(processData(Bolus_1CPT[Bolus_1CPT$SS == 99,]))
+out <- suppressMessages(processData(Bolus_1CPT))
 approx.vc(
   dat = out$dat,
   half_life = get_hf(dat = out$dat)$half_life_median,

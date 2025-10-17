@@ -1,24 +1,29 @@
-#' Bin PK time-concentration data using quantile or algorithmic binning
+#' Bin time-concentration data using quantile or algorithmic binning
 #'
-#' Bins pharmacokinetic (PK) data by time, using either equal-frequency (quantile)
-#' binning or algorithmic methods supported by the `vpc` package, such as Jenks
-#' natural breaks or k-means clustering.
-#'
-#' This function supports both quantile-based binning (used in NCA) and
-#' adaptive binning strategies (used in VPC), with optional automatic
-#' bin count determination.
+#' Bins data by time, using either equal-frequency (quantile)
+#' binning or algorithmic methods supported by the `vpc` package
 #'
 #' @param dat A data frame containing PK data. Must include:
-#'   - `tad`: time after dose
-#'   - `DVstd`: standardized concentration (e.g., DV/dose)
-#'   - `EVID`: (optional) event ID; rows with `EVID == 0` will be used
-#' @param nbins Number of bins or `"auto"`:
-#'   - For `method = "quantile"`: `"auto"` defaults to 10 (deciles)
-#'   - For other methods: `"auto"` uses Sturges' rule: `ceiling(log2(n)) + 1`
-#' @param bin.method Binning strategy (default = `"quantile"`). Options:
-#'   - `"quantile"`: Equal-frequency binning by empirical quantiles
-#'   - `"jenks"`: Natural breaks (minimizes intra-bin variance)
-#'   - `"kmeans"`, `"pretty"`, `"sd"`, `"equal"`, `"density"`: other methods from `classInt`
+#'   - tad: time after dose
+#'   - DVstd: standardized concentration (e.g., DV/dose)
+#'   - EVID: optional event ID column used to filter observations (EVID == 0)
+#'
+#' @param nbins Number of bins or "auto".
+#'   If a numeric value is provided (e.g., 8) and bin.method = "quantile",
+#'   that number of equal-frequency bins is used.
+#'   When "auto" is specified:
+#'   for bin.method = "quantile", 10 bins (deciles) are used;
+#'   for other methods, bin count selection is delegated to
+#'   vpc::auto_bin (type = bin.method, n_bins = "auto").
+#'   If a numeric nbins is supplied with non-quantile methods,
+#'   it is passed to vpc::auto_bin as the target number of bins.
+#'
+#' @param bin.method Binning strategy (default = "quantile").
+#'   Available options are:
+#'   - quantile: equal-frequency binning by empirical quantiles
+#'   - jenks: natural breaks minimizing within-bin variance
+#'   - kmeans, pretty, sd, equal, density: alternative binning
+#'     methods from vpc::auto_bin
 #'
 #' @return A list containing:
 #' \describe{
@@ -29,26 +34,40 @@
 #'   \item{nbins_final}{Final number of bins (length of breaks - 1)}
 #' }
 #'
-#' @examples
+#' @details
+#' Supports quantile-based and adaptive (VPC-style) binning methods,
+#' with optional automatic determination of the number of bins.
 #'
+#' @examples
 #' dat <- Bolus_1CPT
 #' dat <- nmpkconvert(dat)
 #' dat <- calculate_tad(dat)
 #' dat$DVstd <- dat$DV / dat$dose
 #' bin.time(dat)
 #'
-#' @importFrom stats quantile aggregate
 #' @export
 
 bin.time <- function(dat,
                      nbins   = "auto",
                      bin.method  = c("quantile",
-                                 "jenks",
-                                 "kmeans",
-                                 "pretty",
-                                 "sd",
-                                 "equal",
-                                 "density")) {
+                                     "jenks",
+                                     "kmeans",
+                                     "pretty",
+                                     "sd",
+                                     "equal",
+                                     "density")) {
+  # Defensive check for nbins
+  if (!(is.numeric(nbins) || identical(nbins, "auto"))) {
+    stop("`nbins` must be either a numeric value or the string \"auto\".",
+         call. = FALSE)
+  }
+
+  if (is.numeric(nbins)) {
+    if (length(nbins) != 1L || nbins <= 0 || !is.finite(nbins)) {
+      stop("`nbins` must be a single positive finite number.", call. = FALSE)
+    }
+  }
+
   # get the default [1] if no input
   bin.method <- match.arg(bin.method)
 
@@ -58,8 +77,9 @@ bin.time <- function(dat,
 
   # 1. Determine bin breaks
   if (bin.method == "quantile") {
-    if (identical(nbins, "auto"))
+    if (identical(nbins, "auto")) {
       nbins <- 10
+    }
     probs <- seq(0, 1, length.out = nbins + 1)
 
     brks  <-
@@ -106,4 +126,3 @@ bin.time <- function(dat,
     nbins_final      = length(brks) - 1
   )
 }
-
