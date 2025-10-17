@@ -1,69 +1,65 @@
 #' Approximate volume of distribution from observed Cmax
 #'
 #' Estimates the volume of distribution (\eqn{V_d}) from observed peak
-#' concentrations (\eqn{C_{\mathrm{max}}}) in single- or multiple-dose data.
+#' concentrations (\eqn{C_{\mathrm{max}}}) in single-dose, multiple-dose, or mixed datasets.
 #'
 #' @param dat A data frame containing pharmacokinetic data, including observed
-#' concentrations (\code{DV}), time after dose (\code{tad}), dose, and route information.
-#' @param half_life The elimination half-life of the compound, used to identify
-#' early-phase \eqn{C_{\mathrm{max}}} values.
+#' concentrations (DV), time after dose (tad), dose, and route information.
+#' @param half_life The elimination half-life (\eqn{t_{1/2}}) of the compound,
+#' used to identify early-phase \eqn{C_{\mathrm{max}}} values.
 #' @param single_point_base.lst Optional list object returned by
-#' \code{\link{run_single_point_base}()}. If not supplied, it will be generated
-#' internally from \code{dat}.
-#' @param route Route of administration. One of \code{"bolus"}, \code{"oral"},
-#' or \code{"infusion"} (default = \code{"bolus"}).
+#' \link{run_single_point_base}(). If not supplied, the function will generate it internally.
+#' @param route Route of administration. One of "bolus", "oral",
+#' or "infusion" (default = "bolus").
 #' @param dose_type Optional string specifying the dosing type, passed to
-#' \code{\link{run_single_point_base}()}.
-#' @param pooled_ctrl Control object created by \code{\link{pooled_control}()},
+#' \link{run_single_point_base}().
+#' @param pooled_ctrl Control object created by \link{pooled_control}(),
 #' defining data pooling options.
-#' @param ssctrl Control object created by \code{\link{ss_control}()},
+#' @param ssctrl Control object created by \link{ss_control}(),
 #' defining steady-state control options.
 #'
-#' @return A list containing:
+#' @return
 #' \describe{
-#'   \item{approx.vc.value}{The trimmed geometric mean (\eqn{5\%}) of individual \eqn{V_d} estimates.}
+#'   \item{approx.vc.value}{Trimmed geometric mean (\eqn{5\%}) of individual \eqn{V_d} estimates.}
 #'   \item{approx.vc.dat}{Combined data frame of individual \eqn{V_d} estimates across doses.}
 #'   \item{approx.vc.dat.sd}{Filtered single-dose subset used for estimation.}
 #'   \item{approx.vc.dat.md}{Filtered multiple-dose subset used for estimation.}
 #' }
 #'
 #' @details
-#' The function estimates the apparent volume of distribution (\eqn{V_d})
-#' from observed \eqn{C_{\mathrm{max}}} values for each subject and dose.
+#' Estimates individual apparent volumes of distribution (\eqn{V_d})
+#' from observed peak concentrations (\eqn{C_{\mathrm{max}}}).
+#' Individual estimates are then summarized to obtain a population-level value.
 #'
-#' The calculation is route-dependent:
+#' For single-dose data, \eqn{V_d} is calculated according to the route of administration:
 #' \itemize{
-#'   \item \strong{Bolus:} \eqn{V_d = \mathrm{Dose} / C_{\mathrm{max}}}
-#'   \item \strong{Infusion:} \eqn{V_d = (\mathrm{Rate} \times t_{\mathrm{inf}}) / C_{\mathrm{max}}}
-#'   \item \strong{Oral:} \eqn{V_d = (\mathrm{Dose} \times F) / C_{\mathrm{max}}}, with \eqn{F = 1 - e^{-k_a t}}
+#'   \item Bolus: \eqn{V_d = \mathrm{Dose} / C_{\mathrm{max}}}
+#'   \item Infusion: \eqn{V_d = (\mathrm{Rate} \times t_{\mathrm{inf}}) / C_{\mathrm{max}}}
+#'   \item Oral: \eqn{V_d = (\mathrm{Dose} \times F) / C_{\mathrm{max}}}, where \eqn{F = 1 - e^{-k_a t}}
 #' }
 #'
-#' For multiple-dose data, steady-state concentrations are corrected to
+#' For multiple-dose data, observed \eqn{C_{\mathrm{max}}} values are adjusted to
 #' single-dose equivalents using the accumulation ratio:
-#' \deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \tau}}}
-#' where \eqn{k_e = \ln(2)/t_{1/2}} and \eqn{\tau} is the dosing interval.
+#' \deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \tau}}, \quad k_e = \ln(2)/t_{1/2}}
 #'
-#' Individual \eqn{V_d} estimates are summarized using a trimmed geometric mean
-#' (\code{\link{trimmed_geom_mean}()}) to provide a robust estimate across subjects.
+#' Adjusted values are used to estimate \eqn{V_d} using the same route-specific equations.
 #'
-#' @importFrom dplyr group_by slice_max ungroup
+#' The function returns separate subsets for single- and multiple-dose data
+#' (`approx.vc.dat.sd` and `approx.vc.dat.md`), their combined dataset (`approx.vc.dat`),
+#' and the final summary statistic (`approx.vc.value`).
 #'
 #' @seealso
 #' \code{\link{run_single_point_base}}, \code{\link{trimmed_geom_mean}},
 #' \code{\link{pooled_control}}, \code{\link{ss_control}}
 #'
 #' @examples
-#' \dontrun{
-#' dat <- Bolus_1CPT
-#' out <- processData(dat)
-#' fdat <- out$dat
-#' froute <- out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-#' half_life <- get_hf(dat = fdat)$half_life_median
-#' res <- approx.vc(dat = fdat, half_life = half_life, route = froute)
-#' res$approx.vc.value
-#' }
+#' out <- suppressMessages(processData(Bolus_1CPT[Bolus_1CPT$SS == 99,]))
+#' approx.vc(
+#'   dat = out$dat,
+#'   half_life = get_hf(dat = out$dat)$half_life_median,
+#'   route = out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
+#' )$approx.vc.value
 #' @export
-
 
 approx.vc <- function(dat = NULL,
                       half_life = NULL,
@@ -113,14 +109,14 @@ approx.vc <- function(dat = NULL,
   approx.vc.value <- NA
 
   if (any(dat$EVID == 0 & dat$dose_number == 1, na.rm = TRUE)) {
-    datobs_fd <- dat[dat$EVID == 0 & dat$dose_number == 1, ]
+    datobs_fd <- dat[dat$EVID == 0 & dat$dose_number == 1,]
     cmax_by_group_sd <- datobs_fd %>%
       dplyr::group_by(ID, dose_number) %>%
       dplyr::slice_max(order_by = DV, with_ties = FALSE) %>%
       dplyr::ungroup()
 
     cmax_by_group_sd <-
-      cmax_by_group_sd[cmax_by_group_sd$tad < half_life * 0.2, ]
+      cmax_by_group_sd[cmax_by_group_sd$tad < half_life * 0.2,]
 
     if (route == "infusion") {
       cmax_by_group_sd$vd <-
@@ -154,7 +150,7 @@ approx.vc <- function(dat = NULL,
       dplyr::ungroup()
 
     cmax_by_group_md <-
-      cmax_by_group_md[cmax_by_group_md$tad < half_life * 0.2,]
+      cmax_by_group_md[cmax_by_group_md$tad < half_life * 0.2, ]
     if (route == "infusion") {
       cmax_by_group_md$vd <- signif(
         pmin(cmax_by_group_md$tad, cmax_by_group_md$durationobs) *
@@ -192,7 +188,7 @@ approx.vc <- function(dat = NULL,
   )
 
   if (!is.null(cmax_by_group)) {
-    # Calculate median vd for each individual
+    # Calculate median Vd for each individual
     individual_mean_vd <-
       tryCatch(
         aggregate(vd ~ ID, data = cmax_by_group, FUN = trimmed_geom_mean),

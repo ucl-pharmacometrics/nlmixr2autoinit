@@ -16,31 +16,29 @@ approx.vc(
 }
 \arguments{
 \item{dat}{A data frame containing pharmacokinetic data, including observed
-concentrations (\code{DV}), time after dose (\code{tad}), dose, and route information.}
+concentrations (DV), time after dose (tad), dose, and route information.}
 
-\item{half_life}{The elimination half-life of the compound, used to identify
-early-phase \eqn{C_{\mathrm{max}}} values.}
+\item{half_life}{The elimination half-life (\eqn{t_{1/2}}) of the compound,
+used to identify early-phase \eqn{C_{\mathrm{max}}} values.}
 
 \item{single_point_base.lst}{Optional list object returned by
-\code{\link{run_single_point_base}()}. If not supplied, it will be generated
-internally from \code{dat}.}
+\link{run_single_point_base}(). If not supplied, the function will generate it internally.}
 
-\item{route}{Route of administration. One of \code{"bolus"}, \code{"oral"},
-or \code{"infusion"} (default = \code{"bolus"}).}
+\item{route}{Route of administration. One of "bolus", "oral",
+or "infusion" (default = "bolus").}
 
 \item{dose_type}{Optional string specifying the dosing type, passed to
-\code{\link{run_single_point_base}()}.}
+\link{run_single_point_base}().}
 
-\item{pooled_ctrl}{Control object created by \code{\link{pooled_control}()},
+\item{pooled_ctrl}{Control object created by \link{pooled_control}(),
 defining data pooling options.}
 
-\item{ssctrl}{Control object created by \code{\link{ss_control}()},
+\item{ssctrl}{Control object created by \link{ss_control}(),
 defining steady-state control options.}
 }
 \value{
-A list containing:
 \describe{
-\item{approx.vc.value}{The trimmed geometric mean (\eqn{5\%}) of individual \eqn{V_d} estimates.}
+\item{approx.vc.value}{Trimmed geometric mean (\eqn{5\%}) of individual \eqn{V_d} estimates.}
 \item{approx.vc.dat}{Combined data frame of individual \eqn{V_d} estimates across doses.}
 \item{approx.vc.dat.sd}{Filtered single-dose subset used for estimation.}
 \item{approx.vc.dat.md}{Filtered multiple-dose subset used for estimation.}
@@ -48,37 +46,37 @@ A list containing:
 }
 \description{
 Estimates the volume of distribution (\eqn{V_d}) from observed peak
-concentrations (\eqn{C_{\mathrm{max}}}) in single- or multiple-dose data.
+concentrations (\eqn{C_{\mathrm{max}}}) in single-dose, multiple-dose, or mixed datasets.
 }
 \details{
-The function estimates the apparent volume of distribution (\eqn{V_d})
-from observed \eqn{C_{\mathrm{max}}} values for each subject and dose.
+Estimates individual apparent volumes of distribution (\eqn{V_d})
+from observed peak concentrations (\eqn{C_{\mathrm{max}}}).
+Individual estimates are then summarized to obtain a population-level value.
 
-The calculation is route-dependent:
+For single-dose data, \eqn{V_d} is calculated according to the route of administration:
 \itemize{
-\item \strong{Bolus:} \eqn{V_d = \mathrm{Dose} / C_{\mathrm{max}}}
-\item \strong{Infusion:} \eqn{V_d = (\mathrm{Rate} \times t_{\mathrm{inf}}) / C_{\mathrm{max}}}
-\item \strong{Oral:} \eqn{V_d = (\mathrm{Dose} \times F) / C_{\mathrm{max}}}, with \eqn{F = 1 - e^{-k_a t}}
+\item Bolus: \eqn{V_d = \mathrm{Dose} / C_{\mathrm{max}}}
+\item Infusion: \eqn{V_d = (\mathrm{Rate} \times t_{\mathrm{inf}}) / C_{\mathrm{max}}}
+\item Oral: \eqn{V_d = (\mathrm{Dose} \times F) / C_{\mathrm{max}}}, where \eqn{F = 1 - e^{-k_a t}}
 }
 
-For multiple-dose data, steady-state concentrations are corrected to
+For multiple-dose data, observed \eqn{C_{\mathrm{max}}} values are adjusted to
 single-dose equivalents using the accumulation ratio:
-\deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \tau}}}
-where \eqn{k_e = \ln(2)/t_{1/2}} and \eqn{\tau} is the dosing interval.
+\deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \tau}}, \quad k_e = \ln(2)/t_{1/2}}
 
-Individual \eqn{V_d} estimates are summarized using a trimmed geometric mean
-(\code{\link{trimmed_geom_mean}()}) to provide a robust estimate across subjects.
+Adjusted values are used to estimate \eqn{V_d} using the same route-specific equations.
+
+The function returns separate subsets for single- and multiple-dose data
+(\code{approx.vc.dat.sd} and \code{approx.vc.dat.md}), their combined dataset (\code{approx.vc.dat}),
+and the final summary statistic (\code{approx.vc.value}).
 }
 \examples{
-\dontrun{
-dat <- Bolus_1CPT
-out <- processData(dat)
-fdat <- out$dat
-froute <- out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-half_life <- get_hf(dat = fdat)$half_life_median
-res <- approx.vc(dat = fdat, half_life = half_life, route = froute)
-res$approx.vc.value
-}
+out <- suppressMessages(processData(Bolus_1CPT[Bolus_1CPT$SS == 99,]))
+approx.vc(
+  dat = out$dat,
+  half_life = get_hf(dat = out$dat)$half_life_median,
+  route = out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
+)$approx.vc.value
 }
 \seealso{
 \code{\link{run_single_point_base}}, \code{\link{trimmed_geom_mean}},
