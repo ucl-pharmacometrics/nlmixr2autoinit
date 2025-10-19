@@ -290,9 +290,11 @@ calculate_cl <- function(dat,
 #' \deqn{Vd = \frac{\text{Rate} \times \min(\text{TIME}, \text{durationobs})}{C}}
 #' where `C` is the observed concentration (`DV`).
 #'
-#' When `half_life` is not provided, it is estimated from pooled data using
-#' `get_pooled_data()` and `get_hf()`.
+#' When half_life is not provided, it is estimated from pooled data using
+#' the functions get_pooled_data() and get_hf().
 #'
+#' @seealso \link{get_pooled_data}, \link{get_hf}, \link{trimmed_geom_mean}
+
 #' @examples
 #'
 #' dat <- Bolus_1CPT
@@ -455,7 +457,8 @@ calculate_vd <- function(dat,
 #' adaptive workflow, using steady-state pharmacokinetic observations and
 #' trimmed mean statistics to reduce the influence of outliers.
 #'
-#' @seealso calculate_cl, calculate_vd, pooled_control, ss_control
+#' @seealso \link{calculate_cl}, \link{calculate_vd}, \link{pooled_control}, \link{ss_control}
+
 #'
 #' @examples
 #' dat <- Bolus_1CPT

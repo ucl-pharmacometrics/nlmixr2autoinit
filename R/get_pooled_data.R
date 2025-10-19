@@ -1,24 +1,28 @@
-#' Control settings for pooled pharmacokinetic analysis
+#' Control settings for pooled data analysis
 #'
 #' Defines control parameters for time binning and preprocessing in pooled
-#' pharmacokinetic (PK) analysis. These parameters are typically passed to
-#' \code{\link{get_pooled_data}}.
+#' data analysis. These parameters are typically passed to 'get_pooled_data'.
 #'
-#' @param nbins Integer or "auto". Number of time bins used to group observations.
-#' Default is 10. If set to `"auto"`, the number of bins will be determined automatically.
-#' @param bin_method Character. Binning method to use. One of:
-#'   `"quantile"`, `"jenks"`, `"kmeans"`, `"pretty"`, `"sd"`, `"equal"`, `"density"`.
-#' Controls how time bins are created.
-#' @param tad_rounding Logical. If TRUE (default), both `tad` and the most common dosing interval
-#' are rounded to the nearest whole unit before comparing. This allows for
-#' small deviations (e.g., a `tad` of 24.3 is treated as within a 24-unit interval).
+#' @param nbins Integer or the character string auto. Number of time bins used
+#'   to group observations. Default is 10.
+#' @param bin_method Character string specifying the binning method. Must be one
+#'   of "quantile", "jenks", "kmeans", "pretty", "sd", "equal", or "density".
+#' @param tad_rounding Logical value indicating whether tad and the most common
+#'   dosing interval should be rounded to the nearest whole unit before
+#'   comparison. Default is TRUE, allowing small deviations (for example, a tad
+#'   of 24.3 is treated as within a 24-unit interval).
 #'
-#' @return A named list of pooled control parameters.
-#' @seealso \code{\link{get_pooled_data}}
-#' @export
+#' @return
+#' A named list containing control parameters for pooled pharmacokinetic
+#' analysis.
+#'
+#' @seealso \link{get_pooled_data}
 #'
 #' @examples
 #' pooled_control()
+#'
+#' @export
+
 
 pooled_control <- function(nbins = 10,
                            bin_method = c("quantile",
@@ -92,45 +96,49 @@ pooled_control <- function(nbins = 10,
 
 #' Generate pooled data for pharmacokinetic analysis
 #'
-#' Processes pharmacokinetic (PK) data and produces pooled datasets based on
-#' the specified dosing scenario, with flexible control over binning and time-alignment behavior.
+#' Processes pharmacokinetic data and produces pooled datasets according to
+#' the dosing context. Data can be grouped based on first dose, repeated dosing,
+#' or a combination of both, with control over binning and time alignment.
 #'
-#' @param dat A data frame containing pharmacokinetic data. The required columns depend on `dose_type`:
-#'   - `"first_dose"`: `dose_number`, `iiobs`, `ID`, `TIME`, `DV`
-#'   - `"repeated_doses"`: `EVID`, `AMT`, `tad`, `dose_number`, `iiobs`, `ID`, `TIME`, `DV`, `resetflag`
-#'   - `"combined_doses"`: `EVID`, `tad`, `dose_number`, `ID`, `TIME`, `DV`, `resetflag`
+#' @param dat A data frame containing raw time–concentration data in the
+#'   standard nlmixr2 format.
 #'
-#' @param dose_type Character string indicating the type of data to pool.
-#'   One of `"first_dose"`, `"repeated_doses"`, or `"combined_doses"`.
-#'   - `"first_dose"` processes only the first dose of each subject.
-#'   - `"repeated_doses"` processes doses beyond the first and their post-dose observations.
-#'   - `"combined_doses"` merges both first and repeated dose data into a single dataset for pooled analysis.
-#'
-#' @param pooled_ctrl A list of control options created by \code{\link{pooled_control}}.
-
-#' @details
-#' For `"repeated_doses"` and `"combined_doses"` data types, the function determines the most
-#' common dosing interval (`most_common_ii`) based on dosing records (`EVID == 1`). This interval is
-#' used to assess whether post-dose observations fall within the relevant dosing window.
-#' If `tad_rounding` is TRUE, both the observed time after dose (`tad`) and the interval are rounded
-#' before comparison, making the method more robust to minor time variations.
-#'
-#'
-#' @return A list containing one or more of the following elements, depending on the `dose_type`:
-#'   \describe{
-#'     \item{`datpooled_fd`}{Binned data for the first dose (single-dose profiles).}
-#'     \item{`datpooled_efd`}{Binned data excluding the first dose (repeated-dose profiles).}
-#'     \item{`datpooled_all`}{Combined first and repeated dose data, for overall pooled analysis.}
+#' @param dose_type Specifies the dosing context of the pharmacokinetic
+#'   observations. Classified as:
+#'   \itemize{
+#'     \item first_dose: data include only observations following the initial
+#'           administration
+#'     \item repeated_doses: data include only observations during repeated or
+#'           steady-state dosing
+#'     \item combined_doses: data include observations from both first-dose and
+#'           repeated-dose intervals
 #'   }
 #'
+#' @param pooled_ctrl A list of control parameters created by
+#'   'pooled_control', including settings for binning and time rounding.
+#'
+#' @details
+#' For repeated-doses and combined-doses classifications, the most common
+#' interdose interval is identified from dosing records and used to determine
+#' whether observations fall within the relevant interval. If tad_rounding is
+#' TRUE, both time after dose and dosing interval are rounded before comparison.
+#'
+#' @return
+#' A list containing pooled pharmacokinetic datasets depending on the specified
+#' dose type:
+#'   - datpooled_fd: pooled data for first-dose observations
+#'   - datpooled_efd: pooled data for repeated dosing
+#'   - datpooled_all: pooled data combining first-dose and repeated-dose
+#'     observations
+#'
 #' @examples
-#' \dontrun{
-#' processed_data <- processData(Bolus_1CPT)$dat
-#' pooled <- get_pooled_data(processed_data, dose_type = "combined_doses")
-#' pooled$datpooled_all$binned.df
-#' }
+#' dat <- processData(Bolus_1CPT)$dat
+#' get_pooled_data(dat, dose_type = "combined_doses")
+#'
+#' @seealso \link{pooled_control}, \link{trimmed_geom_mean}
 #'
 #' @export
+
 
 get_pooled_data <- function(dat,
                             dose_type = c("first_dose", "repeated_doses", "combined_doses"),

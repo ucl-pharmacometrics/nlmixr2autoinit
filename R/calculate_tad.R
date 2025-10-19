@@ -1,16 +1,19 @@
 #' Calculate time after dose (TAD) for pharmacokinetic data
 #'
-#' Computes time after dose (TAD) for pharmacokinetic observations. For observation records,
-#' dosing information from the most recent dose administration is propagated to calculate
-#' the time elapsed since that dose.
+#' Computes time after dose (TAD) for pharmacokinetic observations. For
+#' observation records, dosing information from the most recent dose
+#' administration is propagated to calculate the time elapsed since that dose.
 #'
-#' @param dat A data frame containing raw time–concentration data in the standard nlmixr2 format.
+#' @param dat A data frame containing raw time–concentration data in the
+#'   standard nlmixr2 format.
 #'
 #' @return A modified data frame with added columns:
-#'   - tad: time after dose, calculated as the observation time minus the time of the most recent prior dose; set to NA for dosing records
+#'   - tad: time after dose, calculated as the observation time minus the time
+#'     of the most recent prior dose; set to NA for dosing records
 #'   - iiobs: interdose interval inherited from the most recent dosing record
 #'   - rateobs: infusion rate inherited from the most recent dosing record
-#'   - routeobs (optional): route of administration inherited from the most recent dosing record, included only if route information is present
+#'   - routeobs (optional): route of administration inherited from the most
+#'     recent dosing record, included only if route information is present
 #'   - dose_number: sequential dose number, generated if not already present
 #'
 #' @details
@@ -25,7 +28,6 @@
 #' calculate_tad(Oral_1CPT)
 #'
 #' @export
-
 #'
 calculate_tad <- function(dat) {
 
@@ -116,7 +118,8 @@ calculate_tad <- function(dat) {
 #' groups defined by ID and resetflag, ensuring numbering restarts
 #' appropriately for each group.
 #'
-#' @param dat A data frame containing raw time–concentration data in the standard nlmixr2 format.
+#' @param dat A data frame containing raw time–concentration data in the
+#'   standard nlmixr2 format.
 #'
 #' @return A modified data frame with an added column named dose_number, indicating
 #'   the sequential dose count within each subject and reset group.
