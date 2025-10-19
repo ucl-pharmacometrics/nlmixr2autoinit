@@ -1,40 +1,31 @@
-#' Calculate time after dose (TAD) for pharmacokinetic aata
+#' Calculate time after dose (TAD) for pharmacokinetic data
 #'
 #' Computes time after dose (TAD) for pharmacokinetic observations. For observation records,
-#' propagates dosing information from the most recent dose administration.
+#' dosing information from the most recent dose administration is propagated to calculate
+#' the time elapsed since that dose.
 #'
-#' @param dat A pharmacokinetic dataset containing:
-#'   - **Required columns**: `ID`, `TIME`, `EVID`, `AMT`
+#' @param dat A data frame containing raw time–concentration data in the standard nlmixr2 format.
 #'
-#' @return A modified dataframe with added columns:
-#'   - `tad`: Time after dose (calculated as TIME minus the time of the most recent prior dose) for observations (`EVID == 0`); `NA` for dosing records.
-#'   - `iiobs`: The inter-dose interval inherited from the most recent dose, applied to observation rows.
-#'   - `rateobs`: The infusion rate inherited from the most recent dose, applied to observation rows.
-#'   - `routeobs` *(optional)*: The administration route inherited from the most recent dose, applied to observation rows. This column is only included if the `route` information is available.
-#'   - `dose_number`: Sequential dose number, automatically generated if not already present.
+#' @return A modified data frame with added columns:
+#'   - tad: time after dose, calculated as the observation time minus the time of the most recent prior dose; set to NA for dosing records
+#'   - iiobs: interdose interval inherited from the most recent dosing record
+#'   - rateobs: infusion rate inherited from the most recent dosing record
+#'   - routeobs (optional): route of administration inherited from the most recent dosing record, included only if route information is present
+#'   - dose_number: sequential dose number, generated if not already present
 #'
 #' @details
-#' ### Key Operations:
-#' 1. **Propagation of Dose Information**:
-#'    - For **observation rows** (`EVID == 0`):
-#'      - `iiobs`, `rateobs`, and `routeobs` inherit values from the most recent prior dose
-#'      - `tad` is calculated as the time since the last dose
-#'    - For **dose rows** (`EVID %in% c(1, 101, 4)`):
-#'      - Retains original values for `II`, `RATE`, and `route`
-#'      - Serves as the reference point for subsequent `tad` calculations
-#'
-#' 2. **Dose Number Assignment**:
-#'    - Automatically generates a sequential `dose_number` using `mark_dose_number()` if not already present
-#'    - Preserves existing `dose_number` values if available
-#'
-#'
-#' @export
+#' The procedure identifies dosing events based on the event identifier (EVID)
+#' and assigns each observation the attributes of the most recent prior dose.
+#' The time after dose is then calculated for observation rows. If dose_number
+#' is not present in the input, it is automatically created for each subject.
 #'
 #' @examples
-#' # Bolus dosing
 #' calculate_tad(Bolus_1CPT)
 #' calculate_tad(Infusion_1CPT)
 #' calculate_tad(Oral_1CPT)
+#'
+#' @export
+
 #'
 calculate_tad <- function(dat) {
 
@@ -121,15 +112,14 @@ calculate_tad <- function(dat) {
 #' Mark dose number
 #'
 #' Marks each dosing event in the dataset with a sequential dose number,
-#' based on rows identified by `EVID`. Dose numbering is performed within
-#' groups defined by `ID` and `resetflag`, ensuring numbering restarts
+#' based on rows identified by EVID. Dose numbering is performed within
+#' groups defined by ID and resetflag, ensuring numbering restarts
 #' appropriately for each group.
 #'
-#' @param dat PK dataset containing columns:
-#'   - **Required**: `ID`, `TIME`, `EVID`, `AMT`
-#'   - **Optional**: `resetflag` (default=1 if missing), `CMT`
+#' @param dat A data frame containing raw time–concentration data in the standard nlmixr2 format.
 #'
-#' @return A modified dataframe with added `dose_number` column
+#' @return A modified data frame with an added column named dose_number, indicating
+#'   the sequential dose count within each subject and reset group.
 #'
 #' @examples
 #' mark_dose_number(Bolus_1CPT)
@@ -147,10 +137,10 @@ mark_dose_number <- function(dat) {
     dplyr::group_by(ID, resetflag) %>%
     dplyr::arrange(TIME, CMT) %>%
     dplyr::mutate(dose_number = dplyr::if_else(EVID %in% c(1, 101, 4),
-                                        cumsum(EVID %in% c(1, 101, 4)),
-                                        NA_integer_)) %>%
+                                               cumsum(EVID %in% c(1, 101, 4)),
+                                               NA_integer_)) %>%
     dplyr::ungroup()
 
-  dat <- dat[with(dat, order(ID, resetflag, TIME, CMT,-AMT)), ]
+  dat <- dat[with(dat, order(ID, resetflag, TIME, CMT, -AMT)),]
   return(dat)
 }

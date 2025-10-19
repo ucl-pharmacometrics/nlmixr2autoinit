@@ -7,19 +7,16 @@
 mark_dose_number(dat)
 }
 \arguments{
-\item{dat}{PK dataset containing columns:
-\itemize{
-\item \strong{Required}: \code{ID}, \code{TIME}, \code{EVID}, \code{AMT}
-\item \strong{Optional}: \code{resetflag} (default=1 if missing), \code{CMT}
-}}
+\item{dat}{A data frame containing raw time–concentration data in the standard nlmixr2 format.}
 }
 \value{
-A modified dataframe with added \code{dose_number} column
+A modified data frame with an added column named dose_number, indicating
+the sequential dose count within each subject and reset group.
 }
 \description{
 Marks each dosing event in the dataset with a sequential dose number,
-based on rows identified by \code{EVID}. Dose numbering is performed within
-groups defined by \code{ID} and \code{resetflag}, ensuring numbering restarts
+based on rows identified by EVID. Dose numbering is performed within
+groups defined by ID and resetflag, ensuring numbering restarts
 appropriately for each group.
 }
 \examples{

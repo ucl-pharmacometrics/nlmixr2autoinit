@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_single_point_base.R
 \name{calculate_vd}
 \alias{calculate_vd}
-\title{Estimate volume of distribution from concentration Data}
+\title{Estimate volume of distribution from concentration data}
 \usage{
 calculate_vd(
   dat,
@@ -13,20 +13,18 @@ calculate_vd(
 )
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data. Must include at least
-the following columns: EVID, dose_number, tad, iiobs, TIME, DV, and optionally
-durationobs and rateobs for infusion routes.}
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
 
 \item{half_life}{Optional numeric value for the drug's half-life.
 If not provided, it will be estimated using get_hf() from pooled
 observations.}
 
-\item{dose_type}{Type of analysis to perform. One of:
-\itemize{
-\item first_dose: First-dose analysis
-\item repeated_doses: Analysis of doses beyond the first
-\item combined_doses: Analysis combining first and repeated doses
-}}
+\item{dose_type}{Specifies the dosing context of the pharmacokinetic
+observations. Required when half_life is not provided. Classified as
+first_dose, repeated_doses, or combined_doses based on whether observed
+concentrations occur following the first administration, during repeated
+dosing, or across both contexts.}
 
 \item{pooled_ctrl}{Optional list of control parameters used by get_pooled_data()
 for pooling observations. Defaults to output from pooled_control().}
@@ -35,12 +33,11 @@ for pooling observations. Defaults to output from pooled_control().}
 one of bolus, oral, or infusion. Currently, oral is not implemented.}
 }
 \value{
-A named list with two components:
-\describe{
-\item{vd_df}{A \code{data.frame} of selected observations with an added \code{vd} column representing
-the calculated volume of distribution for each subject.}
-\item{trimmed_mean_vd}{A numeric value giving the trimmed geometric mean of individual Vd estimates,
-using a 5\% trimming level to reduce the impact of outliers.}
+A list with two elements:
+\itemize{
+\item vd_df: individual volume of distribution estimates
+\item trimmed_mean_vd: population volume of distribution estimated as a
+trimmed geometric mean using a 5 percent trimming level
 }
 }
 \description{
@@ -60,22 +57,12 @@ When \code{half_life} is not provided, it is estimated from pooled data using
 \code{get_pooled_data()} and \code{get_hf()}.
 }
 \examples{
-\dontrun{
-# Bolus example
+
 dat <- Bolus_1CPT
 out <- processData(dat)
 fdat<- out$dat
 froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
 half_life <- get_hf(dat = fdat)$half_life_median
-calculate_vd(dat = fdat, half_life = half_life,route=froute)
+calculate_vd(dat = fdat, half_life = half_life,route=froute)$trimmed_mean_vd
 
-# Infusion example
-dat <- Infusion_1CPT
-out <- processData(dat)
-fdat<- out$dat
-froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-half_life <- get_hf(dat = fdat)$half_life_median
-calculate_vd(dat = fdat, half_life = half_life,route=froute)
-
-}
 }

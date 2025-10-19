@@ -79,21 +79,18 @@
 #'     \item generate summary metrics for nlmixr2 analysis
 #'   }
 #'
-#'   Dose type is determined based on the dosing context of the pharmacokinetic
-#'   observation records (EVID = 0), rather than the dosing events themselves.
-#'   It reflects whether the observed concentrations fall within the interval
-#'   following the first dose, within a repeated-dosing or include both.
-#'   The classification is defined as follows:
+#'   Classification of dosing context is based on pharmacokinetic observation
+#'   records (EVID equal to 0), determining whether observed concentrations
+#'   occur after the first dose, during repeated dosing, or across both
+#'   contexts. The categories are:
 #'
 #'   \itemize{
-#'     \item \emph{first_dose}: dataset contains only observations following the
-#'           first administration (single-dose interval), without any repeated-dose
-#'           or steady-state interval data.
-#'     \item \emph{repeated_doses}: dataset contains only observations following
-#'           multiple administrations or steady-state dosing, without any single-dose
-#'           interval data.
-#'     \item \emph{combined_doses}: dataset contains both first-dose and repeated-dose
-#'           observation intervals and is analyzed as a pooled scenario.
+#'     \item first_dose: observations occur only after the initial
+#'           administration, without repeated-dose or steady-state intervals.
+#'     \item repeated_doses: observations occur only after multiple
+#'           administrations or under steady-state conditions.
+#'     \item combined_doses: observations include both first-dose and
+#'           repeated-dose intervals and are analyzed together.
 #'   }
 #' }
 #'

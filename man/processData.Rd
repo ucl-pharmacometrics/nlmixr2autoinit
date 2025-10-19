@@ -86,10 +86,23 @@ operations follow these steps:
 \item classify dataset as first-dose, repeated-dose, or mixed
 \item generate summary metrics for nlmixr2 analysis
 }
+
+Classification of dosing context is based on pharmacokinetic observation
+records (EVID equal to 0), determining whether observed concentrations
+occur after the first dose, during repeated dosing, or across both
+contexts. The categories are:
+
+\itemize{
+\item first_dose: observations occur only after the initial
+administration, without repeated-dose or steady-state intervals.
+\item repeated_doses: observations occur only after multiple
+administrations or under steady-state conditions.
+\item combined_doses: observations include both first-dose and
+repeated-dose intervals and are analyzed together.
+}
 }
 }
 \examples{
-
 dat <- Bolus_1CPT
 processData(dat)
 

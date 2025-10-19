@@ -2,56 +2,35 @@
 % Please edit documentation in R/calculate_tad.R
 \name{calculate_tad}
 \alias{calculate_tad}
-\title{Calculate time after dose (TAD) for pharmacokinetic aata}
+\title{Calculate time after dose (TAD) for pharmacokinetic data}
 \usage{
 calculate_tad(dat)
 }
 \arguments{
-\item{dat}{A pharmacokinetic dataset containing:
-\itemize{
-\item \strong{Required columns}: \code{ID}, \code{TIME}, \code{EVID}, \code{AMT}
-}}
+\item{dat}{A data frame containing raw time–concentration data in the standard nlmixr2 format.}
 }
 \value{
-A modified dataframe with added columns:
+A modified data frame with added columns:
 \itemize{
-\item \code{tad}: Time after dose (calculated as TIME minus the time of the most recent prior dose) for observations (\code{EVID == 0}); \code{NA} for dosing records.
-\item \code{iiobs}: The inter-dose interval inherited from the most recent dose, applied to observation rows.
-\item \code{rateobs}: The infusion rate inherited from the most recent dose, applied to observation rows.
-\item \code{routeobs} \emph{(optional)}: The administration route inherited from the most recent dose, applied to observation rows. This column is only included if the \code{route} information is available.
-\item \code{dose_number}: Sequential dose number, automatically generated if not already present.
+\item tad: time after dose, calculated as the observation time minus the time of the most recent prior dose; set to NA for dosing records
+\item iiobs: interdose interval inherited from the most recent dosing record
+\item rateobs: infusion rate inherited from the most recent dosing record
+\item routeobs (optional): route of administration inherited from the most recent dosing record, included only if route information is present
+\item dose_number: sequential dose number, generated if not already present
 }
 }
 \description{
 Computes time after dose (TAD) for pharmacokinetic observations. For observation records,
-propagates dosing information from the most recent dose administration.
+dosing information from the most recent dose administration is propagated to calculate
+the time elapsed since that dose.
 }
 \details{
-\subsection{Key Operations:}{
-\enumerate{
-\item \strong{Propagation of Dose Information}:
-\itemize{
-\item For \strong{observation rows} (\code{EVID == 0}):
-\itemize{
-\item \code{iiobs}, \code{rateobs}, and \code{routeobs} inherit values from the most recent prior dose
-\item \code{tad} is calculated as the time since the last dose
-}
-\item For \strong{dose rows} (\code{EVID \%in\% c(1, 101, 4)}):
-\itemize{
-\item Retains original values for \code{II}, \code{RATE}, and \code{route}
-\item Serves as the reference point for subsequent \code{tad} calculations
-}
-}
-\item \strong{Dose Number Assignment}:
-\itemize{
-\item Automatically generates a sequential \code{dose_number} using \code{mark_dose_number()} if not already present
-\item Preserves existing \code{dose_number} values if available
-}
-}
-}
+The procedure identifies dosing events based on the event identifier (EVID)
+and assigns each observation the attributes of the most recent prior dose.
+The time after dose is then calculated for observation rows. If dose_number
+is not present in the input, it is automatically created for each subject.
 }
 \examples{
-# Bolus dosing
 calculate_tad(Bolus_1CPT)
 calculate_tad(Infusion_1CPT)
 calculate_tad(Oral_1CPT)

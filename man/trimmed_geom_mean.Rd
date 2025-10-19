@@ -7,18 +7,25 @@
 trimmed_geom_mean(x, trim = 0, na.rm = TRUE)
 }
 \arguments{
-\item{x}{A numeric vector containing the values for which the trimmed geometric mean is to be calculated.}
+\item{x}{A numeric vector containing the values for geometric mean
+calculation.}
 
-\item{trim}{A numeric value between 0 and 0.5 indicating the proportion of observations
-to be trimmed from each end of the vector. Default is 0 (no trimming).}
+\item{trim}{A numeric value between 0 and 0.5 indicating the proportion of
+values to be trimmed from each end of the vector. Default is 0.}
 
-\item{na.rm}{Logical. Should missing values (NA) be removed before computation? Defaults to TRUE.}
+\item{na.rm}{Logical value indicating whether missing values should be
+removed before computation. Default is TRUE.}
 }
 \value{
-The trimmed geometric mean of the input vector as a numeric value.
-If no values remain after trimming, returns \code{NA}.
+A numeric value representing the trimmed geometric mean. Returns NA if no
+values remain after trimming.
 }
 \description{
-Computes the trimmed geometric mean of a numeric vector.
-A specified proportion of the smallest and largest values is removed before calculating the geometric mean.
+Computes the geometric mean of a numeric vector after removing a specified
+proportion of the smallest and largest values.
+}
+\examples{
+x <- c(1, 2, 3, 4, 5, 100)
+trimmed_geom_mean(x, trim = 0.05)
+
 }
