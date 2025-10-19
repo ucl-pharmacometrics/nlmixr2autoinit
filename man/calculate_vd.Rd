@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_single_point_base.R
 \name{calculate_vd}
 \alias{calculate_vd}
-\title{Estimate volume of distribution (Vd) from concentration Data}
+\title{Estimate volume of distribution from concentration Data}
 \usage{
 calculate_vd(
   dat,
@@ -13,21 +13,26 @@ calculate_vd(
 )
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data. Must include at least the following columns:
-\code{EVID}, \code{dose_number}, \code{tad}, \code{iiobs}, \code{TIME}, \code{DV}, and optionally \code{durationobs} and \code{rateobs}
-for infusion routes.}
+\item{dat}{A data frame containing pharmacokinetic data. Must include at least
+the following columns: EVID, dose_number, tad, iiobs, TIME, DV, and optionally
+durationobs and rateobs for infusion routes.}
 
-\item{half_life}{Optional numeric value for the elimination half-life. If NULL, it will be estimated
-using the \code{get_hf()} function based on pooled data.}
+\item{half_life}{Optional numeric value for the drug's half-life.
+If not provided, it will be estimated using get_hf() from pooled
+observations.}
 
-\item{dose_type}{Character value indicating the dose type, required if \code{half_life} is NULL. Used
-internally during half-life estimation.}
+\item{dose_type}{Type of analysis to perform. One of:
+\itemize{
+\item first_dose: First-dose analysis
+\item repeated_doses: Analysis of doses beyond the first
+\item combined_doses: Analysis combining first and repeated doses
+}}
 
-\item{pooled_ctrl}{An optional list of control parameters used by \code{get_pooled_data()} for pooling
-observations. Defaults to output from \code{pooled_control()}.}
+\item{pooled_ctrl}{Optional list of control parameters used by get_pooled_data()
+for pooling observations. Defaults to output from pooled_control().}
 
-\item{route}{Character string specifying the route of administration. Must be one of \code{"bolus"},
-\code{"oral"}, or \code{"infusion"}. Currently, \code{"oral"} is not implemented.}
+\item{route}{Character string specifying the route of administration. Must be
+one of bolus, oral, or infusion. Currently, oral is not implemented.}
 }
 \value{
 A named list with two components:
@@ -39,8 +44,9 @@ using a 5\% trimming level to reduce the impact of outliers.}
 }
 }
 \description{
-Calculates the volume of distribution (Vd) for either intravenous bolus or infusion routes
-using a adaptive single-point method. If half-life is not provided, it can be estimated using pooled data.
+Calculates the apparent volume of distribution (\eqn{V_d}) for intravenous
+bolus or infusion routes using an adaptive single-point method. If the
+half-life is not provided, it is estimated from pooled data.
 }
 \details{
 The function uses an early concentration point (based on time since dosing and half-life)

@@ -1,7 +1,7 @@
 #' Bin time-concentration data using quantile or algorithmic binning
 #'
 #' Bins data by time, using either equal-frequency (quantile)
-#' binning or algorithmic methods supported by the `vpc` package
+#' binning or algorithmic methods implemented in \link[vpc:auto_bin]{vpc::auto_bin}.
 #'
 #' @param dat A data frame containing PK data. Must include:
 #'   - tad: time after dose
@@ -35,8 +35,12 @@
 #' }
 #'
 #' @details
-#' Supports quantile-based and adaptive (VPC-style) binning methods,
-#' with optional automatic determination of the number of bins.
+#' Supports quantile-based binning and other data-driven methods
+#' (jenks, kmeans, pretty, sd, equal, density), with optional automatic
+#' bin count selection.
+#'
+#' @seealso
+#' \code{\link[vpc:auto_bin]{vpc::auto_bin}}
 #'
 #' @examples
 #' dat <- Bolus_1CPT

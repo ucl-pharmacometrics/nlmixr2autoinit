@@ -49,11 +49,12 @@ A list containing:
 }
 \description{
 Bins data by time, using either equal-frequency (quantile)
-binning or algorithmic methods supported by the \code{vpc} package
+binning or algorithmic methods implemented in \link[vpc:auto_bin]{vpc::auto_bin}.
 }
 \details{
-Supports quantile-based and adaptive (VPC-style) binning methods,
-with optional automatic determination of the number of bins.
+Supports quantile-based binning and other data-driven methods
+(jenks, kmeans, pretty, sd, equal, density), with optional automatic
+bin count selection.
 }
 \examples{
 dat <- Bolus_1CPT
@@ -62,4 +63,7 @@ dat <- calculate_tad(dat)
 dat$DVstd <- dat$DV / dat$dose
 bin.time(dat)
 
+}
+\seealso{
+\code{\link[vpc:auto_bin]{vpc::auto_bin}}
 }

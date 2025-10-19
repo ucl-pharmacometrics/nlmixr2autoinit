@@ -47,7 +47,7 @@
 #' \code{\link{pooled_control}}, \code{\link{ss_control}}
 #'
 #' @examples
-#' out <- suppressMessages(processData(Bolus_1CPT))
+#' out <- processData(Bolus_1CPT)
 #' approx.vc(
 #'   dat = out$dat,
 #'   half_life = get_hf(dat = out$dat)$half_life_median,

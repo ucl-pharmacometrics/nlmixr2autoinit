@@ -1,62 +1,91 @@
-#' Process Pharmacokinetic Dataset for Analysis
+#' Process time–concentration dataset for pharmacokinetic analysis
 #'
-#' Processes a pharmacokinetic (PK) dataset to derive analysis-ready variables and structure.
+#' Processes a time–concentration dataset to derive analysis-ready variables
+#' and structured output for pharmacokinetic evaluation.
 #'
-#' @param dat A data frame containing raw pharmacokinetic data. Expected (case-insensitive) columns include:
+#' @param dat A data frame containing raw time–concentration data in the
+#'   standard nlmixr2 format. The following columns are required (case-insensitive)
+#'   and must be present:
+#'
 #'   \describe{
-#'     \item{ID}{Subject identifier}
-#'     \item{TIME}{Time after dose}
-#'     \item{DV}{Dependent variable (e.g., plasma concentration)}
-#'     \item{MDV}{Missing dependent variable indicator}
-#'     \item{EVID}{Event identifier (e.g., dose, observation)}
-#'     \item{AMT}{Dose amount}
+#'     \item{ID}{Subject identifier (required)}
+#'     \item{TIME}{Nominal or actual time after dose (required)}
+#'     \item{DV}{Observed concentration (dependent variable) (required)}
+#'     \item{EVID}{Event ID indicating observation (0) or dosing event (1) (required)}
+#'     \item{AMT}{Dose amount for dosing records (required)}
 #'     \item{RATE}{Infusion rate (optional)}
-#'     \item{DUR}{Duration of infusion (optional)}
-#'     \item{ADDL}{Additional doses (optional)}
+#'     \item{DUR}{Infusion duration (optional)}
+#'     \item{MDV}{Missing dependent variable flag (optional)}
+#'     \item{CMT}{Compartment number (optional)}
+#'     \item{ADDL}{Number of additional doses (optional)}
 #'     \item{II}{Interdose interval (optional)}
 #'     \item{SS}{Steady-state indicator (optional)}
-#'     \item{CMT}{Compartment (optional)}
 #'     \item{CENS}{Censoring indicator (optional)}
 #'   }
 #'
-#' @return A list with two components:
-#' \describe{
-#'   \item{dat}{Processed full dataset with standardized variables and derived columns:
-#'     \code{resetflag}, \code{SSflag}, \code{route}, \code{dose_number}, \code{DVstd},
-#'     \code{indiv_lambda_z_eligible}, and others.}
-#'   \item{Datainfo}{A formatted summary table of dataset structure, subject counts, and observation counts for
-#'     first-dose and multiple-dose conditions, with contextual notes.}
+#' @return
+#' A list with two elements:
+#' \itemize{
+#'   \item dat: A data frame containing the processed time–concentration dataset
+#'     with standardized and derived pharmacokinetic variables, including
+#'     resetflag, SSflag, route, dose_number, DVstd, indiv_lambda_z_eligible,
+#'     and others.
+#'   \item Datainfo: A data frame summarizing the dataset structure, including
+#'     subject counts and observation counts for first-dose and multiple-dose
+#'     conditions, with contextual notes.
 #' }
 #'
 #' @details
-#' This function performs several operations critical for PK data preprocessing:
+#' This function standardizes and preprocesses time–concentration data to ensure
+#' compatibility with pharmacokinetic modeling workflows in nlmixr2. The
+#' operations follow these steps:
+#'
 #' \enumerate{
-#'   \item \strong{Standardization}: Converts column names to uppercase; coerces numeric columns to appropriate types.
-#'   \item \strong{Event Processing}: Imputes \code{EVID} from \code{MDV} if missing; handles censored observations; filters invalid \code{EVID=2} records.
-#'   \item \strong{Flag Generation}:
-#'     \itemize{
-#'       \item \code{resetflag}: Identifies segments between distinct dose events or steady-state switches.
-#'       \item \code{SSflag}: Flags rows within steady-state observation windows.
-#'     }
-#'   \item \strong{Infusion and Route Logic}: Calculates \code{RATE} from \code{AMT} and \code{DUR} if needed; classifies administration route (oral, infusion, bolus).
-#'   \item \strong{Compartment Checks}: Ensures a maximum of two unique \code{CMT} values per subject and dosing interval.
-#'   \item \strong{Dose Expansion}: Expands rows using \code{ADDL}/\code{II} if present via \code{nmpkconvert()}.
-#'   \item \strong{Derived Metrics}:
-#'     \itemize{
-#'       \item \code{dose_number}: Count of dose administrations per subject.
-#'       \item \code{tad}: Time after last dose.
-#'       \item \code{DVstd}: Normalized dependent variable (DV/dose).
-#'       \item \code{indiv_lambda_z_eligible}: Eligibility flag for elimination phase based on route and time of maximum DV.
-#'     }
-#'   \item \strong{Summary Generation}: Constructs a summary table of route, subjects, and observations across first- and multiple-dose data.
+#'   \item Standardize data
+#'   \itemize{
+#'     \item convert column names to uppercase
+#'     \item coerce key columns (TIME, DV, EVID, AMT, RATE, etc.) to numeric
+#'   }
+#'
+#'   \item Process events and observations
+#'   \itemize{
+#'     \item impute EVID from MDV if missing
+#'     \item handle censored data (CENS) by converting them to excluded records
+#'     \item remove or recode invalid EVID values (e.g., DV = 0 observations)
+#'   }
+#'
+#'   \item Expand dose events
+#'   \itemize{
+#'     \item expand dosing records using nmpkconvert() when ADDL and II are present
+#'     \item assign dose occasions using mark_dose_number()
+#'   }
+#'
+#'   \item Determine administration route and infusion logic
+#'   \itemize{
+#'     \item derive RATE and DUR when needed
+#'     \item identify route (bolus, infusion, oral) based on compartment and rate
+#'   }
+#'
+#'   \item Generate derived variables
+#'   \itemize{
+#'     \item calculate time after dose using calculate_tad()
+#'     \item compute dose-normalized concentration (DVstd)
+#'     \item flag eligible records for terminal elimination phase
+#'   }
+#'
+#'   \item Summarize dataset
+#'   \itemize{
+#'     \item classify dataset as first-dose, repeated-dose, or mixed
+#'     \item generate summary metrics for nlmixr2 analysis
+#'   }
 #' }
 #'
-#' @examples
+#' @seealso
+#' \code{\link{nmpkconvert}}, \code{\link{mark_dose_number}}, \code{\link{calculate_tad}}
 #'
+#' @examples
 #' dat <- Bolus_1CPT
-#' results <- processData(dat)
-#' head(results$dat)
-#' cat(results$Datainfo)
+#' processData(dat)
 #'
 #' @export
 
@@ -466,12 +495,12 @@ dose_type <- dplyr::case_when(
 summary_doseinfo <- data.frame(
   Infometrics = c("Dose Route",
                   "Dose Type",
-                  "Total Number of Subjects",
-                  "Total Number of Observations",
-                  "Subjects with First-Dose Interval Data",
-                  "Observations in the First-Dose Interval",
-                  "Subjects with Multiple-Dose Data",
-                  "Observations after Multiple Doses"),
+                  "Number of Subjects",
+                  "Number of Observations",
+                  "Subjects in single-dose interval",
+                  "Observations in single-dose interval",
+                  "Subjects in multiple-dose interval",
+                  "Observations in multiple-dose interval"),
   Value = c(
     metrics$total$route,
     dose_type,

@@ -66,7 +66,7 @@ The function returns separate subsets for single- and multiple-dose data
 and the final summary statistic (\code{approx.vc.value}).
 }
 \examples{
-out <- suppressMessages(processData(Bolus_1CPT))
+out <- processData(Bolus_1CPT)
 approx.vc(
   dat = out$dat,
   half_life = get_hf(dat = out$dat)$half_life_median,
