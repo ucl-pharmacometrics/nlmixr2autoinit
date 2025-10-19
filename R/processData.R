@@ -78,6 +78,23 @@
 #'     \item classify dataset as first-dose, repeated-dose, or mixed
 #'     \item generate summary metrics for nlmixr2 analysis
 #'   }
+#'
+#'   Dose type is determined based on the dosing context of the pharmacokinetic
+#'   observation records (EVID = 0), rather than the dosing events themselves.
+#'   It reflects whether the observed concentrations fall within the interval
+#'   following the first dose, within a repeated-dosing or include both.
+#'   The classification is defined as follows:
+#'
+#'   \itemize{
+#'     \item \emph{first_dose}: dataset contains only observations following the
+#'           first administration (single-dose interval), without any repeated-dose
+#'           or steady-state interval data.
+#'     \item \emph{repeated_doses}: dataset contains only observations following
+#'           multiple administrations or steady-state dosing, without any single-dose
+#'           interval data.
+#'     \item \emph{combined_doses}: dataset contains both first-dose and repeated-dose
+#'           observation intervals and is analyzed as a pooled scenario.
+#'   }
 #' }
 #'
 #' @seealso
@@ -497,10 +514,10 @@ summary_doseinfo <- data.frame(
                   "Dose Type",
                   "Number of Subjects",
                   "Number of Observations",
-                  "Subjects in single-dose interval",
-                  "Observations in single-dose interval",
-                  "Subjects in multiple-dose interval",
-                  "Observations in multiple-dose interval"),
+                  "Subjects with First-Dose Interval Data",
+                  "Observations in the First-Dose Interval",
+                  "Subjects with Multiple-Dose Data",
+                  "Observations after Multiple Doses"),
   Value = c(
     metrics$total$route,
     dose_type,
@@ -513,6 +530,7 @@ summary_doseinfo <- data.frame(
   ),
   stringsAsFactors = FALSE    # Prevent automatic factor conversion
 )
+
 # Format output ----
 summary_doseinfo_output <-
   paste(utils::capture.output(knitr::kable(summary_doseinfo, format = "simple")),
@@ -543,7 +561,7 @@ message(crayon::magenta(paste0(
   "----------------------------------------  ------"
 )))
 
-return(list(dat=dat,Datainfo =summary_doseinfo ))
+return(list(dat=dat,Datainfo =summary_doseinfo))
 }
 
 
