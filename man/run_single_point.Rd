@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_single_point_extra.R
 \name{run_single_point}
 \alias{run_single_point}
-\title{Run full adaptive single-point PK analysis (CL, Vd, Ka)}
+\title{Run full adaptive single-point PK analysis (CL, Vd, ka)}
 \usage{
 run_single_point(
   dat,
@@ -14,50 +14,55 @@ run_single_point(
 )
 }
 \arguments{
-\item{dat}{A pharmacokinetic dataset.}
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
 
-\item{route}{Character string: one of \code{"bolus"}, \code{"infusion"}, \code{"oral"}.}
+\item{route}{Character string specifying the route of administration. Must be one of
+"bolus", "oral", or "infusion".}
 
-\item{half_life}{Optional numeric value for the elimination half-life. Estimated if NULL.}
+\item{half_life}{Optional numeric value representing the elimination half-life of the drug.
+If not provided, half-life is estimated within run_single_point_base() using get_hf() applied
+to the pharmacokinetic observations.}
 
-\item{dose_type}{Optional character string (e.g. \code{"bolus"} or \code{"infusion"}). Required if \code{half_life} is NULL.}
+\item{dose_type}{Classified as "first_dose", "repeated_doses", or "combined_doses"
+based on whether observed concentrations occur following the first administration,
+during repeated dosing, or across both contexts. This parameter is passed directly to
+run_single_point_base().}
 
-\item{pooled_ctrl}{Control list from \code{\link{pooled_control}()}.}
+\item{pooled_ctrl}{A list of pooled-analysis control options created using pooled_control().
+These control time binning and time-after-dose rounding when pooled summaries are required.}
 
-\item{ssctrl}{Control list from \code{\link{ss_control}()}.}
+\item{ssctrl}{A list of steady-state control options created using ss_control().
+These govern assumptions and thresholds used when interpreting steady-state behavior
+in single-point logic.}
 }
 \value{
-An object of class \code{"single.point.lst"} containing all results from base and extended estimation.
+An object of class "single.point.lst" with results from the base and extended steps.
 }
 \description{
-This function runs both base and extended single-point pharmacokinetic calculations
-to estimate clearance (CL), volume of distribution (Vd), and absorption rate constant (Ka) when possible.
+Runs the base and extended single-point pharmacokinetic calculations to estimate
+clearance (CL), volume of distribution (Vd), and, when applicable, the absorption
+rate constant (ka).
 }
 \examples{
-\dontrun{
 # Example: Adaptive single-point PK analysis for bolus data
-dat <- Bolus_1CPT
 # Step 1: Preprocess the data
+dat <- Oral_1CPT
 out <- processData(dat)
-fdat <- out$dat
 # Step 2: Extract route and dose type info
 froute <- out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
 fdose_type <- out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Type"]
 # Step 3: Estimate half life
-half_life <- get_hf(dat = fdat)$half_life_median
-# Step 3: Run single-point analysis (CL, Vd, Ka if oral)
+half_life <- get_hf(dat = out$dat)$half_life_median
+# Step 4: Run single-point analysis (CL, Vd, Ka if oral)
 result <- run_single_point(
-  dat = fdat,
- route = froute,
- dose_type = fdose_type,
+  dat = out$dat,
+  route = froute,
+  dose_type = fdose_type,
   half_life = half_life
 )
-# Step 4: View results
+# Step 5: View results
 print(result$singlepoint.results)
-head(result$single_point_cl_df)  # Data used for CL estimation
-head(result$single_point_vd_df)  # Data used for Vd estimation
-#' head(result$single_point_ka_df)  # Ka (only if oral)
-}
 
 
 }

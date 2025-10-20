@@ -15,47 +15,47 @@ ss_control(
 )
 }
 \arguments{
-\item{ss_method}{Character. Method used to determine steady state.
-One of:
+\item{ss_method}{Character string specifying the method used to determine
+steady state. One of:
 \itemize{
-\item \code{"combined"} (default): Uses the smaller of the dose-based
-estimate (\code{no.doses}) and the half-life-based estimate
-(\code{no.half_lives}).
-\item \code{"fixed_doses"}: Considers steady state reached after
-\code{no.doses} administrations.
-\item \code{"half_life_based"}: Uses the drug half-life and dosing
-interval to estimate the required number of doses.
+\item "combined" (default): uses the smaller of the dose-based estimate
+(no.doses) and the half-life-based estimate (no.half_lives)
+\item "fixed_doses": considers steady state reached after no.doses
+administrations
+\item "half_life_based": uses the drug half-life and dosing interval to
+estimate the required number of doses
 }}
 
-\item{no.doses}{Integer. Number of doses assumed to reach steady state
-when \code{ss_method = "fixed_doses"} or part of the \code{"combined"} method.
+\item{no.doses}{Integer indicating the number of doses assumed necessary to
+reach steady state when using the "fixed_doses" method or as part of the
+"combined" method. Default is 5.}
+
+\item{no.half_lives}{Integer indicating the number of half-lives required to
+reach steady state when using the "half_life_based" or "combined" method.
 Default is 5.}
 
-\item{no.half_lives}{Integer. Number of half-lives required to reach
-steady state when using \code{"half_life_based"} or \code{"combined"} methods.
-Default is 5.}
+\item{allowed_interval_variation}{Numeric value specifying the acceptable
+fractional variation in dose interval. For example, 0.25 allows plus or
+minus 25 percent variation. Default is 0.25.}
 
-\item{allowed_interval_variation}{Numeric. Acceptable fractional variation in
-dose interval (e.g., 0.25 allows ±25\% variation). Default is 0.25.}
+\item{allowed_dose_variation}{Numeric value specifying the acceptable
+fractional variation in dose amount. For example, 0.20 allows plus or minus
+20 percent variation. Default is 0.20.}
 
-\item{allowed_dose_variation}{Numeric. Acceptable fractional variation in
-dose amount (e.g., 0.20 allows ±20\% variation). Default is 0.20.}
+\item{min_doses_required}{Integer specifying the minimum number of doses that
+must be administered regardless of method. Default is 3.}
 
-\item{min_doses_required}{Integer. Minimum number of doses that must be
-administered regardless of method. Default is 3.}
-
-\item{tad_rounding}{Logical. If \code{TRUE} (default), applies rounding when
-comparing observation times (\code{tad}) to dosing intervals, allowing
-small numerical deviations (e.g., 24.3 ≈ 24).}
+\item{tad_rounding}{Logical value. If TRUE (default), rounding is applied
+when comparing time after dose (tad) to dosing intervals to allow small
+numerical deviations.}
 }
 \value{
-A named list containing the steady-state control parameters.
-The returned object is typically passed as the \code{ssctrl} argument
-to \code{\link{is_ss}()}.
+A named list containing the steady-state control parameters,
+typically passed as the ssctrl argument to is_ss().
 }
 \description{
-Constructs a list of control parameters used by \code{\link{is_ss}()} to
-determine pharmacokinetic steady state.
+Constructs a list of control parameters used by is_ss() to determine
+pharmacokinetic steady state.
 }
 \examples{
 ss_control()
@@ -63,5 +63,5 @@ ss_control(ss_method = "fixed_doses", no.doses = 4)
 
 }
 \seealso{
-\code{\link{is_ss}}
+\link{is_ss}
 }

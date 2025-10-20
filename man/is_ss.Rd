@@ -7,40 +7,45 @@
 is_ss(df, ssctrl = ss_control(), half_life = NA)
 }
 \arguments{
-\item{df}{A data frame containing pharmacokinetic data. It should include columns:
-\itemize{
-\item \code{ID}: Unique identifier for each subject.
-\item \code{EVID}: Event ID, where 1 indicates a dose and 0 indicates an observation.
-\item \code{SSflag}: Steady-state flag, set to 1 if steady state is manually indicated.
-\item \code{TIME}: Observation or dosing time.
-\item \code{AMT}: Dose amount.
-\item \code{tad}: Time after the last dose.
-}}
+\item{df}{A data frame containing pharmacokinetic data. It should include
+columns for ID, EVID, SSflag, TIME, AMT, and tad.}
 
-\item{ssctrl}{A list created by \code{\link{ss_control}()}, specifying control settings
-for steady-state evaluation. See \code{\link{ss_control}} for details on available options.}
+\item{ssctrl}{A control list consistent with the structure returned by
+ss_control(). It specifies the method and thresholds for steady-state
+evaluation.}
 
-\item{half_life}{Numeric. The drug's half-life. Required if \code{ss_method} in \code{ssctrl} is
-\code{"combined"} or \code{"half_life_based"}.}
+\item{half_life}{Numeric value representing the drug half-life. Required
+when the method in ss_control() is based on half-life or uses a combined
+approach.}
 }
 \value{
-A data frame similar to \code{df} with additional columns:
-\itemize{
-\item \code{SteadyState}: Logical, indicating whether each observation has reached steady state.
-\item \code{recent_ii}: Numeric, the most recent dosing interval for observations marked as steady state.
-\item \code{SS.method}: Character, description of the method used to identify steady state.
-}
+A data frame with added columns indicating steady-state status,
+the dosing interval for steady-state observations, and the method used
+to classify steady state.
 }
 \description{
-Evaluates whether observations in a pharmacokinetic dataset have reached steady state,
-based on user-defined criteria. It supports three methods: using a fixed number of doses,
-using a fixed number of half-lives, or combining both criteria.
+Evaluates whether pharmacokinetic observations have reached steady state
+based on user-defined control settings. The classification can be based on
+a fixed number of doses, the number of half-lives relative to the dosing
+interval, or a combination of both criteria.
+}
+\details{
+The function determines steady state by examining each observation in
+relation to prior dosing history. The required number of doses is calculated
+based on the specified method in ss_control(). Observation times are
+evaluated to confirm that dose interval and dose amount variability fall
+within acceptable limits and that the time after dose is within the most
+recent dosing interval. Observations manually marked as steady state using
+SSflag are also recognized as steady state.
 }
 \examples{
-# Example usage
 dat <- pheno_sd
 dat <- processData(dat)$dat
-out<-is_ss(df = dat)
+out <- is_ss(df = dat)
 out[out$SteadyState == TRUE & !is.na(out$SteadyState),
-           c("ID", "TIME", "DV", "EVID", "SteadyState")]
+    c("ID", "TIME", "DV", "EVID", "SteadyState")]
+
+}
+\seealso{
+ss_control()
 }

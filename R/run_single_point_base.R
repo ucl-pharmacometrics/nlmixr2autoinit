@@ -8,8 +8,7 @@
 #'   dose, routeobs, and durationobs.
 #'
 #' @param half_life Optional numeric value for the drug's half-life.
-#'   If not provided, it will be estimated using get_hf() from pooled
-#'   observations.
+#'   If not provided, half-life is estimated using get_hf() from pooled observations.
 #'
 #' @param dose_type Specifies the dosing context of the pharmacokinetic
 #'   observations. Required when half_life is not provided. Classified as
