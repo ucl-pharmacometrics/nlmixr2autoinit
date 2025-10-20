@@ -63,5 +63,5 @@ run_single_point_base(dat = fdat, half_life = half_life, route = route)$summary
 
 }
 \seealso{
-calculate_cl, calculate_vd, pooled_control, ss_control
+\link{calculate_cl}, \link{calculate_vd}, \link{pooled_control}, \link{ss_control}
 }

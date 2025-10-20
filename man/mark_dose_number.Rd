@@ -7,7 +7,8 @@
 mark_dose_number(dat)
 }
 \arguments{
-\item{dat}{A data frame containing raw time–concentration data in the standard nlmixr2 format.}
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
 }
 \value{
 A modified data frame with an added column named dose_number, indicating

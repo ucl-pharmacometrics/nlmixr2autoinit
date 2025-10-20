@@ -53,8 +53,8 @@ For infusion:
 \deqn{Vd = \frac{\text{Rate} \times \min(\text{TIME}, \text{durationobs})}{C}}
 where \code{C} is the observed concentration (\code{DV}).
 
-When \code{half_life} is not provided, it is estimated from pooled data using
-\code{get_pooled_data()} and \code{get_hf()}.
+When half_life is not provided, it is estimated from pooled data using
+the functions get_pooled_data() and get_hf().
 }
 \examples{
 
@@ -65,4 +65,7 @@ froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
 half_life <- get_hf(dat = fdat)$half_life_median
 calculate_vd(dat = fdat, half_life = half_life,route=froute)$trimmed_mean_vd
 
+}
+\seealso{
+\link{get_pooled_data}, \link{get_hf}, \link{trimmed_geom_mean}
 }

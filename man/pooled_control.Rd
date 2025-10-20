@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_pooled_data.R
 \name{pooled_control}
 \alias{pooled_control}
-\title{Control settings for pooled pharmacokinetic analysis}
+\title{Control settings for pooled data analysis}
 \usage{
 pooled_control(
   nbins = 10,
@@ -11,28 +11,29 @@ pooled_control(
 )
 }
 \arguments{
-\item{nbins}{Integer or "auto". Number of time bins used to group observations.
-Default is 10. If set to \code{"auto"}, the number of bins will be determined automatically.}
+\item{nbins}{Integer or the character string auto. Number of time bins used
+to group observations. Default is 10.}
 
-\item{bin_method}{Character. Binning method to use. One of:
-\code{"quantile"}, \code{"jenks"}, \code{"kmeans"}, \code{"pretty"}, \code{"sd"}, \code{"equal"}, \code{"density"}.
-Controls how time bins are created.}
+\item{bin_method}{Character string specifying the binning method. Must be one
+of "quantile", "jenks", "kmeans", "pretty", "sd", "equal", or "density".}
 
-\item{tad_rounding}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
-are rounded to the nearest whole unit before comparing. This allows for
-small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
+\item{tad_rounding}{Logical value indicating whether tad and the most common
+dosing interval should be rounded to the nearest whole unit before
+comparison. Default is TRUE, allowing small deviations (for example, a tad
+of 24.3 is treated as within a 24-unit interval).}
 }
 \value{
-A named list of pooled control parameters.
+A named list containing control parameters for pooled pharmacokinetic
+analysis.
 }
 \description{
 Defines control parameters for time binning and preprocessing in pooled
-pharmacokinetic (PK) analysis. These parameters are typically passed to
-\code{\link{get_pooled_data}}.
+data analysis. These parameters are typically passed to 'get_pooled_data'.
 }
 \examples{
 pooled_control()
+
 }
 \seealso{
-\code{\link{get_pooled_data}}
+\link{get_pooled_data}
 }

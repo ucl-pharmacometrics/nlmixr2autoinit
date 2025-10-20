@@ -11,47 +11,49 @@ get_pooled_data(
 )
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data. The required columns depend on \code{dose_type}:
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
+
+\item{dose_type}{Specifies the dosing context of the pharmacokinetic
+observations. Classified as:
 \itemize{
-\item \code{"first_dose"}: \code{dose_number}, \code{iiobs}, \code{ID}, \code{TIME}, \code{DV}
-\item \code{"repeated_doses"}: \code{EVID}, \code{AMT}, \code{tad}, \code{dose_number}, \code{iiobs}, \code{ID}, \code{TIME}, \code{DV}, \code{resetflag}
-\item \code{"combined_doses"}: \code{EVID}, \code{tad}, \code{dose_number}, \code{ID}, \code{TIME}, \code{DV}, \code{resetflag}
+\item first_dose: data include only observations following the initial
+administration
+\item repeated_doses: data include only observations during repeated or
+steady-state dosing
+\item combined_doses: data include observations from both first-dose and
+repeated-dose intervals
 }}
 
-\item{dose_type}{Character string indicating the type of data to pool.
-One of \code{"first_dose"}, \code{"repeated_doses"}, or \code{"combined_doses"}.
-\itemize{
-\item \code{"first_dose"} processes only the first dose of each subject.
-\item \code{"repeated_doses"} processes doses beyond the first and their post-dose observations.
-\item \code{"combined_doses"} merges both first and repeated dose data into a single dataset for pooled analysis.
-}}
-
-\item{pooled_ctrl}{A list of control options created by \code{\link{pooled_control}}.}
+\item{pooled_ctrl}{A list of control parameters created by
+'pooled_control', including settings for binning and time rounding.}
 }
 \value{
-A list containing one or more of the following elements, depending on the \code{dose_type}:
-\describe{
-\item{\code{datpooled_fd}}{Binned data for the first dose (single-dose profiles).}
-\item{\code{datpooled_efd}}{Binned data excluding the first dose (repeated-dose profiles).}
-\item{\code{datpooled_all}}{Combined first and repeated dose data, for overall pooled analysis.}
+A list containing pooled pharmacokinetic datasets depending on the specified
+dose type:
+\itemize{
+\item datpooled_fd: pooled data for first-dose observations
+\item datpooled_efd: pooled data for repeated dosing
+\item datpooled_all: pooled data combining first-dose and repeated-dose
+observations
 }
 }
 \description{
-Processes pharmacokinetic (PK) data and produces pooled datasets based on
-the specified dosing scenario, with flexible control over binning and time-alignment behavior.
+Processes pharmacokinetic data and produces pooled datasets according to
+the dosing context. Data can be grouped based on first dose, repeated dosing,
+or a combination of both, with control over binning and time alignment.
 }
 \details{
-For \code{"repeated_doses"} and \code{"combined_doses"} data types, the function determines the most
-common dosing interval (\code{most_common_ii}) based on dosing records (\code{EVID == 1}). This interval is
-used to assess whether post-dose observations fall within the relevant dosing window.
-If \code{tad_rounding} is TRUE, both the observed time after dose (\code{tad}) and the interval are rounded
-before comparison, making the method more robust to minor time variations.
+For repeated-doses and combined-doses classifications, the most common
+interdose interval is identified from dosing records and used to determine
+whether observations fall within the relevant interval. If tad_rounding is
+TRUE, both time after dose and dosing interval are rounded before comparison.
 }
 \examples{
-\dontrun{
-processed_data <- processData(Bolus_1CPT)$dat
-pooled <- get_pooled_data(processed_data, dose_type = "combined_doses")
-pooled$datpooled_all$binned.df
-}
+dat <- processData(Bolus_1CPT)$dat
+get_pooled_data(dat, dose_type = "combined_doses")
 
+}
+\seealso{
+\link{pooled_control}, \link{trimmed_geom_mean}
 }

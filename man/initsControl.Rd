@@ -2,7 +2,7 @@
 % Please edit documentation in R/initsControl.R
 \name{initsControl}
 \alias{initsControl}
-\title{Create full control list for initial PPK parameter estimation}
+\title{Create full control list for initial parameter estimation}
 \usage{
 initsControl(
   ss.control = ss_control(),
@@ -15,48 +15,48 @@ initsControl(
 )
 }
 \arguments{
-\item{ss.control}{Output of \code{ss_control()}.}
+\item{ss.control}{A control list consistent with the structure returned by
+ss_control().}
 
-\item{pooled.control}{Output of \code{pooled_control()}.}
+\item{pooled.control}{A control list consistent with the structure returned
+by pooled_control().}
 
-\item{nca.control}{Output of \code{nca_control()}.}
+\item{nca.control}{A control list consistent with the structure returned by
+nca_control().}
 
-\item{fallback.control}{Output of \code{fallback_control()}.}
+\item{fallback.control}{A control list consistent with the structure
+returned by fallback_control().}
 
-\item{selmetrics}{A character string (or vector) specifying which model performance
-metric(s) to evaluate. Must be one or more of: \code{"APE"}, \code{"MAE"},
-\code{"MAPE"}, \code{"RMSE"}, \code{"rRMSE1"}, \code{"rRMSE2"}. Default is
-\code{"rRMSE2"}.}
+\item{selmetrics}{A character string or vector specifying model performance
+metrics to evaluate. Must be one or more of "APE", "MAE", "MAPE", "RMSE",
+"rRMSE1", or "rRMSE2". Default is "rRMSE2".}
 
-\item{hybrid.base}{Logical. If \code{TRUE}, enables hybrid evaluation mode,
-where model performance is assessed using mixed parameter combinations across
-methods (e.g., combining \code{ka} from NCA, \code{cl} from graphic methods,
-and \code{vd} from adaptive single-point method). If \code{FALSE}, evaluation
-is performed separately for each parameter estimation method (e.g., using only
-\code{simpcal}, only \code{nca}, etc.). This allows more flexible exploration
-of parameter set synergies across estimation strategies. Default is \code{TRUE}.}
+\item{hybrid.base}{Logical. If TRUE, enables hybrid evaluation mode in which
+model performance is assessed using mixed parameter combinations across
+methods. If FALSE, each method is evaluated independently. Default is TRUE.}
 
-\item{preferNCA}{Logical.
-If \code{TRUE} and \code{selmetrics == "rRMSE2"}, the function will first
-select the best method by the lowest rRMSE2. If that method is not NCA-based,
-it will then check whether a purely NCA-based method exists with a lower
-rRMSE1 than the rRMSE2-best method. If such a candidate exists, the NCA
-method will be selected instead. This option expresses a preference for NCA
-methods without enforcing them. Default is \code{TRUE}.}
+\item{preferNCA}{Logical. If TRUE and selmetrics equals "rRMSE2", the lowest
+rRMSE2 is selected first. If the best-performing method is not NCA-based,
+the function then checks whether an NCA-based method offers a lower rRMSE1.
+If so, the NCA method is selected. Default is TRUE.}
 }
 \value{
-A named list combining all control modules.
+A named list combining all control modules for parameter estimation.
 }
 \description{
-Aggregates all modular control functions into one structured list.
+Aggregates modular control functions into a structured list for use in
+population pharmacokinetic parameter initialization.
 }
 \examples{
 initsControl(
   pooled.control = pooled_control(nbins = 8),
-  fallback.control = fallback_control(sigma_method_additive = "fixed_fraction")
+  fallback.control = fallback_control(
+    sigma_method_additive = "fixed_fraction"
+  )
 )
 
 }
 \seealso{
-\code{\link{ss_control}}, \code{\link{pooled_control}}, \code{\link{nca_control}}, \code{\link{fallback_control}}
+\link{ss_control}, \link{pooled_control}, \link{nca_control},
+\link{fallback_control}
 }

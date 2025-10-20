@@ -7,22 +7,25 @@
 calculate_tad(dat)
 }
 \arguments{
-\item{dat}{A data frame containing raw time–concentration data in the standard nlmixr2 format.}
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
 }
 \value{
 A modified data frame with added columns:
 \itemize{
-\item tad: time after dose, calculated as the observation time minus the time of the most recent prior dose; set to NA for dosing records
+\item tad: time after dose, calculated as the observation time minus the time
+of the most recent prior dose; set to NA for dosing records
 \item iiobs: interdose interval inherited from the most recent dosing record
 \item rateobs: infusion rate inherited from the most recent dosing record
-\item routeobs (optional): route of administration inherited from the most recent dosing record, included only if route information is present
+\item routeobs (optional): route of administration inherited from the most
+recent dosing record, included only if route information is present
 \item dose_number: sequential dose number, generated if not already present
 }
 }
 \description{
-Computes time after dose (TAD) for pharmacokinetic observations. For observation records,
-dosing information from the most recent dose administration is propagated to calculate
-the time elapsed since that dose.
+Computes time after dose (TAD) for pharmacokinetic observations. For
+observation records, dosing information from the most recent dose
+administration is propagated to calculate the time elapsed since that dose.
 }
 \details{
 The procedure identifies dosing events based on the event identifier (EVID)
