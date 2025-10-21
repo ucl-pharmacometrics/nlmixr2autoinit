@@ -53,7 +53,7 @@ one-compartment model with Michaelis-Menten elimination.
 }
 \details{
 The function generates a parameter grid and performs model fitting for each
-combination using \code{fit_1cmpt_mm}. Parameters can be specified manually or
+combination using \code{Fit_1cmpt_mm_iv}. Parameters can be specified manually or
 automatically derived. Model predictions and fit metrics are computed for each
 simulation to assess parameter sensitivity.
 }
@@ -73,7 +73,7 @@ head(out[out$rRMSE2==min(out$rRMSE2),])
 
 }
 \seealso{
-\code{\link{fit_1cmpt_mm}}
+\code{\link{Fit_1cmpt_mm_iv}}, \code{\link{Fit_1cmpt_mm_oral}}
 }
 \author{
 Zhonghui Huang

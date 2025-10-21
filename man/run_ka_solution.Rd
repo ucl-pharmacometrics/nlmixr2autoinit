@@ -7,14 +7,14 @@
 run_ka_solution(df, cl, ke, Fbio = 1)
 }
 \arguments{
+\item{df}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
+
 \item{cl}{A numeric value for drug clearance. It is assumed constant across subjects unless pre-specified per subject.}
 
 \item{ke}{A numeric value for the elimination rate constant. This is assumed known or estimated from the terminal phase.}
 
 \item{Fbio}{A numeric value for bioavailability (F). Default is 1.}
-
-\item{dat}{A data frame containing raw time–concentration data in the
-standard nlmixr2 format.}
 }
 \value{
 A list with the following elements:

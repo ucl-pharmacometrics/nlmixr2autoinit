@@ -363,7 +363,7 @@ ka_calculation_md <- function(cl,
 #' It implements pointwise estimation of absorption rate constants for single-dose
 #' and multiple-dose pharmacokinetic models.
 #'
-#' @param dat A data frame containing raw time–concentration data in the
+#' @param df A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.
 #'
 #' @param cl A numeric value for drug clearance. It is assumed constant across subjects unless pre-specified per subject.

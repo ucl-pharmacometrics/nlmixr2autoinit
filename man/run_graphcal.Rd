@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_graphcal.R
 \name{run_graphcal}
 \alias{run_graphcal}
-\title{Run graphical analysis of PK Parameters}
+\title{Run graphical analysis of pharmacokinetic parameters}
 \usage{
 run_graphcal(
   dat,
@@ -14,37 +14,34 @@ run_graphcal(
 )
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data.}
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
 
-\item{route}{Administration route, must be one of \code{"bolus"}, \code{"infusion"}, or \code{"oral"}.}
+\item{route}{Route of administration. Must be one of bolus, oral, or infusion.}
 
-\item{dose_type}{Type of analysis to perform. One of:
-\itemize{
-\item{\code{"first_dose"}}: First-dose analysis (default)
-\item{\code{"repeated_doses"}}: Analysis of doses beyond the first (e.g., steady-state)
-\item{\code{"combined_doses"}}: Analysis combining first and repeated doses
-}}
+\item{dose_type}{Specifies the dosing context of the pharmacokinetic
+observations. Classified as first_dose, repeated_doses, or combined_doses
+based on whether observed concentrations occur following the first
+administration, during repeated dosing, or across both contexts.}
 
-\item{pooled}{Optional externally provided pooled data. If \code{NULL}, the data will be pooled internally.}
+\item{pooled}{Optional pooled dataset. If NULL, pooling is performed internally.}
 
-\item{pooled_ctrl}{A list of control options created by \code{\link{pooled_control}}.
-\describe{
-\item{\code{nbins}}{Number of bins to use when binning data.}
-\item{\code{bin_method}}{Method used for time binning (e.g., \code{"equal"}, \code{"quantile"}).}
-\item{\code{tad_rounding}}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
-are rounded to the nearest whole unit before comparing. This allows for
-small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
-}}
+\item{pooled_ctrl}{Control settings created by \code{pooled_control()} for time binning and pooling.}
 
-\item{...}{Additional arguments passed to \code{bin.time} or to the graphical calculation functions.}
+\item{...}{Additional arguments passed to graphical calculation functions.}
 }
 \value{
-A list containing graphical estimation results, including clearance, volume of distribution, terminal slope,
-extrapolated concentration, and for oral data, absorption rate constant.
+A list containing graphical estimates of key pharmacokinetic parameters.
 }
 \description{
-Performs graphical estimation of pharmacokinetic parameters based on the input data and route of administration,
-returning detailed results in a list format.
+Performs graphical estimation of pharmacokinetic parameters based on pooled
+concentration–time data and the specified route of administration.
+}
+\details{
+The function pools individual profiles using \code{get_pooled_data()} when needed,
+and then applies route-specific graphical methods (\code{graphcal_iv} or \code{graphcal_oral})
+to estimate parameters such as clearance, volume of distribution, terminal slope,
+and absorption rate constant (for oral data).
 }
 \examples{
 # Example 1 (iv case)

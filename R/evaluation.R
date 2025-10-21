@@ -81,37 +81,29 @@ metrics. <- function(pred.x,
 }
 
 
-#' Evaluate model performance for one-compartment PK model
+#' Evaluates predictive performance of a one-compartment model
 #'
-#' Computes common predictive performance metrics (e.g., APE, MAE, MAPEM, RMSE, rRMSE)
-#' for a pharmacokinetic (PK) model based on simulated and observed concentration data.
-#'
-#' @param dat A data.frame containing PK data with columns such as `EVID` and `DV`.
+#' Computes standard predictive error metrics by comparing simulated and observed
+#' concentration–time data using specified pharmacokinetic parameters and dosing route.
+
+#' @param dat A data frame containing raw time–concentration data in the
+#'   standard nlmixr2 format.
 #' @param est.method Estimation method passed to the fitting function.
 #' Defaults to using `rxSolve` for model simulation and parameter estimation.
-#' Alternative methods can be specified as needed (e.g., "nls", "nlm","nlminb").
-#' @param ka Absorption rate constant (only used for oral route).
+#' @param ka Absorption rate constant.
 #' @param cl Clearance value.
 #' @param vd Volume of distribution.
 #' @param route A character string indicating the route of administration.
 #' Must be one of `"oral"`, `"infusion"`, or `"bolus"`. Defaults to `"bolus"`.
 #'
-#' @return A numeric vector of length 5 containing the following performance metrics (rounded to 3 decimal places):
-#' \describe{
-#'   \item{APE}{Absolute prediction error}
-#'   \item{MAE}{Mean absolute error}
-#'   \item{MAPE}{Mean absolute percentage error}
-#'   \item{RMSE}{Root mean square error}
-#'   \item{rRMSE}{Relative RMSE}
-#' }
-#' If simulation fails or input parameters are missing, returns a vector of NAs.
-#'
 #' @details
-#' Internally selects the appropriate one-compartment model fitting function depending on the route of administration:
-#' \itemize{
-#'   \item Uses `Fit_1cmpt_oral()` for oral data
-#'   \item Uses `Fit_1cmpt_iv()` for intravenous data
-#' }
+#' Internally selects the appropriate one-compartment model fitting function, using
+#' `Fit_1cmpt_oral()` for oral administration and `Fit_1cmpt_iv()` for intravenous administration.
+#' Predictive performance is quantified using the `metrics.()` function.
+#'
+#' @return A numeric vector containing absolute prediction error, mean absolute error,
+#' mean absolute percentage error, root mean square error, and relative root mean
+#' square error.
 #'
 #' @seealso \code{\link{Fit_1cmpt_oral}}, \code{\link{Fit_1cmpt_iv}}, \code{\link{metrics.}}
 #'

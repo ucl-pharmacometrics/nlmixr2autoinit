@@ -2,7 +2,7 @@
 % Please edit documentation in R/evaluation.R
 \name{eval_perf_1cmpt}
 \alias{eval_perf_1cmpt}
-\title{Evaluate model performance for one-compartment PK model}
+\title{Evaluates predictive performance of a one-compartment model}
 \usage{
 eval_perf_1cmpt(
   dat,
@@ -14,13 +14,13 @@ eval_perf_1cmpt(
 )
 }
 \arguments{
-\item{dat}{A data.frame containing PK data with columns such as \code{EVID} and \code{DV}.}
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
 
 \item{est.method}{Estimation method passed to the fitting function.
-Defaults to using \code{rxSolve} for model simulation and parameter estimation.
-Alternative methods can be specified as needed (e.g., "nls", "nlm","nlminb").}
+Defaults to using \code{rxSolve} for model simulation and parameter estimation.}
 
-\item{ka}{Absorption rate constant (only used for oral route).}
+\item{ka}{Absorption rate constant.}
 
 \item{cl}{Clearance value.}
 
@@ -30,26 +30,18 @@ Alternative methods can be specified as needed (e.g., "nls", "nlm","nlminb").}
 Must be one of \code{"oral"}, \code{"infusion"}, or \code{"bolus"}. Defaults to \code{"bolus"}.}
 }
 \value{
-A numeric vector of length 5 containing the following performance metrics (rounded to 3 decimal places):
-\describe{
-\item{APE}{Absolute prediction error}
-\item{MAE}{Mean absolute error}
-\item{MAPE}{Mean absolute percentage error}
-\item{RMSE}{Root mean square error}
-\item{rRMSE}{Relative RMSE}
-}
-If simulation fails or input parameters are missing, returns a vector of NAs.
+A numeric vector containing absolute prediction error, mean absolute error,
+mean absolute percentage error, root mean square error, and relative root mean
+square error.
 }
 \description{
-Computes common predictive performance metrics (e.g., APE, MAE, MAPEM, RMSE, rRMSE)
-for a pharmacokinetic (PK) model based on simulated and observed concentration data.
+Computes standard predictive error metrics by comparing simulated and observed
+concentration–time data using specified pharmacokinetic parameters and dosing route.
 }
 \details{
-Internally selects the appropriate one-compartment model fitting function depending on the route of administration:
-\itemize{
-\item Uses \code{Fit_1cmpt_oral()} for oral data
-\item Uses \code{Fit_1cmpt_iv()} for intravenous data
-}
+Internally selects the appropriate one-compartment model fitting function, using
+\code{Fit_1cmpt_oral()} for oral administration and \code{Fit_1cmpt_iv()} for intravenous administration.
+Predictive performance is quantified using the \code{metrics.()} function.
 }
 \examples{
 \dontrun{

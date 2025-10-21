@@ -42,6 +42,9 @@
 #'
 #' @author Zhonghui Huang
 #'
+#' @importFrom stats aggregate lm
+#' @importFrom magrittr %>%
+#'
 #' @examples
 #' # Process dataset
 #' out <- processData(Bolus_1CPT)

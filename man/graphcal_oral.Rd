@@ -2,53 +2,40 @@
 % Please edit documentation in R/run_graphcal.R
 \name{graphcal_oral}
 \alias{graphcal_oral}
-\title{Graphical calculation of PK parameters for oral administration}
+\title{Graphical calculation of pharmacokinetic parameters for oral administration}
 \usage{
 graphcal_oral(dat, dose = 1, ...)
 }
 \arguments{
-\item{dat}{A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).}
+\item{dat}{A data frame containing TIME (time after dosing) and DV (observed
+concentration).}
 
-\item{dose}{Administered dose amount (default is \code{1}).}
+\item{dose}{Administered dose amount. Defaults to 1.}
 
-\item{...}{Additional arguments passed to \code{\link{find_best_lambdaz}}, such as \code{nlastpoints}.}
+\item{...}{Additional arguments passed to \code{find_best_lambdaz()}.}
 }
 \value{
-A list containing:
-\describe{
-\item{\code{ka}}{Estimated absorption rate constant (1/h)}
-\item{\code{kel}}{Estimated elimination rate constant (1/h)}
-\item{\code{slope}}{Negative terminal phase slope (lambda_z)}
-\item{\code{C0exp}}{Extrapolated concentration at the start of elimination phase}
-\item{\code{cl}}{Estimated clearance normalized by bioavailability (Cl/F)}
-\item{\code{vd}}{Estimated apparent volume of distribution normalized by bioavailability (Vd/F)}
-\item{\code{method}}{Method used for terminal phase slope estimation ("find_best_lambdaz" or "fallback_regression")}
-\item{\code{time.spent}}{Elapsed computation time in seconds}
-}
+A list containing graphical estimates of ka, kel, lambda_z, C0exp,
+Vd/F, and Cl/F.
 }
 \description{
-Calculates key pharmacokinetic parameters from oral pharmacokinetic data using graphical methods,
-including absorption rate constant (ka), elimination rate constant (kel), terminal slope,
-extrapolated concentration (C0exp), apparent volume of distribution (Vd/F), and clearance (Cl/F).
+Estimates key pharmacokinetic parameters from oral concentration–time data using
+graphical methods, including absorption rate constant (ka), elimination rate
+constant (kel), terminal slope, extrapolated concentration (C0exp), apparent
+volume of distribution (Vd/F), and clearance (Cl/F).
 }
 \details{
-Estimation of the terminal elimination slope (lambda_z) is performed using the \code{\link{force_find_lambdaz}} function,
-which applies a two-step strategy combining optimal phase selection and fallback regression if necessary.
-
-\deqn{
-Vd/F = \frac{Dose \times ka}{C_0 \times (ka - kel)}
-}
-
-\deqn{
-Cl/F = kel \times Vd/F
-}
-
-where \code{ka} is estimated separately using residual analysis of the absorption phase.
+The terminal slope (lambda_z) is estimated using \code{force_find_lambdaz()}. The
+apparent volume of distribution and clearance are computed using the
+following relationships:
+\deqn{Vd/F = \frac{Dose \times ka}{C_0 \times (ka - kel)}}
+\deqn{Cl/F = kel \times Vd/F}
+where \code{ka} is estimated from the absorption phase.
 }
 \examples{
 dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
-                DV = c(1, 2, 5, 3, 2, 1.5, 1))
-graphcal_oral(dat, dose = 100,route="oral")
+                  DV = c(1, 2, 5, 3, 2, 1.5, 1))
+graphcal_oral(dat, dose = 100, route = "oral")
 
 }
 \seealso{

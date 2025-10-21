@@ -1,31 +1,29 @@
-#' Run graphical analysis of PK Parameters
+#' Run graphical analysis of pharmacokinetic parameters
 #'
-#' Performs graphical estimation of pharmacokinetic parameters based on the input data and route of administration,
-#' returning detailed results in a list format.
+#' Performs graphical estimation of pharmacokinetic parameters based on pooled
+#' concentration–time data and the specified route of administration.
 #'
-#' @param dat A data frame containing pharmacokinetic data.
-#' @param route Administration route, must be one of \code{"bolus"}, \code{"infusion"}, or \code{"oral"}.
-#' @param dose_type Type of analysis to perform. One of:
-#'   \itemize{
-#'     \item{\code{"first_dose"}}: First-dose analysis (default)
-#'     \item{\code{"repeated_doses"}}: Analysis of doses beyond the first (e.g., steady-state)
-#'     \item{\code{"combined_doses"}}: Analysis combining first and repeated doses
-#'   }
-#' @param pooled Optional externally provided pooled data. If \code{NULL}, the data will be pooled internally.
-#' @param pooled_ctrl A list of control options created by \code{\link{pooled_control}}.
-#'   \describe{
-#'     \item{`nbins`}{Number of bins to use when binning data.}
-#'     \item{`bin_method`}{Method used for time binning (e.g., `"equal"`, `"quantile"`).}
-#'     \item{`tad_rounding`}{Logical. If TRUE (default), both `tad` and the most common dosing interval
-#'                           are rounded to the nearest whole unit before comparing. This allows for
-#'                           small deviations (e.g., a `tad` of 24.3 is treated as within a 24-unit interval).}
-#'   }
-#' @param ... Additional arguments passed to \code{bin.time} or to the graphical calculation functions.
+#' @param dat A data frame containing raw time–concentration data in the
+#'   standard nlmixr2 format.
+#' @param route Route of administration. Must be one of bolus, oral, or infusion.
+#' @param dose_type Specifies the dosing context of the pharmacokinetic
+#'   observations. Classified as first_dose, repeated_doses, or combined_doses
+#'   based on whether observed concentrations occur following the first
+#'   administration, during repeated dosing, or across both contexts.
+#' @param pooled Optional pooled dataset. If NULL, pooling is performed internally.
+#' @param pooled_ctrl Control settings created by `pooled_control()` for time binning and pooling.
+#' @param ... Additional arguments passed to graphical calculation functions.
 #'
-#' @return A list containing graphical estimation results, including clearance, volume of distribution, terminal slope,
-#' extrapolated concentration, and for oral data, absorption rate constant.
+#' @details
+#' The function pools individual profiles using `get_pooled_data()` when needed,
+#' and then applies route-specific graphical methods (`graphcal_iv` or `graphcal_oral`)
+#' to estimate parameters such as clearance, volume of distribution, terminal slope,
+#' and absorption rate constant (for oral data).
+#'
+#' @return A list containing graphical estimates of key pharmacokinetic parameters.
 #'
 #' @seealso \code{\link{graphcal_iv}}, \code{\link{graphcal_oral}}, \code{\link{get_pooled_data}}
+
 #'
 #' @examples
 #' # Example 1 (iv case)
@@ -117,33 +115,23 @@ run_graphcal <- function(dat,
   return(graph.fd.output)
 }
 
-
-
-
-#' Graphical Calculation of Clearance and Volume of Distribution (IV Route)
+#' Graphical calculation of clearance and volume of distribution (IV route)
 #'
-#' Performs graphical calculation of pharmacokinetic parameters including clearance (CL),
-#' volume of distribution (Vd), terminal slope (lambda_z), and extrapolated concentration at time zero (C0exp)
-#' based on intravenous (IV) pharmacokinetic data.
+#' Estimates clearance (CL), volume of distribution (Vd), terminal slope
+#' (lambda_z), and extrapolated concentration at time zero (C0exp) from
+#' intravenous pharmacokinetic data using graphical methods.
 #'
-#' @param dat A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).
-#' @param dose Administered dose amount (default is \code{1}).
-#' @param ... Additional arguments passed to \code{\link{force_find_lambdaz}}, such as \code{nlastpoints}, \code{adj_r_squared_threshold}, and \code{tolerance}.
-#'
-#' @return A list containing the following elements:
-#' \describe{
-#'   \item{\code{cl}}{Estimated clearance (CL)}
-#'   \item{\code{vd}}{Estimated volume of distribution (Vd)}
-#'   \item{\code{slope}}{Estimated negative terminal phase slope (lambda_z)}
-#'   \item{\code{C0exp}}{Extrapolated concentration at time zero}
-#'   \item{\code{method}}{Slope estimation method used ("find_best_lambdaz" or "fallback_regression")}
-#'   \item{\code{time.spent}}{Elapsed computation time (in seconds)}
-#' }
-#' If sufficient valid data points are not available, returned values will be \code{NA}.
+#' @param dat A data frame containing TIME (time after dosing) and DV
+#'   (observed concentration).
+#' @param dose Administered dose amount. Defaults to 1.
+#' @param ... Additional arguments passed to `force_find_lambdaz()`.
 #'
 #' @details
-#' Estimation of the terminal elimination slope (lambda_z) is performed using the \code{\link{force_find_lambdaz}} function,
-#' which applies a two-step strategy combining optimal phase selection and fallback regression if necessary.
+#' Terminal slope (lambda_z) is estimated using `force_find_lambdaz()`, which
+#' applies an automated phase selection strategy with fallback regression when
+#' required.
+#'
+#' @return A list containing graphical estimates of CL, Vd, lambda_z, and C0exp.
 #'
 #' @examples
 #' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
@@ -152,7 +140,7 @@ run_graphcal <- function(dat,
 #'
 #' @seealso \code{\link{force_find_lambdaz}}
 #' @export
-#'
+
 graphcal_iv <- function(dat,
                         dose = 1,
                         ...) {
@@ -174,7 +162,7 @@ graphcal_iv <- function(dat,
 
   # Identify Tmax
   max_index <- which.max(dat$DV)
-  temp1 <- dat[max_index:nrow(dat),]
+  temp1 <- dat[max_index:nrow(dat), ]
 
   if (nrow(temp1) >= 2) {
     result <- force_find_lambdaz(time = temp1$TIME,
@@ -212,47 +200,33 @@ graphcal_iv <- function(dat,
   )
 }
 
-
-#' Graphical calculation of PK parameters for oral administration
+#' Graphical calculation of pharmacokinetic parameters for oral administration
 #'
-#' Calculates key pharmacokinetic parameters from oral pharmacokinetic data using graphical methods,
-#' including absorption rate constant (ka), elimination rate constant (kel), terminal slope,
-#' extrapolated concentration (C0exp), apparent volume of distribution (Vd/F), and clearance (Cl/F).
+#' Estimates key pharmacokinetic parameters from oral concentration–time data using
+#' graphical methods, including absorption rate constant (ka), elimination rate
+#' constant (kel), terminal slope, extrapolated concentration (C0exp), apparent
+#' volume of distribution (Vd/F), and clearance (Cl/F).
 #'
-#' @param dat A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).
-#' @param dose Administered dose amount (default is \code{1}).
-#' @param ... Additional arguments passed to \code{\link{find_best_lambdaz}}, such as \code{nlastpoints}.
-#'
-#' @return A list containing:
-#' \describe{
-#'   \item{\code{ka}}{Estimated absorption rate constant (1/h)}
-#'   \item{\code{kel}}{Estimated elimination rate constant (1/h)}
-#'   \item{\code{slope}}{Negative terminal phase slope (lambda_z)}
-#'   \item{\code{C0exp}}{Extrapolated concentration at the start of elimination phase}
-#'   \item{\code{cl}}{Estimated clearance normalized by bioavailability (Cl/F)}
-#'   \item{\code{vd}}{Estimated apparent volume of distribution normalized by bioavailability (Vd/F)}
-#'   \item{\code{method}}{Method used for terminal phase slope estimation ("find_best_lambdaz" or "fallback_regression")}
-#'   \item{\code{time.spent}}{Elapsed computation time in seconds}
-#' }
+#' @param dat A data frame containing TIME (time after dosing) and DV (observed
+#'   concentration).
+#' @param dose Administered dose amount. Defaults to 1.
+#' @param ... Additional arguments passed to `find_best_lambdaz()`.
 #'
 #' @details
-#' Estimation of the terminal elimination slope (lambda_z) is performed using the \code{\link{force_find_lambdaz}} function,
-#' which applies a two-step strategy combining optimal phase selection and fallback regression if necessary.
+#' The terminal slope (lambda_z) is estimated using `force_find_lambdaz()`. The
+#' apparent volume of distribution and clearance are computed using the
+#' following relationships:
+#' \deqn{Vd/F = \frac{Dose \times ka}{C_0 \times (ka - kel)}}
+#' \deqn{Cl/F = kel \times Vd/F}
+#' where \code{ka} is estimated from the absorption phase.
 #'
-#' \deqn{
-#' Vd/F = \frac{Dose \times ka}{C_0 \times (ka - kel)}
-#' }
-#'
-#' \deqn{
-#' Cl/F = kel \times Vd/F
-#' }
-#'
-#' where \code{ka} is estimated separately using residual analysis of the absorption phase.
+#' @return A list containing graphical estimates of ka, kel, lambda_z, C0exp,
+#' Vd/F, and Cl/F.
 #'
 #' @examples
 #' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
-#'                 DV = c(1, 2, 5, 3, 2, 1.5, 1))
-#' graphcal_oral(dat, dose = 100,route="oral")
+#'                   DV = c(1, 2, 5, 3, 2, 1.5, 1))
+#' graphcal_oral(dat, dose = 100, route = "oral")
 #'
 #' @seealso \code{\link{find_best_lambdaz}}
 #' @export
@@ -282,7 +256,7 @@ graphcal_oral <- function(dat,
   # Identify Tmax
   max_index <- which.max(dat$DV)
   temp1 <-
-    dat[(max_index + 1):nrow(dat), ]  # After Tmax (exclude Tmax)
+    dat[(max_index + 1):nrow(dat),]  # After Tmax (exclude Tmax)
 
   if (nrow(temp1) >= 2) {
     result <-
@@ -301,8 +275,8 @@ graphcal_oral <- function(dat,
 
     if (!is.na(kel) && !is.na(C0exp)) {
       Cmax_point <- which(dat$DV == max(dat$DV), arr.ind = TRUE)
-      absorb_phase <- dat[1:Cmax_point, ]
-      absorb_phase <- absorb_phase[absorb_phase$TIME > 0, ]
+      absorb_phase <- dat[1:Cmax_point,]
+      absorb_phase <- absorb_phase[absorb_phase$TIME > 0,]
 
       if (nrow(absorb_phase) > 0) {
         absorb_phase$IVconc <- C0exp * exp(-kel * absorb_phase$TIME)
@@ -317,7 +291,7 @@ graphcal_oral <- function(dat,
         ),
         absorb_phase)
 
-        absorb_phase <- absorb_phase[absorb_phase$residuals > 0, ]
+        absorb_phase <- absorb_phase[absorb_phase$residuals > 0,]
 
         if (nrow(absorb_phase) >= 2) {
           abslinear <- lm(log(absorb_phase$residuals) ~ absorb_phase$TIME)

@@ -2,37 +2,30 @@
 % Please edit documentation in R/run_graphcal.R
 \name{graphcal_iv}
 \alias{graphcal_iv}
-\title{Graphical Calculation of Clearance and Volume of Distribution (IV Route)}
+\title{Graphical calculation of clearance and volume of distribution (IV route)}
 \usage{
 graphcal_iv(dat, dose = 1, ...)
 }
 \arguments{
-\item{dat}{A data frame containing at least two columns: \code{TIME} (time after dosing) and \code{DV} (measured drug concentration).}
+\item{dat}{A data frame containing TIME (time after dosing) and DV
+(observed concentration).}
 
-\item{dose}{Administered dose amount (default is \code{1}).}
+\item{dose}{Administered dose amount. Defaults to 1.}
 
-\item{...}{Additional arguments passed to \code{\link{force_find_lambdaz}}, such as \code{nlastpoints}, \code{adj_r_squared_threshold}, and \code{tolerance}.}
+\item{...}{Additional arguments passed to \code{force_find_lambdaz()}.}
 }
 \value{
-A list containing the following elements:
-\describe{
-\item{\code{cl}}{Estimated clearance (CL)}
-\item{\code{vd}}{Estimated volume of distribution (Vd)}
-\item{\code{slope}}{Estimated negative terminal phase slope (lambda_z)}
-\item{\code{C0exp}}{Extrapolated concentration at time zero}
-\item{\code{method}}{Slope estimation method used ("find_best_lambdaz" or "fallback_regression")}
-\item{\code{time.spent}}{Elapsed computation time (in seconds)}
-}
-If sufficient valid data points are not available, returned values will be \code{NA}.
+A list containing graphical estimates of CL, Vd, lambda_z, and C0exp.
 }
 \description{
-Performs graphical calculation of pharmacokinetic parameters including clearance (CL),
-volume of distribution (Vd), terminal slope (lambda_z), and extrapolated concentration at time zero (C0exp)
-based on intravenous (IV) pharmacokinetic data.
+Estimates clearance (CL), volume of distribution (Vd), terminal slope
+(lambda_z), and extrapolated concentration at time zero (C0exp) from
+intravenous pharmacokinetic data using graphical methods.
 }
 \details{
-Estimation of the terminal elimination slope (lambda_z) is performed using the \code{\link{force_find_lambdaz}} function,
-which applies a two-step strategy combining optimal phase selection and fallback regression if necessary.
+Terminal slope (lambda_z) is estimated using \code{force_find_lambdaz()}, which
+applies an automated phase selection strategy with fallback regression when
+required.
 }
 \examples{
 dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),

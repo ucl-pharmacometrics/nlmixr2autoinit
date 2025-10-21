@@ -11,6 +11,7 @@ Depends:
     nlmixr2
 Imports:
     nlmixr2est,
+    rxode2,
     dplyr,
     tidyr,
     crayon,
