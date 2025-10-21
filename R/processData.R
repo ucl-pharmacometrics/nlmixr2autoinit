@@ -97,6 +97,8 @@
 #' @seealso
 #' \code{\link{nmpkconvert}}, \code{\link{mark_dose_number}}, \code{\link{calculate_tad}}
 #'
+#' @author Zhonghui Huang
+#'
 #' @examples
 #' dat <- Bolus_1CPT
 #' processData(dat)

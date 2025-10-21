@@ -50,7 +50,7 @@ with a single column \code{cp} (predicted concentrations).
 Otherwise, returns a fitted model object produced by nlmixr2.
 }
 \description{
-Fits intravenous pharmacokinetic (IV PK) data to a three-compartment model with
+Fits intravenous (IV) pharmacokinetic data to a three-compartment model with
 linear (first-order) elimination using the naive pooled data approach. Supports
 multiple estimation methods provided by nlmixr2 and can optionally return
 only predicted concentrations to support efficient simulation workflows.
@@ -98,4 +98,7 @@ Fit_3cmpt_iv(
   return.pred.only = TRUE
 )
 }
+}
+\author{
+Zhonghui Huang
 }

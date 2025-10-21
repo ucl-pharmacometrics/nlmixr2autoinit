@@ -48,7 +48,7 @@ Otherwise, returns a fitted model object produced by nlmixr2.
 }
 \description{
 Fits oral pharmacokinetic data to a two-compartment model with
-first-order absorption and linear (first-order) elimination using the naive pooled data approach.
+first-order absorption and first-order elimination using the naive pooled data approach.
 Supports multiple estimation methods available in nlmixr2, and optionally
 returns only predicted concentrations to support simulation workflows.
 }
@@ -88,4 +88,7 @@ Fit_2cmpt_oral(
   return.pred.only = TRUE
 )
 }
+}
+\author{
+Zhonghui Huang
 }

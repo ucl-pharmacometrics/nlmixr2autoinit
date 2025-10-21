@@ -1,41 +1,50 @@
 #' Calculate metrics for model predictive performance evaluation
 #'
-#' Calculates several error metrics, including absolute percentage error (APE),
-#' mean Aabsolute error (MAE), mean absolute percentage error (MAPE), root mean squared error (RMSE),
-#' and traditional relative root mean squared error (rRMSEtra) and Symmetric relative root mean squared error (rRMSEsym).
+#' Computes common error metrics that quantify the predictive performance
+#' of pharmacometric models by comparing predicted (pred.x) and observed (obs.y)
+#' concentration values.
 #'
-#' @param pred.x A numeric vector representing the predicted values or simulations.
-#' @param obs.y A numeric vector representing the observed values.
+#' @param pred.x Numeric vector of model-predicted values.
+#' @param obs.y Numeric vector of corresponding observed values.
 #'
-#' @details This function will stop with an error message if the length of `pred.x` and `obs.y` are not the same.
-#' It computes the following metrics:
-#' It computes the following metrics:
-#' \itemize{
-#'   \item \strong{APE}: Sum of absolute differences between predicted and observed values.
-#'   \item \strong{MAE}: Mean of absolute differences between predicted and observed values.
-#'   \item \strong{MAPE}: Mean of absolute percentage differences between predicted and observed values.
-#'   \item \strong{RMSE}: Square root of the mean of squared differences between predicted and observed values.
-#'   \item \strong{rRMSEtype1}: relative RMSE, calculated as RMSE divided by the mean of observed values.
-#'   \item \strong{rRMSEtype2}: relative RMSE, calculated by dividing the squared error by the square of the average of each predicted–observed pair.
-#' }
+#' @details
+#' The function stops with an error if pred.x and obs.y have unequal lengths.
+#' The following metrics are calculated:
 #'
-#' @return A numeric vector with the computed values of the following metrics:
-#' \enumerate{
-#'   \item APE (Absolute Predicted Error)
-#'   \item MAE (Mean Absolute Error)
-#'   \item MAPE (Mean Absolute Percentage Error)
-#'   \item RMSE (Root Mean Squared Error)
-#'   \item rRMSEtype1 (Relative RMSE, type 1)
-#'   \item rRMSEtype2 ( Relative RMSE, type 2)
-#' }
+#' \deqn{APE = \sum |pred.x - obs.y|}
+#' Absolute prediction error (APE) is the sum of absolute differences.
+#'
+#' \deqn{MAE = \frac{1}{n} \sum |pred.x - obs.y|}
+#' Mean absolute error (MAE) expresses the average absolute deviation.
+#'
+#' \deqn{MAPE = \frac{100}{n} \sum \left| \frac{pred.x - obs.y}{obs.y} \right|}
+#' Mean absolute percentage error (MAPE) normalizes the error by observed values.
+#'
+#' \deqn{RMSE = \sqrt{\frac{1}{n} \sum (pred.x - obs.y)^2}}
+#' Root mean squared error (RMSE) penalizes larger deviations.
+#'
+#' \deqn{rRMSE1 = \frac{RMSE}{\bar{obs.y}} \times 100}
+#' Relative RMSE type 1 is the RMSE normalized by the mean observed value.
+#'
+#' \deqn{rRMSE2 = 100 \times \sqrt{\frac{1}{n} \sum \left(
+#' \frac{pred.x - obs.y}{(pred.x + obs.y)/2} \right)^2}}
+#' Relative RMSE type 2 is symmetric and normalizes by the mean of each
+#' predicted–observed pair.
+#'
+#' @return
+#' A numeric vector with named elements:
+#'   - APE: absolute prediction error
+#'   - MAE: mean absolute error
+#'   - MAPE: mean absolute percentage error
+#'   - RMSE: root mean squared error
+#'   - rRMSE1: relative RMSE (type 1)
+#'   - rRMSE2: relative RMSE (type 2)
 #'
 #' @examples
 #' \dontrun{
 #' set.seed(123)
 #' obs.y  <- rnorm(100, mean = 100, sd = 10)
 #' pred.x <- obs.y + rnorm(100, mean = 0, sd = 5)
-#'
-#' ## Calculate error metrics
 #' metrics.(pred.x = pred.x, obs.y = obs.y)
 #' }
 #'
@@ -83,7 +92,7 @@ metrics. <- function(pred.x,
 
 #' Evaluates predictive performance of a one-compartment model
 #'
-#' Computes standard predictive error metrics by comparing simulated and observed
+#' Computes predictive error metrics by comparing simulated and observed
 #' concentration–time data using specified pharmacokinetic parameters and dosing route.
 
 #' @param dat A data frame containing raw time–concentration data in the
@@ -110,6 +119,7 @@ metrics. <- function(pred.x,
 #' @export
 #'
 #' @examples
+#'
 #' \dontrun{
 #' eval_perf_1cmpt(
 #'   dat = Oral_1CPT,
@@ -120,6 +130,7 @@ metrics. <- function(pred.x,
 #'   route = "oral"
 #' )
 #' }
+#'
 eval_perf_1cmpt <- function(dat,
                             est.method = "rxSolve",
                             ka = NULL,
@@ -190,32 +201,31 @@ eval_perf_1cmpt <- function(dat,
 
 #' Generate Unique Mixture Parameter Grid (with Deduplication and NA Removal)
 #'
-#' Constructs a grid of all combinations of `ka`, `cl`, and `vd` parameters from
+#' Constructs a grid of all combinations of ka, cl, and vd parameters from
 #' different sources (e.g., simpcal, graph, NCA methods), and removes combinations
-#' that are redundant based on relative tolerance. Only oral routes consider `ka_value`
+#' that are redundant based on relative tolerance. Only oral routes consider ka value
 #' for deduplication. Any parameter value set that includes NA is removed up front.
 #'
-#' @param route Character; administration route, e.g., `"oral"` or `"iv"`.
-#' @param dat A data.frame containing PK data with columns such as `EVID` and `DV`.
-#' @param sp_out_ka Numeric; ka from simpcal.
-#' @param sp_out_cl Numeric; cl from simpcal.
-#' @param sp_out_vd Numeric; vd from simpcal.
-#' @param graph_out_ka Numeric; ka from graph-based method.
-#' @param graph_out_cl Numeric; cl from graph.
-#' @param graph_out_vd Numeric; vd from graph.
-#' @param nca_fd_ka Numeric; ka from NCA FD.
-#' @param nca_fd_cl Numeric; cl from NCA FD.
-#' @param nca_fd_vd Numeric; vd from NCA FD.
-#' @param nca_efd_ka Numeric; ka from NCA eFD.
-#' @param nca_efd_cl Numeric; cl from NCA eFD.
-#' @param nca_efd_vd Numeric; vd from NCA eFD.
-#' @param nca_all_ka Numeric; ka from NCA All.
-#' @param nca_all_cl Numeric; cl from NCA All.
-#' @param nca_all_vd Numeric; vd from NCA All.
+#' @param route Route of administration. Must be one of bolus, oral, or infusion.
+#' @param dat A data.frame containing PK data with columns such as EVID and DV.
+#' @param sp_out_ka Numeric; ka estimated from adaptive single-point methods.
+#' @param sp_out_cl Numeric; clearance estimated from adaptive single-point methods.
+#' @param sp_out_vd Numeric; volume of distribution estimated from adaptive single-point methods.
+#' @param graph_out_ka Numeric; ka estimated from naive pooled graphic methods.
+#' @param graph_out_cl Numeric; clearance estimated from naive pooled graphic methods.
+#' @param graph_out_vd Numeric; volume of distribution estimated from naive pooled graphic methods.
+#' @param nca_fd_ka Numeric; ka estimated from naive pooled NCA using first-dose data.
+#' @param nca_fd_cl Numeric; clearance estimated from naive pooled NCA using first-dose data.
+#' @param nca_fd_vd Numeric; volume of distribution estimated from naive pooled NCA using first-dose data.
+#' @param nca_efd_ka Numeric; ka estimated from naive pooled NCA using repeated-dose data.
+#' @param nca_efd_cl Numeric; clearance estimated from naive pooled NCA using repeated-dose data.
+#' @param nca_efd_vd Numeric; volume of distribution estimated from naive pooled NCA using repeated-dose data.
+#' @param nca_all_ka Numeric; ka estimated from naive pooled NCA using combined first- and repeated-dose data.
+#' @param nca_all_cl Numeric; clearance estimated from naive pooled NCA using combined first- and repeated-dose data.
+#' @param nca_all_vd Numeric; volume of distribution estimated from naive pooled NCA using combined first- and repeated-dose data.
 #'
 #' @return A `data.frame` of unique parameter combinations with source labels and values.
 #'
-#' @keywords internal#
 #' @export
 
 hybrid_eval_perf_1cmpt <- function(route = "bolus",

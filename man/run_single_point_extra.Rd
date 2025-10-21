@@ -102,3 +102,6 @@ run_single_point_extra(
 \seealso{
 \code{\link{run_single_point_base}}, \code{\link{run_single_point}}, \code{\link{run_ka_solution}}
 }
+\author{
+Zhonghui Huang
+}

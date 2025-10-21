@@ -1,6 +1,6 @@
-#' Calculate clearance using adaptive single-point method
+#' Calculate clearance using an adaptive single-point method
 #'
-#' Calculates clearance using an adaptive single-point pharmacokinetic approach
+#' Calculates clearance using an adaptive single-point pharmacokinetic method
 #'
 #' @param dat A data frame containing pharmacokinetic data.
 #'   Required columns typically include ID, TIME, DV, tad, recent_ii,
@@ -33,9 +33,9 @@
 #'         `ss_control()` criteria.
 #'   \item Selects peak and trough concentrations within each dose
 #'         interval to represent steady-state behavior.
-#'   \item Classifies concentration points as Css_max, Css_min, or
-#'         Css_avg based on timing within the interval and decay pattern.
-#'   \item Computes individual clearance as Dose / (Css_avg × tau).
+#'   \item Classifies concentration points as Cssmax, Cssmin, or
+#'         Cssavg based on timing within the interval and decay pattern.
+#'   \item Computes individual clearance as Dose / (Cssavg × tau).
 #'   \item Aggregates individual clearance values using a trimmed
 #'         geometric mean to obtain a population estimate.
 #' }
@@ -53,8 +53,8 @@
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' fdat <- processData(Bolus_1CPT)$dat
-#' calculate_cl(fdat, get_hf(fdat)$half_life_median)$trimmed_mean_cl
+#' dat <- processData(Bolus_1CPT)$dat
+#' calculate_cl(dat, get_hf(dat)$half_life_median)$trimmed_mean_cl
 #'
 #' @seealso
 #' \code{\link{get_hf}}, \code{\link{get_pooled_data}},
@@ -253,7 +253,7 @@ calculate_cl <- function(dat,
 
 #' Calculates volume of distribution from concentration data
 #'
-#' Calculates the volume of distribution using an adaptive single-point approach
+#' Calculates the volume of distribution (Vd) using an adaptive single-point approach
 #'
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.
@@ -275,15 +275,20 @@ calculate_cl <- function(dat,
 #'   one of bolus, oral, or infusion. Currently, oral is not implemented.
 #'
 #' @details
-#' The function uses an early concentration point (based on time since dosing and half-life)
-#' to estimate Vd. For bolus:
+#' The function uses a concentration observed within the first 20% of the elimination
+#' half-life after dosing as the early point for estimating the volume of distribution.
+#'
 #' \deqn{Vd = \frac{\text{Dose}}{C_0}}
 #' For infusion:
-#' \deqn{Vd = \frac{\text{Rate} \times \min(\text{TIME}, \text{durationobs})}{C}}
-#' where `C` is the observed concentration (`DV`).
+#' \deqn{Vd = \frac{\text{Rate} \times \min(\text{TIME}, \text{durationobs})}{C_0}}
+#'
+#' Here, \eqn{C_0} represents the early concentration observed within the first 20%
+#' of the elimination half-life after dosing, which is used as an approximation of
+#' the initial concentration for estimating volume of distribution (Vd).
+#'  `TIME` refers to time after dose; `durationobs` is the actual infusion duration.
 #'
 #' When half_life is not provided, it is estimated from pooled data using
-#' the functions get_pooled_data() and get_hf().
+#' the functions `get_pooled_data()` and `get_hf()`.
 #'
 #' @return
 #' A list with two elements:

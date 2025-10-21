@@ -68,3 +68,6 @@ result <- run_npd_3cmpt_oral(dat = Oral_3CPT)
 \seealso{
 \code{\link{Fit_3cmpt_oral}}
 }
+\author{
+Zhonghui Huang
+}

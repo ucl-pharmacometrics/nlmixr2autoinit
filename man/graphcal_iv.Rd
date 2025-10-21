@@ -19,11 +19,11 @@ A list containing graphical estimates of CL, Vd, lambda_z, and C0exp.
 }
 \description{
 Estimates clearance (CL), volume of distribution (Vd), terminal slope
-(lambda_z), and extrapolated concentration at time zero (C0exp) from
+(lambdaz), and extrapolated concentration at time zero (C0exp) from
 intravenous pharmacokinetic data using graphical methods.
 }
 \details{
-Terminal slope (lambda_z) is estimated using \code{force_find_lambdaz()}, which
+Terminal slope (lambdaz) is estimated using \code{force_find_lambdaz()}, which
 applies an automated phase selection strategy with fallback regression when
 required.
 }
@@ -35,4 +35,7 @@ graphcal_iv(dat, dose = 100)
 }
 \seealso{
 \code{\link{force_find_lambdaz}}
+}
+\author{
+Zhonghui Huang
 }

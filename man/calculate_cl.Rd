@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_single_point_base.R
 \name{calculate_cl}
 \alias{calculate_cl}
-\title{Calculate clearance using adaptive single-point method}
+\title{Calculate clearance using an adaptive single-point method}
 \usage{
 calculate_cl(
   dat,
@@ -43,7 +43,7 @@ of outliers
 }
 }
 \description{
-Calculates clearance using an adaptive single-point pharmacokinetic approach
+Calculates clearance using an adaptive single-point pharmacokinetic method
 }
 \details{
 Estimates individual and population clearance from steady-state
@@ -57,9 +57,9 @@ The procedure:
 \code{ss_control()} criteria.
 \item Selects peak and trough concentrations within each dose
 interval to represent steady-state behavior.
-\item Classifies concentration points as Css_max, Css_min, or
-Css_avg based on timing within the interval and decay pattern.
-\item Computes individual clearance as Dose / (Css_avg × tau).
+\item Classifies concentration points as Cssmax, Cssmin, or
+Cssavg based on timing within the interval and decay pattern.
+\item Computes individual clearance as Dose / (Cssavg × tau).
 \item Aggregates individual clearance values using a trimmed
 geometric mean to obtain a population estimate.
 }
@@ -67,8 +67,8 @@ geometric mean to obtain a population estimate.
 Supports bolus, infusion, and oral administration routes.
 }
 \examples{
-fdat <- processData(Bolus_1CPT)$dat
-calculate_cl(fdat, get_hf(fdat)$half_life_median)$trimmed_mean_cl
+dat <- processData(Bolus_1CPT)$dat
+calculate_cl(dat, get_hf(dat)$half_life_median)$trimmed_mean_cl
 
 }
 \seealso{

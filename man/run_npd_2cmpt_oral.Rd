@@ -67,3 +67,6 @@ result <- run_npd_2cmpt_oral(
 \seealso{
 \code{\link{Fit_2cmpt_oral}}
 }
+\author{
+Zhonghui Huang
+}

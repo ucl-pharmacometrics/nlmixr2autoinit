@@ -7,46 +7,55 @@
 metrics.(pred.x, obs.y)
 }
 \arguments{
-\item{pred.x}{A numeric vector representing the predicted values or simulations.}
+\item{pred.x}{Numeric vector of model-predicted values.}
 
-\item{obs.y}{A numeric vector representing the observed values.}
+\item{obs.y}{Numeric vector of corresponding observed values.}
 }
 \value{
-A numeric vector with the computed values of the following metrics:
-\enumerate{
-\item APE (Absolute Predicted Error)
-\item MAE (Mean Absolute Error)
-\item MAPE (Mean Absolute Percentage Error)
-\item RMSE (Root Mean Squared Error)
-\item rRMSEtype1 (Relative RMSE, type 1)
-\item rRMSEtype2 ( Relative RMSE, type 2)
+A numeric vector with named elements:
+\itemize{
+\item APE: absolute prediction error
+\item MAE: mean absolute error
+\item MAPE: mean absolute percentage error
+\item RMSE: root mean squared error
+\item rRMSE1: relative RMSE (type 1)
+\item rRMSE2: relative RMSE (type 2)
 }
 }
 \description{
-Calculates several error metrics, including absolute percentage error (APE),
-mean Aabsolute error (MAE), mean absolute percentage error (MAPE), root mean squared error (RMSE),
-and traditional relative root mean squared error (rRMSEtra) and Symmetric relative root mean squared error (rRMSEsym).
+Computes common error metrics that quantify the predictive performance
+of pharmacometric models by comparing predicted (pred.x) and observed (obs.y)
+concentration values.
 }
 \details{
-This function will stop with an error message if the length of \code{pred.x} and \code{obs.y} are not the same.
-It computes the following metrics:
-It computes the following metrics:
-\itemize{
-\item \strong{APE}: Sum of absolute differences between predicted and observed values.
-\item \strong{MAE}: Mean of absolute differences between predicted and observed values.
-\item \strong{MAPE}: Mean of absolute percentage differences between predicted and observed values.
-\item \strong{RMSE}: Square root of the mean of squared differences between predicted and observed values.
-\item \strong{rRMSEtype1}: relative RMSE, calculated as RMSE divided by the mean of observed values.
-\item \strong{rRMSEtype2}: relative RMSE, calculated by dividing the squared error by the square of the average of each predicted–observed pair.
-}
+The function stops with an error if pred.x and obs.y have unequal lengths.
+The following metrics are calculated:
+
+\deqn{APE = \sum |pred.x - obs.y|}
+Absolute prediction error (APE) is the sum of absolute differences.
+
+\deqn{MAE = \frac{1}{n} \sum |pred.x - obs.y|}
+Mean absolute error (MAE) expresses the average absolute deviation.
+
+\deqn{MAPE = \frac{100}{n} \sum \left| \frac{pred.x - obs.y}{obs.y} \right|}
+Mean absolute percentage error (MAPE) normalizes the error by observed values.
+
+\deqn{RMSE = \sqrt{\frac{1}{n} \sum (pred.x - obs.y)^2}}
+Root mean squared error (RMSE) penalizes larger deviations.
+
+\deqn{rRMSE1 = \frac{RMSE}{\bar{obs.y}} \times 100}
+Relative RMSE type 1 is the RMSE normalized by the mean observed value.
+
+\deqn{rRMSE2 = 100 \times \sqrt{\frac{1}{n} \sum \left(
+\frac{pred.x - obs.y}{(pred.x + obs.y)/2} \right)^2}}
+Relative RMSE type 2 is symmetric and normalizes by the mean of each
+predicted–observed pair.
 }
 \examples{
 \dontrun{
 set.seed(123)
 obs.y  <- rnorm(100, mean = 100, sd = 10)
 pred.x <- obs.y + rnorm(100, mean = 0, sd = 5)
-
-## Calculate error metrics
 metrics.(pred.x = pred.x, obs.y = obs.y)
 }
 

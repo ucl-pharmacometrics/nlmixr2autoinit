@@ -2,7 +2,7 @@
 % Please edit documentation in R/getnca.R
 \name{trapezoidal_linear_up_log_down}
 \alias{trapezoidal_linear_up_log_down}
-\title{Calculate area under the curve (AUC) or area under the moment curve (AUMC) using linear-up and log-down trapezoidal rule}
+\title{Linear-up and log-down trapezoidal rule}
 \usage{
 trapezoidal_linear_up_log_down(x, y, moment = FALSE)
 }

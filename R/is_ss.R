@@ -38,7 +38,7 @@
 #'   numerical deviations.
 #'
 #' @return A named list containing the steady-state control parameters,
-#'   typically passed as the ssctrl argument to is_ss().
+#'   typically passed as the ssctrl argument to `is_ss()`.
 #'
 #' @seealso \link{is_ss}
 #'

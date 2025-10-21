@@ -1,12 +1,11 @@
 #' Fit intravenous pharmacokinetic data to a one-compartment linear elimination model
 #'
-#' Fits intravenous pharmacokinetic (IV PK) data to a one-compartment model with
-#' linear (first-order) elimination using the naive pooled data approach. Supports
+#' Fits intravenous (IV) pharmacokinetic data to a one-compartment model with
+#' first-order elimination using the naive pooled data approach. Supports
 #' multiple estimation methods provided by nlmixr2 and can optionally return
 #' only predicted concentrations to support efficient simulation workflows.
 #'
-#' @param data A data frame containing IV pharmacokinetic data formatted for nlmixr2,
-#'   including columns such as \code{ID}, \code{TIME}, \code{DV}, and \code{EVID}.
+#' @param data A data frame of IV pharmacokinetic data formatted for nlmixr2.
 #' @param est.method Estimation method to use in nlmixr2. Must be one of:
 #'   \code{"rxSolve"}, \code{"nls"}, \code{"nlm"}, \code{"nlminb"}, or \code{"focei"}.
 #' @param input.cl Initial estimate of clearance (CL).
@@ -24,6 +23,8 @@
 #' @importFrom nlmixr2 ini model nlmixr2 foceiControl
 #' @importFrom rxode2 rxControl
 #' @importFrom nlmixr2est nlsControl nlmControl nlminbControl
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -135,9 +136,9 @@ Fit_1cmpt_iv <- function(data,
 }
 
 
-#' Fit IV pharmacokinetic data to a one-compartment model with Michaelis-Menten elimination
+#' Fit intravenous pharmacokinetic data to a one-compartment model with Michaelis-Menten elimination
 #'
-#' Fits intravenous pharmacokinetic (IV PK) data to a one-compartment model with
+#' Fits intravenous (IV) pharmacokinetic data to a one-compartment model with
 #' Michaelis-Menten (nonlinear) elimination using the naive pooled data approach.
 #' Supports multiple estimation methods available in nlmixr2, and optionally
 #' returns only predicted concentrations to reduce memory use in simulation workflows.
@@ -157,6 +158,8 @@ Fit_1cmpt_iv <- function(data,
 #' @return If \code{return.pred.only = TRUE}, returns a \code{data.frame}
 #'   with a single column \code{cp} (predicted concentrations).
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -273,8 +276,8 @@ Fit_1cmpt_mm_iv <- function(data,
 
 #' Fit intravenous pharmacokinetic data to a two-compartment linear elimination model
 #'
-#' Fits intravenous pharmacokinetic (IV PK) data to a two-compartment model with
-#' linear (first-order) elimination using the naive pooled data approach. Supports
+#' Fits intravenous (IV) pharmacokinetic data to a two-compartment model with
+#' first-order elimination using the naive pooled data approach. Supports
 #' multiple estimation methods provided by nlmixr2 and can optionally return
 #' only predicted concentrations to support efficient simulation workflows.
 #'
@@ -294,6 +297,8 @@ Fit_1cmpt_mm_iv <- function(data,
 #' @return If \code{return.pred.only = TRUE}, returns a \code{data.frame}
 #'   with a single column \code{cp} (predicted concentrations).
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -424,7 +429,7 @@ Fit_2cmpt_iv <- function(data,
 
 #' Fit intravenous pharmacokinetic data to a three-compartment linear elimination model
 #'
-#' Fits intravenous pharmacokinetic (IV PK) data to a three-compartment model with
+#' Fits intravenous (IV) pharmacokinetic data to a three-compartment model with
 #' linear (first-order) elimination using the naive pooled data approach. Supports
 #' multiple estimation methods provided by nlmixr2 and can optionally return
 #' only predicted concentrations to support efficient simulation workflows.
@@ -447,6 +452,8 @@ Fit_2cmpt_iv <- function(data,
 #' @return If \code{return.pred.only = TRUE}, returns a \code{data.frame}
 #'   with a single column \code{cp} (predicted concentrations).
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -590,7 +597,7 @@ Fit_3cmpt_iv <- function(data,
 #' Fit oral pharmacokinetic data to a one-compartment linear elimination model
 #'
 #' Fits oral pharmacokinetic data to a one-compartment model with
-#' first-order absorption and linear (first-order) elimination using the naive pooled data approach.
+#' first-order absorption and first-order elimination using the naive pooled data approach.
 #' Supports multiple estimation methods provided by nlmixr2 and can optionally return
 #' only predicted concentrations to support efficient simulation workflows.
 #'
@@ -609,6 +616,8 @@ Fit_3cmpt_iv <- function(data,
 #' @return If \code{return.pred.only = TRUE}, returns a \code{data.frame}
 #'   with a single column \code{cp} (predicted concentrations).
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -753,6 +762,8 @@ Fit_1cmpt_oral <- function(data,
 #'   with columns \code{cp} (predicted concentration) and \code{DV} (observed data).
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
 #'
+#' @author Zhonghui Huang
+#'
 #' @examples
 #' \dontrun{
 #' dat <- Oral_1CPTMM
@@ -878,7 +889,7 @@ Fit_1cmpt_mm_oral <- function(data,
 #' Fit oral pharmacokinetic data to a two-compartment model
 #'
 #' Fits oral pharmacokinetic data to a two-compartment model with
-#' first-order absorption and linear (first-order) elimination using the naive pooled data approach.
+#' first-order absorption and first-order elimination using the naive pooled data approach.
 #' Supports multiple estimation methods available in nlmixr2, and optionally
 #' returns only predicted concentrations to support simulation workflows.
 #'
@@ -899,6 +910,8 @@ Fit_1cmpt_mm_oral <- function(data,
 #' @return If \code{return.pred.only = TRUE}, returns a \code{data.frame}
 #'   with a single column \code{cp} (predicted concentrations).
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -1061,6 +1074,8 @@ Fit_2cmpt_oral <- function(data,
 #' @return If \code{return.pred.only = TRUE}, returns a \code{data.frame}
 #'   with a single column \code{cp} (predicted concentrations).
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{

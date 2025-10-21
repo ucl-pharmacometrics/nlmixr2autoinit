@@ -24,6 +24,7 @@
 #'
 #' @seealso \code{\link{graphcal_iv}}, \code{\link{graphcal_oral}}, \code{\link{get_pooled_data}}
 
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' # Example 1 (iv case)
@@ -118,7 +119,7 @@ run_graphcal <- function(dat,
 #' Graphical calculation of clearance and volume of distribution (IV route)
 #'
 #' Estimates clearance (CL), volume of distribution (Vd), terminal slope
-#' (lambda_z), and extrapolated concentration at time zero (C0exp) from
+#' (lambdaz), and extrapolated concentration at time zero (C0exp) from
 #' intravenous pharmacokinetic data using graphical methods.
 #'
 #' @param dat A data frame containing TIME (time after dosing) and DV
@@ -127,11 +128,13 @@ run_graphcal <- function(dat,
 #' @param ... Additional arguments passed to `force_find_lambdaz()`.
 #'
 #' @details
-#' Terminal slope (lambda_z) is estimated using `force_find_lambdaz()`, which
+#' Terminal slope (lambdaz) is estimated using `force_find_lambdaz()`, which
 #' applies an automated phase selection strategy with fallback regression when
 #' required.
 #'
 #' @return A list containing graphical estimates of CL, Vd, lambda_z, and C0exp.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),
@@ -213,7 +216,7 @@ graphcal_iv <- function(dat,
 #' @param ... Additional arguments passed to `find_best_lambdaz()`.
 #'
 #' @details
-#' The terminal slope (lambda_z) is estimated using `force_find_lambdaz()`. The
+#' The terminal slope (lambdaz) is estimated using `force_find_lambdaz()`. The
 #' apparent volume of distribution and clearance are computed using the
 #' following relationships:
 #' \deqn{Vd/F = \frac{Dose \times ka}{C_0 \times (ka - kel)}}
@@ -222,6 +225,8 @@ graphcal_iv <- function(dat,
 #'
 #' @return A list containing graphical estimates of ka, kel, lambda_z, C0exp,
 #' Vd/F, and Cl/F.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8, 10),

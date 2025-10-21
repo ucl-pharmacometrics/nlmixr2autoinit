@@ -110,3 +110,6 @@ processData(dat)
 \seealso{
 \code{\link{nmpkconvert}}, \code{\link{mark_dose_number}}, \code{\link{calculate_tad}}
 }
+\author{
+Zhonghui Huang
+}

@@ -55,18 +55,18 @@ getnca(
 \value{
 A list containing:
 \itemize{
-\item \code{cl} - Clearance (\eqn{CL})
-\item \code{vz} - Volume of distribution (\eqn{V_z})
-\item \code{half_life} - Terminal half-life
-\item \code{auct} - \eqn{AUC_{0 \rightarrow \mathrm{last}}}
-\item \code{auc0_inf} - \eqn{AUC_{0 \rightarrow \infty}}
-\item \code{C_last} - Last measurable concentration
-\item \code{lambdaz} - Terminal elimination rate constant (\eqn{\lambda_z})
-\item \code{aumc_0_t} - \eqn{AUMC_{0 \rightarrow \mathrm{last}}}
-\item \code{aumc_0_inf} - \eqn{AUMC_{0 \rightarrow \infty}}
-\item \code{used_points} - Number of points used for \eqn{\lambda_z} estimation
-\item \code{adj.r.squared} - Adjusted \eqn{R^2} for terminal slope
-\item \code{messages} - Concatenated warning/status messages
+\item cl - Clearance (CL), calculated as Dose/AUC
+\item vz - volume of distribution (Vz), calculated as CL / lambdaz
+\item half_life - Terminal elimination half-life, computed as ln(2) / lambdaz
+\item auct - Area under the concentration–time curve from time 0 to last measurable concentration
+\item auc0_inf - AUC extrapolated to infinity
+\item C_last - Last non-zero measurable concentration
+\item lambdaz - Terminal elimination rate constant
+\item aumc_0_t - Area under the first moment curve from time 0 to last measurable concentration
+\item aumc_0_inf - AUMC extrapolated to infinity
+\item used_points - Number of time–concentration points used to estimate lambdaz
+\item adj.r.squared - Adjusted R-squared of the terminal phase regression
+\item messages - Warning or diagnostic messages returned during the calculation
 }
 }
 \description{

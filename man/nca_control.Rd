@@ -26,12 +26,13 @@ range.}
 regression (default = 3).}
 
 \item{slope.method}{Character. Method for estimating the terminal slope
-(lambdaz):
+(lambdaz). Options are:
 \itemize{
-\item \code{"bestfitforce"} - Force estimation using decreasing number of
-terminal points if best-fit fails (default)
-\item \code{"bestfit"} - Use automated best-fit selection based on adjusted
-R-squared
+\item "bestfit": Performs automated terminal phase selection based on adjusted
+R-squared. If no acceptable segment is found, lambdaz is returned as NA.
+\item "bestfitforce": First attempts the "bestfit" method. If no valid lambdaz
+is obtained, the function applies a fallback log-linear regression using
+progressively fewer terminal points to force estimation. This is the default.
 }}
 }
 \value{

@@ -2,8 +2,7 @@
 #'
 #' Estimates the terminal half-life of a drug using pooled pharmacokinetic data.
 #' The method supports analysis based on first-dose, repeated-dose, or combined
-#' dosing profiles. Half-life is calculated using linear regression on the
-#' terminal phase of log-transformed concentration–time data.
+#' dosing profiles.
 #'
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.
@@ -25,17 +24,20 @@
 #'   to find_best_lambdaz for elimination slope estimation.
 #'
 #' @details
-#' The function estimates terminal half-life in the following steps:
-#' \enumerate{
-#'   \item Generate or use existing pooled pharmacokinetic data
-#'   \item Identify the terminal phase using elimination slope estimation
-#'   \item Calculate the elimination rate constant (lambdaz)
-#'   \item Derive half-life as log(2) divided by lambdaz for each subset and
-#'         return the median of all positive estimates
+#' The function estimates terminal half-life using the following procedure:
+#'   - Generate or use existing pooled pharmacokinetic data
+#'   - Identify the terminal phase using elimination slope estimation
+#'   - Calculate the terminal elimination rate constant (lambda_z)
+#'   - Derive half-life using:
+#'
+#' \deqn{
+#'   t_{1/2} = \frac{\log(2)}{\lambda_z}
 #' }
 #'
 #' @return A list containing individual and median half-life estimates for
 #'   first-dose, repeated-dose, and combined dosing profiles.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{

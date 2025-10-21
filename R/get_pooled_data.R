@@ -131,6 +131,8 @@ pooled_control <- function(nbins = 10,
 #'   - datpooled_all: pooled data combining first-dose and repeated-dose
 #'     observations
 #'
+#' @author Zhonghui Huang
+#'
 #' @examples
 #' dat <- processData(Bolus_1CPT)$dat
 #' get_pooled_data(dat, dose_type = "combined_doses")

@@ -57,3 +57,6 @@ get_pooled_data(dat, dose_type = "combined_doses")
 \seealso{
 \link{pooled_control}, \link{trimmed_geom_mean}
 }
+\author{
+Zhonghui Huang
+}

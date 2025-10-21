@@ -1,113 +1,139 @@
-#' Compute overall residual variability (sigma) from grouped elimination phase analysis
+#' Compute overall residual variability from elimination phase
 #'
-#' This function applies `getsigmas()` to each individual-dose group after filtering
-#' to retain only observation records (EVID == 0), and returns trimmed mean estimates
-#' of residual additive and proportional variability.
+#' Applies `getsigmas` to each individual and dose group after filtering
+#' observation records (EVID == 0), and calculates trimmed mean estimates
+#' of additive and proportional residual variability.
 #'
-#' @inheritParams getsigmas
-#' @param df The full PK dataset with required columns: `EVID`, `ID`, `TIME`, `DV`, `routeobs`, etc.
-#' @param sigma_trim Proportion of trimmed mean to calculate (default = 0.05).
+#' @param df Full pharmacokinetic dataset containing at least the columns:
+#'   EVID, ID, TIME, DV, and routeobs.
+#' @param nlastpoints Number of terminal points used for elimination phase
+#'   regression in each group (passed to getsigmas).
+#' @param sigma_trim Trimming proportion used when calculating trimmed means
+#'   of residual standard deviations. Default is 0.05.
+#'
+#' @details
+#' The function groups the dataset by subject and dose occasion, applies
+#' elimination-phase residual analysis using `getsigmas`, and summarizes the
+#' individual residual standard deviations by their trimmed means. This
+#' provides population-level estimates of additive and proportional residual
+#' unexplained variability (RUV).
 #'
 #' @return A list containing:
-#' \describe{
-#'   \item{summary}{Named list of trimmed mean residual SDs}
-#'   \item{full}{Tibble with full results for each group}
-#' }
+#'   - summary: Named list with trimmed mean values of additive and
+#'     proportional residual variability
+#'   - full: Data frame with residual estimates for each individual-dose group
+#'
+#' @seealso \link{getsigmas}
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
-#' dat<- Bolus_1CPT
-#' dat<-processData(dat)$dat
+#' dat <- Bolus_1CPT
+#' dat <- processData(dat)$dat
 #' getsigma(dat)
-#'}
-#' @export
+#' }
 #'
+#' @export
+
 getsigma <- function(df,
                      nlastpoints = 3,
-                     sigma_trim=0.05) {
-
+                     sigma_trim = 0.05) {
   # Filter to observation data
   obs_df <- df %>% dplyr::filter(EVID == 0)
 
   # Apply getsigmas to each group
   full_result <- obs_df %>%
     dplyr::group_by(ID, resetflag, dose_number) %>%
-    dplyr::group_modify(~ getsigmas(.x, nlastpoints = nlastpoints)) %>%
+    dplyr::group_modify( ~ getsigmas(.x, nlastpoints = nlastpoints)) %>%
     dplyr::ungroup()
 
   # Compute trimmed means of residual SDs
   sigma_additive <- tryCatch(
-    mean(full_result$residual_sd_additive, na.rm = TRUE, trim = sigma_trim),
-    error = function(e) NA_real_
+    mean(
+      full_result$residual_sd_additive,
+      na.rm = TRUE,
+      trim = sigma_trim
+    ),
+    error = function(e)
+      NA_real_
   )
 
   sigma_proportional <- tryCatch(
-    mean(full_result$residual_sd_proportional, na.rm = TRUE, trim = sigma_trim),
-    error = function(e) NA_real_
+    mean(
+      full_result$residual_sd_proportional,
+      na.rm = TRUE,
+      trim = sigma_trim
+    ),
+    error = function(e)
+      NA_real_
   )
 
-  summary_result <- list(
-    sigma_additive = sigma_additive,
-    sigma_proportional = sigma_proportional
-  )
+  summary_result <- list(sigma_additive = sigma_additive,
+                         sigma_proportional = sigma_proportional)
 
-  return(list(
-    summary = summary_result,
-    full = full_result
-  ))
+  return(list(summary = summary_result,
+              full = full_result))
 }
 
 
-#' Estimate individual-level residual error from elimination phase
+#' Estimate individual-level residual error from the elimination phase
 #'
-#' Performs log-linear regression on the elimination phase of a
-#' single individual's (or one group’s) pharmacokinetic data to estimate additive
-#' and proportional residual standard deviations.
+#' Performs log-linear regression on the elimination phase of a single individual's
+#' or one group's pharmacokinetic concentration–time data to estimate additive and
+#' proportional residual standard deviations.
 #'
-#' @param group_df A data frame for a single group (e.g., one subject/dose),
-#'   containing columns `EVID`, `DV`, `TIME`, and `routeobs`.
-#' @param nlastpoints Integer. Number of terminal points to include in regression.
+#' @param group_df A data frame for a single group (e.g., one subject or dose),
+#'   containing columns: EVID (event ID), DV (observed concentration),
+#'   TIME (time after dose), and routeobs (administration route).
+#' @param nlastpoints Integer specifying the number of terminal data points used
+#'   for regression.
 #'
 #' @details
-#' The elimination phase is selected differently based on the `routeobs` value:
-#' - For `bolus` and `infusion`, it starts *after* Tmax.
-#' - For `oral`, it starts *at* Tmax.
-#'
-#' The function uses the last `nlastpoints` data points in the elimination phase.
-#' Residuals are calculated as:
-#' - Additive: \eqn{IPRED - DV}
-#' - Proportional: \eqn{DV / IPRED - 1}
-#'
-#' Returns NA values if the data is insufficient or inconsistent.
-#'
-#' @return A tibble with columns:
-#' \describe{
-#'   \item{intercept}{Intercept of the regression line}
-#'   \item{slope}{Slope of the regression line}
-#'   \item{residual_sd_additive}{Standard deviation of additive residuals}
-#'   \item{residual_sd_proportional}{Standard deviation of proportional residuals}
+#' Residuals are computed from individual-predicted concentrations (IPRED) and
+#' observed concentrations (DV) using the following definitions:
+#' \deqn{
+#'   \sigma_{add} = \sqrt{Var(C_{obs} - C_{pred})}
 #' }
+#'
+#' \deqn{
+#'   \sigma_{prop} = \sqrt{Var\left(\frac{C_{obs}}{C_{pred}} - 1\right)}
+#' }
+#'
+#' where \eqn{C_{obs}} is the observed concentration and \eqn{C_{pred}} is the
+#' model-predicted concentration obtained by back-transformation of the
+#' log-linear regression. The additive residual standard deviation
+#' (\eqn{\sigma_{add}}) and proportional residual standard deviation
+#' (\eqn{\sigma_{prop}}) are calculated per individual.
+#'
+#' @return A tibble with the following columns:
+#'   - intercept: Intercept of the log-linear regression line
+#'   - slope: Estimate of the terminal elimination rate constant
+#'   - residual_sd_additive: Standard deviation of additive residuals
+#'   - residual_sd_proportional: Standard deviation of proportional residuals
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
-#' dat<- Bolus_1CPT
-#' dat<-processData(dat)$dat
-#' getsigmas(dat[dat$ID==1 & dat$dose_number==1 & dat$resetflag==1&dat$EVID==0,])
+#' dat <- Bolus_1CPT
+#' dat <- processData(dat)$dat
+#' getsigmas(dat[dat$ID == 1 & dat$dose_number == 1 & dat$resetflag == 1 &
+#'               dat$EVID == 0, ])
 #' }
 #'
-#'
 #' @export
-#'
 
 getsigmas <- function(group_df, nlastpoints = 3) {
-
   if (nrow(group_df) < (nlastpoints + 1)) {
-    return(tibble::tibble(
-      intercept = NA_real_,
-      slope = NA_real_,
-      residual_sd_additive = NA_real_,
-      residual_sd_proportional = NA_real_
-    ))
+    return(
+      tibble::tibble(
+        intercept = NA_real_,
+        slope = NA_real_,
+        residual_sd_additive = NA_real_,
+        residual_sd_proportional = NA_real_
+      )
+    )
   }
 
   # Identify Tmax
@@ -116,10 +142,13 @@ getsigmas <- function(group_df, nlastpoints = 3) {
   # Determine routeobs
   route <- unique(group_df$routeobs)
   if (length(route) != 1) {
-    stop("Multiple routeobs values found in one group (ID = ",
-         unique(group_df$ID),
-         ", dose_number = ", unique(group_df$dose_number),
-         "). Check data integrity.")
+    stop(
+      "Multiple routeobs values found in one group (ID = ",
+      unique(group_df$ID),
+      ", dose_number = ",
+      unique(group_df$dose_number),
+      "). Check data integrity."
+    )
   }
 
   # Set elimination start index based on routeobs
@@ -133,24 +162,29 @@ getsigmas <- function(group_df, nlastpoints = 3) {
 
   # Check if enough points after elim_start
   if ((nrow(group_df) - elim_start + 1) < nlastpoints) {
-    return(tibble::tibble(
-      intercept = NA_real_,
-      slope = NA_real_,
-      residual_sd_additive = NA_real_,
-      residual_sd_proportional = NA_real_
-    ))
+    return(
+      tibble::tibble(
+        intercept = NA_real_,
+        slope = NA_real_,
+        residual_sd_additive = NA_real_,
+        residual_sd_proportional = NA_real_
+      )
+    )
   }
 
   # Select elimination phase data
-  elim_df <- utils::tail(group_df[elim_start:nrow(group_df), ], nlastpoints)
+  elim_df <-
+    utils::tail(group_df[elim_start:nrow(group_df),], nlastpoints)
 
   if (any(elim_df$DV <= 0)) {
-    return(tibble::tibble(
-      intercept = NA_real_,
-      slope = NA_real_,
-      residual_sd_additive = NA_real_,
-      residual_sd_proportional = NA_real_
-    ))
+    return(
+      tibble::tibble(
+        intercept = NA_real_,
+        slope = NA_real_,
+        residual_sd_additive = NA_real_,
+        residual_sd_proportional = NA_real_
+      )
+    )
   }
 
   # Perform regression
@@ -171,7 +205,3 @@ getsigmas <- function(group_df, nlastpoints = 3) {
     residual_sd_proportional = sd_proportional
   )
 }
-
-
-
-

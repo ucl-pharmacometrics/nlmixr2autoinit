@@ -16,13 +16,12 @@
 #'   regression (default = 3).
 #'
 #' @param slope.method Character. Method for estimating the terminal slope
-#'   (lambdaz):
-#' \itemize{
-#'   \item \code{"bestfitforce"} - Force estimation using decreasing number of
-#'     terminal points if best-fit fails (default)
-#'   \item \code{"bestfit"} - Use automated best-fit selection based on adjusted
-#'     R-squared
-#' }
+#'   (lambdaz). Options are:
+#'   - "bestfit": Performs automated terminal phase selection based on adjusted
+#'     R-squared. If no acceptable segment is found, lambdaz is returned as NA.
+#'   - "bestfitforce": First attempts the "bestfit" method. If no valid lambdaz
+#'     is obtained, the function applies a fallback log-linear regression using
+#'     progressively fewer terminal points to force estimation. This is the default.
 #'
 #' @return A list with NCA control parameters.
 #'
@@ -34,15 +33,16 @@
 
 nca_control <-
   function(trapezoidal.rule = c("linear_up_log_down", "linear"),
-           duration=NULL,
+           duration = NULL,
            nlastpoints = 3,
-           slope.method= "bestfitforce") {
-    list(trapezoidal.rule = trapezoidal.rule ,
-         duration = duration,
-         nlastpoints = nlastpoints,
-         slope.method=slope.method)
+           slope.method = "bestfitforce") {
+    list(
+      trapezoidal.rule = trapezoidal.rule ,
+      duration = duration,
+      nlastpoints = nlastpoints,
+      slope.method = slope.method
+    )
   }
-
 
 #' Performs non-compartmental analysis on pooled data
 #'
@@ -55,7 +55,7 @@ nca_control <-
 #' @param dose_type Classified as first_dose, repeated_doses, or combined_doses
 #'   based on whether observed concentrations occur following the first
 #'   administration, during repeated dosing, or across both contexts.
-#' @param route Administration route: "bolus", "oral", or "infusion".
+#' @param route Route of administration. Must be one of bolus, oral, or infusion.
 #' @param pooled Optional pre-pooled data returned by `get_pooled_data`.
 #' @param pooled_ctrl Optional list of control parameters used by `get_pooled_data()`
 #'   for pooling observations. Defaults to output from `pooled_control()`.
@@ -68,6 +68,8 @@ nca_control <-
 #' concentration–time profiles using `get_pooled_data` based on the settings in
 #' `pooled_ctrl`. The pooled profiles are then passed to `getnca`, which computes
 #' non-compartmental parameters using rules specified in `nca_ctrl`.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' out   <- processData(Bolus_1CPT)

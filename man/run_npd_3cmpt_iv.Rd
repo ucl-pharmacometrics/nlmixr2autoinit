@@ -75,3 +75,6 @@ run_npd_3cmpt_iv(
 \seealso{
 \code{\link{Fit_3cmpt_iv}}
 }
+\author{
+Zhonghui Huang
+}

@@ -67,3 +67,6 @@ print(result$singlepoint.results)
 \seealso{
 \code{\link{run_single_point_base}}, \code{\link{run_single_point_extra}}
 }
+\author{
+Zhonghui Huang
+}

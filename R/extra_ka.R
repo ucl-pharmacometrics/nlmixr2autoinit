@@ -33,10 +33,10 @@
 #' - Linear regression of log(remaining fraction) against time yields 'ka'.
 #'
 #' @return A list containing:
-#' \item{'ka'}{Estimated absorption rate constant.}
-#' \item{'dat_out_wanger_nelson'}{Input data frame augmented with calculated
-#' pharmacokinetic variables including cumulative AUC, fraction absorbed, and
-#' fraction remaining.}
+#'   - ka: Estimated absorption rate constant
+#'   - dat_out_wanger_nelson: Input data frame augmented with calculated
+#'     pharmacokinetic variables including cumulative AUC, fraction absorbed,
+#'     and fraction remaining
 #'
 #' @references
 #' Wagner JG and Nelson E (1963). Percent absorbed time plots derived from
@@ -139,7 +139,7 @@ ka_wanger_nelson <- function(dat,
 #' \deqn{Vd = \frac{cl}{ke}}
 #'
 #' ka is estimated using `uniroot()`, which solves for the root of the residual
-#' function (predicted Ct − observed Ct) within a bounded interval (ka > ke and ka <= 1000)
+#' function (predicted Ct - observed Ct) within a bounded interval (ka > ke and ka <= 1000)
 #'
 #' @return A list containing:
 #' \item{ka}{Estimated absorption rate constant.}
@@ -262,7 +262,7 @@ ka_calculation_sd <- function(cl,
 #' e^{-ka \cdot \tau}} \right)}
 #'
 #' ka is estimated using `uniroot()`, which solves for the root of the residual
-#' function (predicted Ct − observed Ct) within a bounded interval (ka > ke and ka <= 1000)
+#' function (predicted Ct - observed Ct) within a bounded interval (ka > ke and ka <= 1000)
 #'
 #' @author Zhonghui Huang
 #'

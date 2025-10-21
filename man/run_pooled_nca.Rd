@@ -17,7 +17,7 @@ run_pooled_nca(
 \item{dat}{A data frame containing raw time–concentration data in the
 standard nlmixr2 format.}
 
-\item{route}{Administration route: "bolus", "oral", or "infusion".}
+\item{route}{Route of administration. Must be one of bolus, oral, or infusion.}
 
 \item{dose_type}{Classified as first_dose, repeated_doses, or combined_doses
 based on whether observed concentrations occur following the first
@@ -58,4 +58,7 @@ run_pooled_nca(
 }
 \seealso{
 \code{\link{get_pooled_data}}, \code{\link{bin.time}}, \code{\link{getnca}}
+}
+\author{
+Zhonghui Huang
 }

@@ -15,8 +15,7 @@ Fit_1cmpt_iv(
 )
 }
 \arguments{
-\item{data}{A data frame containing IV pharmacokinetic data formatted for nlmixr2,
-including columns such as \code{ID}, \code{TIME}, \code{DV}, and \code{EVID}.}
+\item{data}{A data frame of IV pharmacokinetic data formatted for nlmixr2.}
 
 \item{est.method}{Estimation method to use in nlmixr2. Must be one of:
 \code{"rxSolve"}, \code{"nls"}, \code{"nlm"}, \code{"nlminb"}, or \code{"focei"}.}
@@ -39,8 +38,8 @@ with a single column \code{cp} (predicted concentrations).
 Otherwise, returns a fitted model object produced by nlmixr2.
 }
 \description{
-Fits intravenous pharmacokinetic (IV PK) data to a one-compartment model with
-linear (first-order) elimination using the naive pooled data approach. Supports
+Fits intravenous (IV) pharmacokinetic data to a one-compartment model with
+first-order elimination using the naive pooled data approach. Supports
 multiple estimation methods provided by nlmixr2 and can optionally return
 only predicted concentrations to support efficient simulation workflows.
 }
@@ -77,4 +76,7 @@ Fit_1cmpt_iv(
  return.pred.only = TRUE
 )
 }
+}
+\author{
+Zhonghui Huang
 }

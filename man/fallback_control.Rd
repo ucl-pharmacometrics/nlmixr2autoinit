@@ -22,7 +22,7 @@ to ka = 1 if the estimated value is invalid.}
 "model" or "fixed_fraction".}
 
 \item{sigma_fallback_fraction}{Numeric value specifying the fallback fraction,
-for example 0.2 corresponds to 20 percent of the mean DV.}
+for example, 0.2 corresponds to 20 percent of the mean of observed concentrations.}
 }
 \value{
 A list of fallback control parameters.
@@ -31,7 +31,6 @@ A list of fallback control parameters.
 Control settings for fallback rules in parameter estimation
 }
 \examples{
-fallback_control(sigma_method_additive = "fixed_fraction",
-                 sigma_fallback_fraction = 0.25)
+fallback_control()
 
 }

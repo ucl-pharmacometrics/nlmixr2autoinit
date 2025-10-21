@@ -41,18 +41,23 @@ trimmed geometric mean using a 5 percent trimming level
 }
 }
 \description{
-Calculates the volume of distribution using an adaptive single-point approach
+Calculates the volume of distribution (Vd) using an adaptive single-point approach
 }
 \details{
-The function uses an early concentration point (based on time since dosing and half-life)
-to estimate Vd. For bolus:
+The function uses a concentration observed within the first 20\% of the elimination
+half-life after dosing as the early point for estimating the volume of distribution.
+
 \deqn{Vd = \frac{\text{Dose}}{C_0}}
 For infusion:
-\deqn{Vd = \frac{\text{Rate} \times \min(\text{TIME}, \text{durationobs})}{C}}
-where \code{C} is the observed concentration (\code{DV}).
+\deqn{Vd = \frac{\text{Rate} \times \min(\text{TIME}, \text{durationobs})}{C_0}}
+
+Here, \eqn{C_0} represents the early concentration observed within the first 20\%
+of the elimination half-life after dosing, which is used as an approximation of
+the initial concentration for estimating volume of distribution (Vd).
+\code{TIME} refers to time after dose; \code{durationobs} is the actual infusion duration.
 
 When half_life is not provided, it is estimated from pooled data using
-the functions get_pooled_data() and get_hf().
+the functions \code{get_pooled_data()} and \code{get_hf()}.
 }
 \examples{
 

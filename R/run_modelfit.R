@@ -21,6 +21,8 @@
 #' @return A list containing the fitted parameter estimates and prediction error
 #' metrics.
 #'
+#' @author Zhonghui Huang
+#'
 #' @examples
 #' \dontrun{
 #' run_npd_1cmpt_iv(dat = Bolus_1CPT, input.cl = 4, input.vd = 70)
@@ -116,6 +118,8 @@ run_npd_1cmpt_iv <- function(dat,
 #' starting point for nonlinear elimination.
 #'
 #' @return A list containing parameter estimates and prediction error metrics.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -233,6 +237,8 @@ run_npd_1cmpt_mm_iv <- function(dat,
 #' performance.
 #'
 #' @return A list containing parameter estimates and prediction error metrics.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -355,6 +361,8 @@ run_npd_2cmpt_iv <- function(dat,
 #'
 #' @return A list containing fitted parameter estimates and model prediction
 #' error metrics.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -481,6 +489,8 @@ run_npd_3cmpt_iv <- function(dat,
 #' @return A list containing the fitted parameter estimates and prediction error
 #' metrics.
 #'
+#' @author Zhonghui Huang
+#'
 #' @examples
 #' \dontrun{
 #' run_npd_1cmpt_oral(dat = Oral_1CPT, input.ka = 1, input.cl = 4, input.vd = 70)
@@ -592,6 +602,8 @@ run_npd_1cmpt_oral <- function(dat,
 #'
 #' @return A list containing the fitted parameter estimates and prediction error
 #' metrics.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -717,6 +729,8 @@ run_npd_1cmpt_mm_oral <- function(dat,
 #'
 #' @return A list containing the fitted parameter estimates and prediction error
 #' metrics.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
@@ -844,6 +858,8 @@ run_npd_2cmpt_oral <- function(dat,
 #' assess model performance.
 #'
 #' @return A list containing parameter estimates and prediction error metrics.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{

@@ -35,7 +35,7 @@ mean absolute percentage error, root mean square error, and relative root mean
 square error.
 }
 \description{
-Computes standard predictive error metrics by comparing simulated and observed
+Computes predictive error metrics by comparing simulated and observed
 concentration–time data using specified pharmacokinetic parameters and dosing route.
 }
 \details{
@@ -44,6 +44,7 @@ Internally selects the appropriate one-compartment model fitting function, using
 Predictive performance is quantified using the \code{metrics.()} function.
 }
 \examples{
+
 \dontrun{
 eval_perf_1cmpt(
   dat = Oral_1CPT,
@@ -54,6 +55,7 @@ eval_perf_1cmpt(
   route = "oral"
 )
 }
+
 }
 \seealso{
 \code{\link{Fit_1cmpt_oral}}, \code{\link{Fit_1cmpt_iv}}, \code{\link{metrics.}}

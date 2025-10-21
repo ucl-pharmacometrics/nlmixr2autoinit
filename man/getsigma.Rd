@@ -2,33 +2,51 @@
 % Please edit documentation in R/getsigma.R
 \name{getsigma}
 \alias{getsigma}
-\title{Compute overall residual variability (sigma) from grouped elimination phase analysis}
+\title{Compute overall residual variability from elimination phase}
 \usage{
 getsigma(df, nlastpoints = 3, sigma_trim = 0.05)
 }
 \arguments{
-\item{df}{The full PK dataset with required columns: \code{EVID}, \code{ID}, \code{TIME}, \code{DV}, \code{routeobs}, etc.}
+\item{df}{Full pharmacokinetic dataset containing at least the columns:
+EVID, ID, TIME, DV, and routeobs.}
 
-\item{nlastpoints}{Integer. Number of terminal points to include in regression.}
+\item{nlastpoints}{Number of terminal points used for elimination phase
+regression in each group (passed to getsigmas).}
 
-\item{sigma_trim}{Proportion of trimmed mean to calculate (default = 0.05).}
+\item{sigma_trim}{Trimming proportion used when calculating trimmed means
+of residual standard deviations. Default is 0.05.}
 }
 \value{
 A list containing:
-\describe{
-\item{summary}{Named list of trimmed mean residual SDs}
-\item{full}{Tibble with full results for each group}
+\itemize{
+\item summary: Named list with trimmed mean values of additive and
+proportional residual variability
+\item full: Data frame with residual estimates for each individual-dose group
 }
 }
 \description{
-This function applies \code{getsigmas()} to each individual-dose group after filtering
-to retain only observation records (EVID == 0), and returns trimmed mean estimates
-of residual additive and proportional variability.
+Applies \code{getsigmas} to each individual and dose group after filtering
+observation records (EVID == 0), and calculates trimmed mean estimates
+of additive and proportional residual variability.
+}
+\details{
+The function groups the dataset by subject and dose occasion, applies
+elimination-phase residual analysis using \code{getsigmas}, and summarizes the
+individual residual standard deviations by their trimmed means. This
+provides population-level estimates of additive and proportional residual
+unexplained variability (RUV).
 }
 \examples{
 \dontrun{
-dat<- Bolus_1CPT
-dat<-processData(dat)$dat
+dat <- Bolus_1CPT
+dat <- processData(dat)$dat
 getsigma(dat)
 }
+
+}
+\seealso{
+\link{getsigmas}
+}
+\author{
+Zhonghui Huang
 }

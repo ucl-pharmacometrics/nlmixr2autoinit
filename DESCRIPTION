@@ -1,11 +1,22 @@
+Type: Package
 Package: nlmixr2autoinit
-Title: Automatic Generation of Initial Estimates for Population Pharmacokinetic Modelling
-Version: 0.0.0.9000
-Authors@R: c(person("Zhonghui","Huang", role = c("aut", "cre"), email = "zhonghui.huang.20@ucl.ac.uk"),
+Title: Automatic Generation of Initial Estimates for Population Pharmacokinetic Modeling
+Version: 1.0.0
+Authors@R: c(person("Zhonghui","Huang", role = c("aut", "cre"), email = "huangzhonghui22@gmail.com"),
    person("Joseph", "Standing", role = "ctb", email = "j.standing@ucl.ac.uk"),
    person("Frank", "Kloprogge", role = "ctb", email = "f.kloprogge@ucl.ac.uk"),
    person("Matthew", "Fidler", role = "ctb", email = "matthew.fidler@gmail.com"))
-Description: This package provides various methods for calculating pharmacokinetic parameters, which can be used as initial estimates in population pharmacokinetic modelling. 
+Description: Provides automated methods for generating initial parameter estimates 
+    in population pharmacokinetic modeling. The pipeline integrates adaptive single-point 
+    methods, naive pooled graphic methods, non-compartmental analysis (NCA), and parameter 
+    sweeping across pharmacokinetic models. It estimates residual unexplained variability (RUV) 
+    using data-driven or fixed-fraction approaches and assigns pragmatic initial values for 
+    inter-individual variability (IIV). These strategies improve robustness and convergence 
+    in nlmixr2 workflows. Methodology described in Huang et al. (2025) 
+    <https://doi.org/10.21203/rs.3.rs-5806446/v1>.
+License: GPL (>= 3)
+URL: https://github.com/yourusername/nlmixr2autoinit
+BugReports: https://github.com/ucl-pharmacometrics/nlmixr2autoinit/issues
 Depends:
     R (>= 3.5.0),
     nlmixr2
@@ -21,7 +32,8 @@ Imports:
     progressr,
     tibble,
     vpc
-License: GPL-3
 Encoding: UTF-8
+Language: en-US
+NeedsCompilation: no
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

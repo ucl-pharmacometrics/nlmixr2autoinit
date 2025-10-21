@@ -65,3 +65,6 @@ run_graphcal(dat, route="infusion")
 \seealso{
 \code{\link{graphcal_iv}}, \code{\link{graphcal_oral}}, \code{\link{get_pooled_data}}
 }
+\author{
+Zhonghui Huang
+}

@@ -33,17 +33,19 @@ first-dose, repeated-dose, and combined dosing profiles.
 \description{
 Estimates the terminal half-life of a drug using pooled pharmacokinetic data.
 The method supports analysis based on first-dose, repeated-dose, or combined
-dosing profiles. Half-life is calculated using linear regression on the
-terminal phase of log-transformed concentration–time data.
+dosing profiles.
 }
 \details{
-The function estimates terminal half-life in the following steps:
-\enumerate{
+The function estimates terminal half-life using the following procedure:
+\itemize{
 \item Generate or use existing pooled pharmacokinetic data
 \item Identify the terminal phase using elimination slope estimation
-\item Calculate the elimination rate constant (lambdaz)
-\item Derive half-life as log(2) divided by lambdaz for each subset and
-return the median of all positive estimates
+\item Calculate the terminal elimination rate constant (lambda_z)
+\item Derive half-life using:
+}
+
+\deqn{
+  t_{1/2} = \frac{\log(2)}{\lambda_z}
 }
 }
 \examples{
@@ -56,4 +58,7 @@ get_hf(dat, dose_type = "combined_doses")
 }
 \seealso{
 \link{get_pooled_data}, \link{bin.time}, \link{find_best_lambdaz}
+}
+\author{
+Zhonghui Huang
 }

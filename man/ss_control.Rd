@@ -51,7 +51,7 @@ numerical deviations.}
 }
 \value{
 A named list containing the steady-state control parameters,
-typically passed as the ssctrl argument to is_ss().
+typically passed as the ssctrl argument to \code{is_ss()}.
 }
 \description{
 Constructs a list of control parameters used by is_ss() to determine

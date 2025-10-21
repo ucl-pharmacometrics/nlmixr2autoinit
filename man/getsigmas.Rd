@@ -2,52 +2,58 @@
 % Please edit documentation in R/getsigma.R
 \name{getsigmas}
 \alias{getsigmas}
-\title{Estimate individual-level residual error from elimination phase}
+\title{Estimate individual-level residual error from the elimination phase}
 \usage{
 getsigmas(group_df, nlastpoints = 3)
 }
 \arguments{
-\item{group_df}{A data frame for a single group (e.g., one subject/dose),
-containing columns \code{EVID}, \code{DV}, \code{TIME}, and \code{routeobs}.}
+\item{group_df}{A data frame for a single group (e.g., one subject or dose),
+containing columns: EVID (event ID), DV (observed concentration),
+TIME (time after dose), and routeobs (administration route).}
 
-\item{nlastpoints}{Integer. Number of terminal points to include in regression.}
+\item{nlastpoints}{Integer specifying the number of terminal data points used
+for regression.}
 }
 \value{
-A tibble with columns:
-\describe{
-\item{intercept}{Intercept of the regression line}
-\item{slope}{Slope of the regression line}
-\item{residual_sd_additive}{Standard deviation of additive residuals}
-\item{residual_sd_proportional}{Standard deviation of proportional residuals}
+A tibble with the following columns:
+\itemize{
+\item intercept: Intercept of the log-linear regression line
+\item slope: Estimate of the terminal elimination rate constant
+\item residual_sd_additive: Standard deviation of additive residuals
+\item residual_sd_proportional: Standard deviation of proportional residuals
 }
 }
 \description{
-Performs log-linear regression on the elimination phase of a
-single individual's (or one group’s) pharmacokinetic data to estimate additive
-and proportional residual standard deviations.
+Performs log-linear regression on the elimination phase of a single individual's
+or one group's pharmacokinetic concentration–time data to estimate additive and
+proportional residual standard deviations.
 }
 \details{
-The elimination phase is selected differently based on the \code{routeobs} value:
-\itemize{
-\item For \code{bolus} and \code{infusion}, it starts \emph{after} Tmax.
-\item For \code{oral}, it starts \emph{at} Tmax.
+Residuals are computed from individual-predicted concentrations (IPRED) and
+observed concentrations (DV) using the following definitions:
+\deqn{
+  \sigma_{add} = \sqrt{Var(C_{obs} - C_{pred})}
 }
 
-The function uses the last \code{nlastpoints} data points in the elimination phase.
-Residuals are calculated as:
-\itemize{
-\item Additive: \eqn{IPRED - DV}
-\item Proportional: \eqn{DV / IPRED - 1}
+\deqn{
+  \sigma_{prop} = \sqrt{Var\left(\frac{C_{obs}}{C_{pred}} - 1\right)}
 }
 
-Returns NA values if the data is insufficient or inconsistent.
+where \eqn{C_{obs}} is the observed concentration and \eqn{C_{pred}} is the
+model-predicted concentration obtained by back-transformation of the
+log-linear regression. The additive residual standard deviation
+(\eqn{\sigma_{add}}) and proportional residual standard deviation
+(\eqn{\sigma_{prop}}) are calculated per individual.
 }
 \examples{
 \dontrun{
-dat<- Bolus_1CPT
-dat<-processData(dat)$dat
-getsigmas(dat[dat$ID==1 & dat$dose_number==1 & dat$resetflag==1&dat$EVID==0,])
+dat <- Bolus_1CPT
+dat <- processData(dat)$dat
+getsigmas(dat[dat$ID == 1 & dat$dose_number == 1 & dat$resetflag == 1 &
+              dat$EVID == 0, ])
 }
 
-
+}
+\author{
+Zhonghui Huang
 }

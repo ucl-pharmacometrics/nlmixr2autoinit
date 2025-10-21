@@ -2,7 +2,7 @@
 % Please edit documentation in R/getnca.R
 \name{trapezoidal_linear}
 \alias{trapezoidal_linear}
-\title{Calculate area under the curve (AUC) or area under the moment curve (AUMC) using the linear trapezoidal rule}
+\title{Linear trapezoidal rule}
 \usage{
 trapezoidal_linear(x, y, moment = FALSE)
 }

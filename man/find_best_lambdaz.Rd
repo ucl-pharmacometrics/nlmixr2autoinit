@@ -44,7 +44,7 @@ A list containing:
 \item \code{lambdaz}: Estimated terminal elimination rate constant (\eqn{\lambda_z}), or NA if no valid fit
 \item \code{UsedPoints}: Number of data points used in the optimal fit
 \item \code{adj.r.squared}: Adjusted R-squared value (\eqn{R^2}) of the optimal regression
-\item \code{message}: Character vector containing diagnostic messages/warnings
+\item \code{message}: Character vector containing diagnostic messages or warnings
 }
 }
 \description{
@@ -75,12 +75,15 @@ The algorithm implements the following decision logic:
 # Basic usage
 time <- c(0.5, 1, 2, 4, 6, 8, 10)
 conc <- c(12, 8, 5, 3, 2, 1.5, 1)
-result <- find_best_lambdaz(time, conc)
+find_best_lambdaz(time, conc)
 
 # With infusion route specification
-result_infusion <- find_best_lambdaz(time, conc, route = "bolus",duration=1)
+find_best_lambdaz(time, conc, route = "bolus",duration=1)
 
 # Custom threshold settings
-result_custom <- find_best_lambdaz(time, conc, adj_r_squared_threshold = 0.8, tolerance = 0.001)
+find_best_lambdaz(time, conc, adj_r_squared_threshold = 0.8, tolerance = 0.001)
 
+}
+\author{
+Zhonghui Huang
 }

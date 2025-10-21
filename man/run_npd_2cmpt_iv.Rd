@@ -60,3 +60,6 @@ run_npd_2cmpt_iv(dat = Bolus_2CPT,
 \seealso{
 \code{\link{Fit_2cmpt_iv}}
 }
+\author{
+Zhonghui Huang
+}

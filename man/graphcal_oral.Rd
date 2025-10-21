@@ -25,7 +25,7 @@ constant (kel), terminal slope, extrapolated concentration (C0exp), apparent
 volume of distribution (Vd/F), and clearance (Cl/F).
 }
 \details{
-The terminal slope (lambda_z) is estimated using \code{force_find_lambdaz()}. The
+The terminal slope (lambdaz) is estimated using \code{force_find_lambdaz()}. The
 apparent volume of distribution and clearance are computed using the
 following relationships:
 \deqn{Vd/F = \frac{Dose \times ka}{C_0 \times (ka - kel)}}
@@ -40,4 +40,7 @@ graphcal_oral(dat, dose = 100, route = "oral")
 }
 \seealso{
 \code{\link{find_best_lambdaz}}
+}
+\author{
+Zhonghui Huang
 }

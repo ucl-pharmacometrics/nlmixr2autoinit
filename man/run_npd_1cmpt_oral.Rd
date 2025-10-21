@@ -52,3 +52,6 @@ run_npd_1cmpt_oral(dat = Oral_1CPT, input.ka = 1, input.cl = 4, input.vd = 70)
 \seealso{
 \code{\link{Fit_1cmpt_oral}}
 }
+\author{
+Zhonghui Huang
+}

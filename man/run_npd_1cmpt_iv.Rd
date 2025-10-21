@@ -49,3 +49,6 @@ run_npd_1cmpt_iv(dat = Bolus_1CPT, input.cl = 4, input.vd = 70)
 \seealso{
 \code{\link{Fit_1cmpt_iv}}
 }
+\author{
+Zhonghui Huang
+}

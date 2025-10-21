@@ -69,6 +69,8 @@
 #'
 #' @seealso \code{\link{run_single_point_base}}, \code{\link{run_single_point}}, \code{\link{run_ka_solution}}
 #'
+#' @author Zhonghui Huang
+#'
 #' @examples
 #' dat <- Bolus_1CPT
 #' out <- processData(dat)
@@ -268,6 +270,8 @@ run_single_point_extra <- function(dat = NULL,
 #'   in single-point logic.
 #'
 #' @return An object of class "single.point.lst" with results from the base and extended steps.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' # Example: Adaptive single-point PK analysis for bolus data

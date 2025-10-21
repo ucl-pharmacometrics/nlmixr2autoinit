@@ -25,47 +25,46 @@ hybrid_eval_perf_1cmpt(
 )
 }
 \arguments{
-\item{route}{Character; administration route, e.g., \code{"oral"} or \code{"iv"}.}
+\item{route}{Route of administration. Must be one of bolus, oral, or infusion.}
 
-\item{dat}{A data.frame containing PK data with columns such as \code{EVID} and \code{DV}.}
+\item{dat}{A data.frame containing PK data with columns such as EVID and DV.}
 
-\item{sp_out_ka}{Numeric; ka from simpcal.}
+\item{sp_out_ka}{Numeric; ka estimated from adaptive single-point methods.}
 
-\item{sp_out_cl}{Numeric; cl from simpcal.}
+\item{sp_out_cl}{Numeric; clearance estimated from adaptive single-point methods.}
 
-\item{sp_out_vd}{Numeric; vd from simpcal.}
+\item{sp_out_vd}{Numeric; volume of distribution estimated from adaptive single-point methods.}
 
-\item{graph_out_ka}{Numeric; ka from graph-based method.}
+\item{graph_out_ka}{Numeric; ka estimated from naive pooled graphic methods.}
 
-\item{graph_out_cl}{Numeric; cl from graph.}
+\item{graph_out_cl}{Numeric; clearance estimated from naive pooled graphic methods.}
 
-\item{graph_out_vd}{Numeric; vd from graph.}
+\item{graph_out_vd}{Numeric; volume of distribution estimated from naive pooled graphic methods.}
 
-\item{nca_fd_ka}{Numeric; ka from NCA FD.}
+\item{nca_fd_ka}{Numeric; ka estimated from naive pooled NCA using first-dose data.}
 
-\item{nca_fd_cl}{Numeric; cl from NCA FD.}
+\item{nca_fd_cl}{Numeric; clearance estimated from naive pooled NCA using first-dose data.}
 
-\item{nca_fd_vd}{Numeric; vd from NCA FD.}
+\item{nca_fd_vd}{Numeric; volume of distribution estimated from naive pooled NCA using first-dose data.}
 
-\item{nca_efd_ka}{Numeric; ka from NCA eFD.}
+\item{nca_efd_ka}{Numeric; ka estimated from naive pooled NCA using repeated-dose data.}
 
-\item{nca_efd_cl}{Numeric; cl from NCA eFD.}
+\item{nca_efd_cl}{Numeric; clearance estimated from naive pooled NCA using repeated-dose data.}
 
-\item{nca_efd_vd}{Numeric; vd from NCA eFD.}
+\item{nca_efd_vd}{Numeric; volume of distribution estimated from naive pooled NCA using repeated-dose data.}
 
-\item{nca_all_ka}{Numeric; ka from NCA All.}
+\item{nca_all_ka}{Numeric; ka estimated from naive pooled NCA using combined first- and repeated-dose data.}
 
-\item{nca_all_cl}{Numeric; cl from NCA All.}
+\item{nca_all_cl}{Numeric; clearance estimated from naive pooled NCA using combined first- and repeated-dose data.}
 
-\item{nca_all_vd}{Numeric; vd from NCA All.}
+\item{nca_all_vd}{Numeric; volume of distribution estimated from naive pooled NCA using combined first- and repeated-dose data.}
 }
 \value{
 A \code{data.frame} of unique parameter combinations with source labels and values.
 }
 \description{
-Constructs a grid of all combinations of \code{ka}, \code{cl}, and \code{vd} parameters from
+Constructs a grid of all combinations of ka, cl, and vd parameters from
 different sources (e.g., simpcal, graph, NCA methods), and removes combinations
-that are redundant based on relative tolerance. Only oral routes consider \code{ka_value}
+that are redundant based on relative tolerance. Only oral routes consider ka value
 for deduplication. Any parameter value set that includes NA is removed up front.
 }
-\keyword{internal#}

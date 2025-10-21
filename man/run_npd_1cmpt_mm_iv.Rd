@@ -67,3 +67,6 @@ run_npd_1cmpt_mm_iv(
 \seealso{
 \code{\link{Fit_1cmpt_mm_iv}}
 }
+\author{
+Zhonghui Huang
+}

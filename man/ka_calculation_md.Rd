@@ -40,7 +40,7 @@ the following equation:
 e^{-ka \cdot \tau}} \right)}
 
 ka is estimated using \code{uniroot()}, which solves for the root of the residual
-function (predicted Ct − observed Ct) within a bounded interval (ka > ke and ka <= 1000)
+function (predicted Ct - observed Ct) within a bounded interval (ka > ke and ka <= 1000)
 }
 \examples{
 # Example from Oral_1CPT dataset (ID = 1, 5th dose, t = 2 h)

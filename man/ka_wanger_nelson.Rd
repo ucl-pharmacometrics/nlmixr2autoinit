@@ -18,10 +18,12 @@ terminal elimination rate constant. If not provided, the function calls
 }
 \value{
 A list containing:
-\item{'ka'}{Estimated absorption rate constant.}
-\item{'dat_out_wanger_nelson'}{Input data frame augmented with calculated
-pharmacokinetic variables including cumulative AUC, fraction absorbed, and
-fraction remaining.}
+\itemize{
+\item ka: Estimated absorption rate constant
+\item dat_out_wanger_nelson: Input data frame augmented with calculated
+pharmacokinetic variables including cumulative AUC, fraction absorbed,
+and fraction remaining
+}
 }
 \description{
 Calculates absorption rate constant using the Wagner–Nelson method for

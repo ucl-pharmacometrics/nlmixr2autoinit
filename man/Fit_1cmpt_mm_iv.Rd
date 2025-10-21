@@ -2,7 +2,7 @@
 % Please edit documentation in R/npd_modelcodes.R
 \name{Fit_1cmpt_mm_iv}
 \alias{Fit_1cmpt_mm_iv}
-\title{Fit IV pharmacokinetic data to a one-compartment model with Michaelis-Menten elimination}
+\title{Fit intravenous pharmacokinetic data to a one-compartment model with Michaelis-Menten elimination}
 \usage{
 Fit_1cmpt_mm_iv(
   data,
@@ -41,7 +41,7 @@ with a single column \code{cp} (predicted concentrations).
 Otherwise, returns a fitted model object produced by nlmixr2.
 }
 \description{
-Fits intravenous pharmacokinetic (IV PK) data to a one-compartment model with
+Fits intravenous (IV) pharmacokinetic data to a one-compartment model with
 Michaelis-Menten (nonlinear) elimination using the naive pooled data approach.
 Supports multiple estimation methods available in nlmixr2, and optionally
 returns only predicted concentrations to reduce memory use in simulation workflows.
@@ -79,4 +79,7 @@ Fit_1cmpt_mm_iv(
   return.pred.only = TRUE
 )
 }
+}
+\author{
+Zhonghui Huang
 }
