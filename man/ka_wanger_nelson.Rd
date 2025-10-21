@@ -52,11 +52,19 @@ rate constant.
 }
 }
 \examples{
-# Extract data for the first subject and first dosing occasion
-dat <- Oral_1CPT[Oral_1CPT$ID == 1 & Oral_1CPT$SD == 1 &
-                 Oral_1CPT$EVID == 0, ]
-dat <- data.frame(TIME = dat$TIME, DV = dat$DV)
-ka_wanger_nelson(dat = dat)$ka
+# Simulated one-compartment oral absorption data
+Dose <- 100
+Fbio <- 1
+Vd   <- 70
+CL   <- 4
+ka   <- 1.2
+ke   <- CL / Vd
+t  <- seq(0.5, 8, by = 0.5)
+Ct <- (Fbio * Dose * ka) / (Vd * (ka - ke)) * (exp(-ke * t) - exp(-ka * t))
+
+dat <- data.frame(TIME = t, DV = Ct)
+
+ka_wanger_nelson(dat)
 }
 \references{
 Wagner JG and Nelson E (1963). Percent absorbed time plots derived from

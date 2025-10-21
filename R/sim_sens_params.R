@@ -1,67 +1,51 @@
-#' Parameter sweeping for a one-compartment nonlinear (Michaelis-Menten) model
+#' Parameter sweeping for a one-compartment Michaelis-Menten model
 #'
-#' Performs sensitivity analysis via parameter sweeping in a one-compartment pharmacokinetic model
-#' with Michaelis-Menten elimination. By systematically varying user-defined or automatically
-#' generated values for key pharmacokinetic parameters (e.g., Vmax, Km, Vd, and Ka), the function
-#' evaluates model sensitivity and fit across a defined grid of parameter combinations.
+#' Performs sensitivity analysis by varying pharmacokinetic parameters in a
+#' one-compartment model with Michaelis-Menten elimination.
 #'
-#' @param dat A data frame containing the pharmacokinetic dataset.
-#' @param sim_vmax A list for Vmax simulation. Default: \code{list(mode = "auto", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{`"manual"` or `"auto"`.}
-#'     \item{values}{Vector of candidate Vmax values if `"manual"`.}
-#'     \item{est.cl}{Estimated clearance, required if `"auto"`.}
-#'   }
-#' @param sim_km A list for Km simulation. Default: \code{list(mode = "auto", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{`"manual"` or `"auto"`.}
-#'     \item{values}{Vector of candidate Km values if `"manual"`.}
-#'   }
-#' @param sim_vd A list for volume of distribution simulation. Default: \code{list(mode = "manual", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{Must be `"manual"`.}
-#'     \item{values}{Vector of Vd values. Required.}
-#'   }
-#' @param sim_ka A list for absorption rate constant (Ka). Used only if \code{route = "oral"}. Default: \code{list(mode = "manual", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{Must be `"manual"`.}
-#'     \item{values}{Vector of Ka values. Required for oral.}
-#'   }
-#' @param route A character string indicating administration route. One of `"iv"` or `"oral"`. Default is `"iv"`.
+#' @param dat Pharmacokinetic dataset.
+#' @param sim_vmax List specifying Vmax:
+#'   - mode: "manual" or "auto"
+#'   - values: numeric vector if mode = "manual"
+#'   - est.cl: required if mode = "auto"
+#' @param sim_km List specifying Km:
+#'   - mode: "manual" or "auto"
+#'   - values: numeric vector if mode = "manual"
+#' @param sim_vd List specifying Vd:
+#'   - mode: must be "manual"
+#'   - values: numeric vector
+#' @param sim_ka List specifying Ka (oral route only):
+#'   - mode: must be "manual"
+#'   - values: numeric vector
+#' @param route Dosing route, either "iv" or "oral". Default is "iv".
 #'
-#' @return A data frame with simulated parameter combinations and evaluation metrics:
-#'   \describe{
-#'     \item{Vmax, Km, Vd, Ka}{The parameter values used.}
-#'     \item{APE, MAE, MAPE, RMSE, rRMSE}{Model fit evaluation metrics.}
-#'     \item{Cumulative.Time.Sec}{Total elapsed time (in seconds) for each simulation.}
-#'   }
+#'
+#' @details
+#' The function generates a parameter grid and performs model fitting for each
+#' combination using `fit_1cmpt_mm`. Parameters can be specified manually or
+#' automatically derived. Model predictions and fit metrics are computed for each
+#' simulation to assess parameter sensitivity.
+#'
+#' @return A data frame containing parameter combinations and model fit metrics.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
-#' # Example 1: IV route
+#' # Example: IV dosing scenario with automatic Vmax and Km
 #' out <- sim_sens_1cmpt_mm(
 #'   dat = Bolus_1CPTMM,
-#'   sim_vmax = list(mode = "auto",est.cl=4),
+#'   sim_vmax = list(mode = "auto", est.cl = 4),
 #'   sim_km   = list(mode = "auto"),
-#'   sim_vd   = list(mode = "manual", values = c(70)),
-#'   sim_ka   = list(mode = "manual", values = NA),  # NA for IV route
+#'   sim_vd   = list(mode = "manual", values = 70),
+#'   sim_ka   = list(mode = "manual", values = NA),
 #'   route = "iv"
 #' )
-#' head(out)
-#'
-#' # Example 2: Oral route
-#' #out <- sim_sens_1cmpt_mm(
-#' #  dat = Oral_1CPTMM,
-#' #  sim_vmax = list(mode = "auto",est.cl=1),
-#' #  sim_km   = list(mode = "auto"),
-#' #  sim_vd   = list(mode = "manual", values = c(48)),
-#' #  sim_ka   = list(mode = "manual", values = c(1)),  # 1 for oral route
-#' #  route = "oral"
-#' #)
-#' #head(out)
+#' head(out[out$rRMSE2==min(out$rRMSE2),])
 #' }
 #'
 #' @export
+
 sim_sens_1cmpt_mm <- function(dat,
                               sim_vmax = list(mode = "auto",
                                               values = NULL,
@@ -138,9 +122,9 @@ sim_sens_1cmpt_mm <- function(dat,
       stop("Auto mode for Vmax/Km requires `sim_vmax$est.cl`.",
            call. = FALSE)
     }
-    cl_values<- sim_vmax$est.cl
+    cl_values <- sim_vmax$est.cl
     # Deduplicate similar values if valus are close
-    cl_values <- stats::na.omit(cl_values)%>%
+    cl_values <- stats::na.omit(cl_values) %>%
       sort() %>%
       tibble::tibble(value = .) %>%
       dplyr::mutate(prev = dplyr::lag(value),
@@ -149,7 +133,7 @@ sim_sens_1cmpt_mm <- function(dat,
       dplyr::pull(value)
 
     # obtain the observed cmax
-    dat.obs <- dat[dat$EVID == 0,]
+    dat.obs <- dat[dat$EVID == 0, ]
     pop.cmax <- aggregate(dat.obs$DV,
                           list(dat.obs$ID),
                           FUN = max,
@@ -178,7 +162,7 @@ sim_sens_1cmpt_mm <- function(dat,
         }
       }
     }
-    param_grid <- param_grid[keep,]
+    param_grid <- param_grid[keep, ]
 
   } else {
     if (is.null(sim_vmax$values) || all(is.na(sim_vmax$values))) {
@@ -214,7 +198,7 @@ sim_sens_1cmpt_mm <- function(dat,
         p(sprintf("Running simulation: Vmax=%.2f, Km=%.2f", Vmax, Km))
         sim_out <- if (route == "iv") {
           Fit_1cmpt_mm_iv(
-            data = dat[dat$EVID != 2, ],
+            data = dat[dat$EVID != 2,],
             est.method = "rxSolve",
             input.vmax = Vmax,
             input.km = Km,
@@ -223,7 +207,7 @@ sim_sens_1cmpt_mm <- function(dat,
           )
         } else {
           Fit_1cmpt_mm_oral(
-            data = dat[dat$EVID != 2, ],
+            data = dat[dat$EVID != 2,],
             est.method = "rxSolve",
             input.ka = Ka,
             input.vmax = Vmax,
@@ -234,7 +218,7 @@ sim_sens_1cmpt_mm <- function(dat,
         }
 
         met <-
-          metrics.(pred.x = sim_out$cp, obs.y = dat[dat$EVID == 0, ]$DV)
+          metrics.(pred.x = sim_out$cp, obs.y = dat[dat$EVID == 0,]$DV)
         elapsed <-
           round(difftime(Sys.time(), start_time, units = "secs"), 2)
         rm(sim_out)
@@ -264,74 +248,50 @@ sim_sens_1cmpt_mm <- function(dat,
 
 #' Parameter sweeping for a two-compartment pharmacokinetic model
 #'
-#' Performs sensitivity analysis via parameter sweeping in a two-compartment pharmacokinetic model.
-#' By systematically varying user-defined or automatically generated values for key pharmacokinetic
-#' parameters (e.g., CL, Vc, Vp, Q, and Ka), the function evaluates model sensitivity and fit
-#' across a defined grid of parameter combinations.
-
-#' @param dat A data frame containing the pharmacokinetic dataset.
-#' @param sim_ka A list with Ka simulation settings (used only if `route = "oral"`). Default:
-#'   \code{list(mode = "manual", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{Must be `"manual"`; only used when `route = "oral"`.}
-#'     \item{values}{Vector of Ka values; required for oral.}
-#'   }
-#' @param sim_cl A list for clearance (CL) simulation. Default: \code{list(mode = "manual", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{Must be `"manual"`.}
-#'     \item{values}{Vector of candidate CL values. Required.}
-#'   }
-#' @param sim_vc A list for central compartment volume (Vc) simulation. Default: \code{list(mode = "manual", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{Must be `"manual"`.}
-#'     \item{values}{Vector of candidate Vc values. Required.}
-#'   }
-#' @param sim_vp A list for peripheral compartment volume (Vp) simulation. Default: \code{list(mode = c("auto", "manual"), values = NULL)}.
-#'   \describe{
-#'     \item{mode}{`"auto"` or `"manual"`.}
-#'     \item{values}{If `"manual"`, a vector of Vp values. If `"auto"`, generated based on Vc/ratio.}
-#'   }
-#' @param sim_q A list for inter-compartmental clearance (Q). Default:
-#'   \code{list(mode = c("auto", "manual"), values = NULL, auto.strategy = c("scaled", "fixed"))}.
-#'   \describe{
-#'     \item{mode}{`"auto"` or `"manual"`.}
-#'     \item{values}{Required if `"manual"`; a vector of Q values.}
-#'     \item{auto.strategy}{Only used if `"auto"`; either `"scaled"` (relative to CL) or `"fixed"` (fixed values).}
-#'   }
-#' @param route A character string indicating administration route. One of `"iv"` (intravenous) or `"oral"` (extravascular). Default is `"iv"`.
+#' Performs sensitivity analysis by varying pharmacokinetic parameters in a
+#' two-compartment model under IV or oral dosing. Model fit is evaluated across
+#' combinations of CL, Vc, Vp, Q, and Ka (oral only).
 #'
-#' @return A data frame with simulated parameter combinations and evaluation metrics:
-#'   \describe{
-#'     \item{Vc, Vp, Q, CL, Ka}{The parameter values used.}
-#'     \item{APE, MAE, MAPE, RMSE, rRMSE}{Model fit evaluation metrics.}
-#'     \item{Cumulative.Time.Sec}{Total elapsed time (in seconds) for each simulation.}
-#'   }
+#' @details
+#' The function generates a parameter grid and performs model fitting for each
+#' combination using `Fit_2cmpt_iv` or `Fit_2cmpt_oral`. Parameters can be
+#' specified manually or automatically derived. Model predictions and fit metrics
+#' are computed for each simulation to assess parameter sensitivity.
+#'
+#' @param dat Pharmacokinetic dataset.
+#' @param sim_ka List specifying Ka (oral route only):
+#'   - mode: must be "manual"
+#'   - values: numeric vector
+#' @param sim_cl List specifying clearance (CL):
+#'   - mode: must be "manual"
+#'   - values: numeric vector
+#' @param sim_vc List specifying central volume (Vc):
+#'   - mode: must be "manual"
+#'   - values: numeric vector
+#' @param sim_vp List specifying peripheral volume (Vp):
+#'   - mode: "manual" or "auto"
+#'   - values: numeric vector if manual
+#' @param sim_q List specifying inter-compartmental clearance (Q):
+#'   - mode: "manual" or "auto"
+#'   - values: numeric vector if manual
+#' @param route Dosing route, either "iv" or "oral". Default is "iv".
+#'
+#' @return A data frame containing parameter combinations with model fit metrics.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
-#' # Example 1: IV route
 #' out <- sim_sens_2cmpt(
-#'   dat = Bolus_1CPT,
-#'   sim_cl = list(mode = "manual", values = c(4)),
-#'   sim_vc = list(mode = "manual", values = c(50, 70)),
+#'   dat = Bolus_2CPT,
+#'   sim_cl = list(mode = "manual", values = 4),
+#'   sim_vc = list(mode = "manual", values = 50),
 #'   sim_vp = list(mode = "auto"),
-#'   sim_q  = list(mode = "auto", auto.strategy = "scaled"),
-#'   sim_ka = list(mode = "manual", values = NA),  # NA for IV route
+#'   sim_q  = list(mode = "auto"),
+#'   sim_ka = list(mode = "manual", values = NA),
 #'   route = "iv"
 #' )
-#' head(out)
-#'
-#' # Example 2: Oral route
-#' out <- sim_sens_2cmpt(
-#'   dat = Oral_2CPT,
-#'   sim_cl = list(mode = "manual", values = c(4)),
-#'   sim_vc = list(mode = "manual", values = c(70)),
-#'   sim_vp = list(mode = "manual", values = c(20, 30)),
-#'   sim_q  = list(mode = "manual", values = c(10)),
-#'   sim_ka = list(mode = "manual", values = c(0.5, 1, 2)),
-#'   route = "oral"
-#' )
-#' head(out)
+#' head(out[out$rRMSE2==min(out$rRMSE2),])
 #' }
 #'
 #' @export
@@ -565,84 +525,63 @@ sim_sens_2cmpt <- function(dat,
 
 #' Parameter sweeping for a three-compartment pharmacokinetic model
 #'
-#' Performs sensitivity analysis via parameter sweeping in a three-compartment pharmacokinetic model.
-#' This function systematically varies key pharmacokinetic parameters including central volume (Vc),
-#' peripheral volumes (Vp1, Vp2), intercompartmental clearances (Q1, Q2), systemic clearance (CL),
-#' and absorption rate constant (Ka, for oral route).
-#' The function supports both `"iv"` (intravenous) and `"oral"` administration routes.
+#' Performs sensitivity analysis by varying pharmacokinetic parameters in a
+#' three-compartment model under IV or oral dosing. Parameter combinations
+#' include Vc, Vp1, Vp2, Q1, Q2, CL, and Ka (oral only).
 #'
-#' @param dat A data frame containing the pharmacokinetic dataset.
-#' @param sim_vc A list for central compartment volume (Vc) simulation. Default: \code{list(mode = "manual", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{Must be `"manual"`.}
-#'     \item{values}{Vector of candidate Vc values. Required.}
-#'   }
-#' @param sim_vp A list for first peripheral compartment volume (Vp1) simulation. Default: \code{list(mode = c("auto", "manual"), values = NULL)}.
-#'   \describe{
-#'     \item{mode}{Either `"auto"` or `"manual"`.}
-#'     \item{values}{If `"manual"`, a vector of Vp1 values. If `"auto"`, values are computed from Vc and Vc/Vp1 ratios.}
-#'   }
-#' @param sim_vp2 A list for second peripheral compartment volume (Vp2) simulation. Same structure as \code{sim_vp}.
-#' @param sim_q A list for intercompartmental clearance between Vc and Vp1 (Q1). Default: \code{list(mode = c("auto", "manual"), values = NULL, auto.strategy = c("scaled", "fixed"))}.
-#'   \describe{
-#'     \item{mode}{Either `"auto"` or `"manual"`.}
-#'     \item{values}{If `"manual"`, a vector of Q1 values.}
-#'     \item{auto.strategy}{If `"auto"`, `"scaled"` (relative to CL) or `"fixed"` (fixed candidates).}
-#'   }
-#' @param sim_q2 A list for intercompartmental clearance between Vc and Vp2 (Q2). Same structure as \code{sim_q}.
-#' @param sim_cl A list for systemic clearance (CL). Default: \code{list(mode = "manual", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{Must be `"manual"`.}
-#'     \item{values}{Vector of candidate CL values. Required.}
-#'   }
-#' @param sim_ka A list with Ka simulation settings (used only when \code{route = "oral"}). Default: \code{list(mode = "manual", values = NULL)}.
-#'   \describe{
-#'     \item{mode}{Must be `"manual"`.}
-#'     \item{values}{Vector of Ka values; required for oral route.}
-#'   }
-#' @param route A character string indicating administration route. One of `"iv"` or `"oral"`. Default is `"iv"`.
+#' @details
+#' The function generates a parameter grid and evaluates each combination
+#' using `Fit_3cmpt_iv` or `Fit_3cmpt_oral`. Model predictions and fit metrics
+#' are calculated for each simulation to assess parameter influence and
+#' identify optimal regions of the parameter space. Parameters can be provided
+#' manually or derived automatically.
 #'
-#' @return A data frame with all simulated parameter combinations and associated model performance metrics:
-#'   \describe{
-#'     \item{Vc, Vp1, Vp2, Q1, Q2, CL, Ka}{Parameter values used in simulation.}
-#'     \item{APE, MAE, MAPE, RMSE, rRMSE}{Model fit metrics between predicted and observed data.}
-#'     \item{Cumulative.Time.Sec}{Time taken (in seconds) to complete each simulation.}
-#'   }
+#' @param dat Pharmacokinetic dataset.
+#' @param sim_vc List specifying Vc:
+#'   - mode: must be "manual"
+#'   - values: numeric vector
+#' @param sim_vp List specifying Vp1:
+#'   - mode: "manual" or "auto"
+#'   - values: numeric vector if manual
+#' @param sim_vp2 List specifying Vp2:
+#'   - mode: "manual" or "auto"
+#'   - values: numeric vector if manual
+#' @param sim_q List specifying Q1:
+#'   - mode: "manual" or "auto"
+#'   - values: numeric vector if manual
+#'   - auto.strategy: "scaled" or "fixed" when auto
+#' @param sim_q2 List specifying Q2:
+#'   - mode: "manual" or "auto"
+#'   - values: numeric vector if manual
+#'   - auto.strategy: "scaled" or "fixed" when auto
+#' @param sim_cl List specifying CL:
+#'   - mode: must be "manual"
+#'   - values: numeric vector
+#' @param sim_ka List specifying Ka (oral route only):
+#'   - mode: must be "manual"
+#'   - values: numeric vector
+#' @param route Dosing route, either "iv" or "oral". Default is "iv".
+#'
+#' @return A data frame containing parameter combinations with model fit metrics.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' \dontrun{
-#' # Example 1: IV route (no Ka required)
-#' dat <- Bolus_2CPT
 #' out <- sim_sens_3cmpt(
-#'   dat = dat,
-#'   sim_cl = list(mode = "manual", values = c(4)),
-#'   sim_vc = list(mode = "manual", values = c(50, 70)),
+#'   dat = Bolus_2CPT,
+#'   sim_cl = list(mode = "manual", values = 4),
+#'   sim_vc = list(mode = "manual", values = 50),
 #'   sim_vp = list(mode = "auto"),
 #'   sim_vp2 = list(mode = "auto"),
-#'   sim_q = list(mode = "auto", auto.strategy = "scaled"),
+#'   sim_q  = list(mode = "auto", auto.strategy = "scaled"),
 #'   sim_q2 = list(mode = "auto", auto.strategy = "scaled"),
 #'   route = "iv"
 #' )
-#' head(out)
-#'
-#' # Example 2: Oral route
-#' dat <- Oral_2CPT
-#' out <- sim_sens_3cmpt(
-#'   dat = dat,
-#'   sim_ka = list(mode = "manual", values = c(1)),
-#'   sim_cl = list(mode = "manual", values = c(4)),
-#'   sim_vc = list(mode = "manual", values = c(50, 70)),
-#'   sim_vp = list(mode = "auto"),
-#'   sim_vp2 = list(mode = "auto"),
-#'   sim_q = list(mode = "auto", auto.strategy = "scaled"),
-#'   sim_q2 = list(mode = "auto", auto.strategy = "scaled"),
-#'   route = "oral"
-#' )
-#' head(out)
+#' head(out[out$rRMSE2==min(out$rRMSE2),])
 #' }
 #'
 #' @export
-
 
 sim_sens_3cmpt <- function(dat,
                            sim_vc = list(mode = "manual", values = NULL),

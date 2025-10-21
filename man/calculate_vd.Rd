@@ -69,3 +69,6 @@ calculate_vd(dat = fdat, half_life = half_life,route=froute)$trimmed_mean_vd
 \seealso{
 \link{get_pooled_data}, \link{get_hf}, \link{trimmed_geom_mean}
 }
+\author{
+Zhonghui Huang
+}

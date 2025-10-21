@@ -15,14 +15,14 @@ A modified data frame with an added column named dose_number, indicating
 the sequential dose count within each subject and reset group.
 }
 \description{
-Marks each dosing event in the dataset with a sequential dose number,
-based on rows identified by EVID. Dose numbering is performed within
-groups defined by ID and resetflag, ensuring numbering restarts
-appropriately for each group.
+Assigns sequential dose numbers based on dosing events (EVID) within each subject.
 }
 \examples{
 mark_dose_number(Bolus_1CPT)
 mark_dose_number(Infusion_1CPT)
 mark_dose_number(Oral_1CPT)
 
+}
+\author{
+Zhonghui Huang
 }

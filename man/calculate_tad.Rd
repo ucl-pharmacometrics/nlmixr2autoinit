@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_tad.R
 \name{calculate_tad}
 \alias{calculate_tad}
-\title{Calculate time after dose (TAD) for pharmacokinetic data}
+\title{Calculate time after dose for pharmacokinetic data}
 \usage{
 calculate_tad(dat)
 }
@@ -23,19 +23,20 @@ recent dosing record, included only if route information is present
 }
 }
 \description{
-Computes time after dose (TAD) for pharmacokinetic observations. For
-observation records, dosing information from the most recent dose
-administration is propagated to calculate the time elapsed since that dose.
+Calculate time after dose (TAD) for pharmacokinetic observations.
 }
 \details{
 The procedure identifies dosing events based on the event identifier (EVID)
 and assigns each observation the attributes of the most recent prior dose.
-The time after dose is then calculated for observation rows. If dose_number
-is not present in the input, it is automatically created for each subject.
+The time after dose is then calculated for observation rows. If \code{dose_number}
+column is not present in the input, it is automatically created for each subject.
 }
 \examples{
 calculate_tad(Bolus_1CPT)
 calculate_tad(Infusion_1CPT)
 calculate_tad(Oral_1CPT)
 
+}
+\author{
+Zhonghui Huang
 }

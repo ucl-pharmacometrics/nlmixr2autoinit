@@ -77,3 +77,6 @@ calculate_cl(fdat, get_hf(fdat)$half_life_median)$trimmed_mean_cl
 \code{\link{pooled_control}}, \code{\link{is_ss}}, \code{\link{ss_control}},
 \code{\link{trimmed_geom_mean}}
 }
+\author{
+Zhonghui Huang
+}

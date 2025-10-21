@@ -46,11 +46,19 @@
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' # Extract data for the first subject and first dosing occasion
-#' dat <- Oral_1CPT[Oral_1CPT$ID == 1 & Oral_1CPT$SD == 1 &
-#'                  Oral_1CPT$EVID == 0, ]
-#' dat <- data.frame(TIME = dat$TIME, DV = dat$DV)
-#' ka_wanger_nelson(dat = dat)$ka
+#' # Simulated one-compartment oral absorption data
+#' Dose <- 100
+#' Fbio <- 1
+#' Vd   <- 70
+#' CL   <- 4
+#' ka   <- 1.2
+#' ke   <- CL / Vd
+#' t  <- seq(0.5, 8, by = 0.5)
+#' Ct <- (Fbio * Dose * ka) / (Vd * (ka - ke)) * (exp(-ke * t) - exp(-ka * t))
+#'
+#' dat <- data.frame(TIME = t, DV = Ct)
+#'
+#' ka_wanger_nelson(dat)
 #' @export
 
 ka_wanger_nelson <- function(dat,
@@ -141,7 +149,8 @@ ka_wanger_nelson <- function(dat,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' ka_calculation_sd(cl = 3.62, ke = 0.0556, t = 0.5, Ct = 310, Dose = 60000)
+#' # Example from Oral_1CPT dataset (ID = 1, 1st dose, t = 0.5 h)
+#' ka_calculation_sd(cl = 3.62, ke = 0.0556, t = 0.5, Ct = 310.6, Dose = 60000)
 #'
 #' @export
 

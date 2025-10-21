@@ -1,8 +1,6 @@
-#' Calculate time after dose (TAD) for pharmacokinetic data
+#' Calculate time after dose for pharmacokinetic data
 #'
-#' Computes time after dose (TAD) for pharmacokinetic observations. For
-#' observation records, dosing information from the most recent dose
-#' administration is propagated to calculate the time elapsed since that dose.
+#' Calculate time after dose (TAD) for pharmacokinetic observations.
 #'
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.
@@ -19,8 +17,10 @@
 #' @details
 #' The procedure identifies dosing events based on the event identifier (EVID)
 #' and assigns each observation the attributes of the most recent prior dose.
-#' The time after dose is then calculated for observation rows. If dose_number
-#' is not present in the input, it is automatically created for each subject.
+#' The time after dose is then calculated for observation rows. If `dose_number`
+#' column is not present in the input, it is automatically created for each subject.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' calculate_tad(Bolus_1CPT)
@@ -113,10 +113,7 @@ calculate_tad <- function(dat) {
 
 #' Mark dose number
 #'
-#' Marks each dosing event in the dataset with a sequential dose number,
-#' based on rows identified by EVID. Dose numbering is performed within
-#' groups defined by ID and resetflag, ensuring numbering restarts
-#' appropriately for each group.
+#' Assigns sequential dose numbers based on dosing events (EVID) within each subject.
 #'
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.
@@ -128,6 +125,8 @@ calculate_tad <- function(dat) {
 #' mark_dose_number(Bolus_1CPT)
 #' mark_dose_number(Infusion_1CPT)
 #' mark_dose_number(Oral_1CPT)
+#'
+#' @author Zhonghui Huang
 #'
 #' @export
 #'
@@ -144,6 +143,6 @@ mark_dose_number <- function(dat) {
                                                NA_integer_)) %>%
     dplyr::ungroup()
 
-  dat <- dat[with(dat, order(ID, resetflag, TIME, CMT, -AMT)),]
+  dat <- dat[with(dat, order(ID, resetflag, TIME, CMT,-AMT)), ]
   return(dat)
 }

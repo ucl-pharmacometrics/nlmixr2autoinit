@@ -51,6 +51,8 @@
 #'     geometric mean with a 5 percent trimming level to reduce the impact
 #'     of outliers
 #'
+#' @author Zhonghui Huang
+#'
 #' @examples
 #' fdat <- processData(Bolus_1CPT)$dat
 #' calculate_cl(fdat, get_hf(fdat)$half_life_median)$trimmed_mean_cl
@@ -275,12 +277,6 @@ calculate_cl <- function(dat,
 #' @param route Character string specifying the route of administration. Must be
 #'   one of bolus, oral, or infusion. Currently, oral is not implemented.
 #'
-#' @return
-#' A list with two elements:
-#'   - vd_df: individual volume of distribution estimates
-#'   - trimmed_mean_vd: population volume of distribution estimated as a
-#'     trimmed geometric mean using a 5 percent trimming level
-#'
 #' @details
 #' The function uses an early concentration point (based on time since dosing and half-life)
 #' to estimate Vd. For bolus:
@@ -292,8 +288,16 @@ calculate_cl <- function(dat,
 #' When half_life is not provided, it is estimated from pooled data using
 #' the functions get_pooled_data() and get_hf().
 #'
-#' @seealso \link{get_pooled_data}, \link{get_hf}, \link{trimmed_geom_mean}
+#' @return
+#' A list with two elements:
+#'   - vd_df: individual volume of distribution estimates
+#'   - trimmed_mean_vd: population volume of distribution estimated as a
+#'     trimmed geometric mean using a 5 percent trimming level
 
+#' @author Zhonghui Huang
+#'
+#' @seealso \link{get_pooled_data}, \link{get_hf}, \link{trimmed_geom_mean}
+#'
 #' @examples
 #'
 #' dat <- Bolus_1CPT

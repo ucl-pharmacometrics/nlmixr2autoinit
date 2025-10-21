@@ -2,7 +2,7 @@
 % Please edit documentation in R/sim_sens_params.R
 \name{sim_sens_1cmpt_mm}
 \alias{sim_sens_1cmpt_mm}
-\title{Parameter sweeping for a one-compartment nonlinear (Michaelis-Menten) model}
+\title{Parameter sweeping for a one-compartment Michaelis-Menten model}
 \usage{
 sim_sens_1cmpt_mm(
   dat,
@@ -14,72 +14,63 @@ sim_sens_1cmpt_mm(
 )
 }
 \arguments{
-\item{dat}{A data frame containing the pharmacokinetic dataset.}
+\item{dat}{Pharmacokinetic dataset.}
 
-\item{sim_vmax}{A list for Vmax simulation. Default: \code{list(mode = "auto", values = NULL)}.
-\describe{
-\item{mode}{\code{"manual"} or \code{"auto"}.}
-\item{values}{Vector of candidate Vmax values if \code{"manual"}.}
-\item{est.cl}{Estimated clearance, required if \code{"auto"}.}
+\item{sim_vmax}{List specifying Vmax:
+\itemize{
+\item mode: "manual" or "auto"
+\item values: numeric vector if mode = "manual"
+\item est.cl: required if mode = "auto"
 }}
 
-\item{sim_km}{A list for Km simulation. Default: \code{list(mode = "auto", values = NULL)}.
-\describe{
-\item{mode}{\code{"manual"} or \code{"auto"}.}
-\item{values}{Vector of candidate Km values if \code{"manual"}.}
+\item{sim_km}{List specifying Km:
+\itemize{
+\item mode: "manual" or "auto"
+\item values: numeric vector if mode = "manual"
 }}
 
-\item{sim_vd}{A list for volume of distribution simulation. Default: \code{list(mode = "manual", values = NULL)}.
-\describe{
-\item{mode}{Must be \code{"manual"}.}
-\item{values}{Vector of Vd values. Required.}
+\item{sim_vd}{List specifying Vd:
+\itemize{
+\item mode: must be "manual"
+\item values: numeric vector
 }}
 
-\item{sim_ka}{A list for absorption rate constant (Ka). Used only if \code{route = "oral"}. Default: \code{list(mode = "manual", values = NULL)}.
-\describe{
-\item{mode}{Must be \code{"manual"}.}
-\item{values}{Vector of Ka values. Required for oral.}
+\item{sim_ka}{List specifying Ka (oral route only):
+\itemize{
+\item mode: must be "manual"
+\item values: numeric vector
 }}
 
-\item{route}{A character string indicating administration route. One of \code{"iv"} or \code{"oral"}. Default is \code{"iv"}.}
+\item{route}{Dosing route, either "iv" or "oral". Default is "iv".}
 }
 \value{
-A data frame with simulated parameter combinations and evaluation metrics:
-\describe{
-\item{Vmax, Km, Vd, Ka}{The parameter values used.}
-\item{APE, MAE, MAPE, RMSE, rRMSE}{Model fit evaluation metrics.}
-\item{Cumulative.Time.Sec}{Total elapsed time (in seconds) for each simulation.}
-}
+A data frame containing parameter combinations and model fit metrics.
 }
 \description{
-Performs sensitivity analysis via parameter sweeping in a one-compartment pharmacokinetic model
-with Michaelis-Menten elimination. By systematically varying user-defined or automatically
-generated values for key pharmacokinetic parameters (e.g., Vmax, Km, Vd, and Ka), the function
-evaluates model sensitivity and fit across a defined grid of parameter combinations.
+Performs sensitivity analysis by varying pharmacokinetic parameters in a
+one-compartment model with Michaelis-Menten elimination.
+}
+\details{
+The function generates a parameter grid and performs model fitting for each
+combination using \code{fit_1cmpt_mm}. Parameters can be specified manually or
+automatically derived. Model predictions and fit metrics are computed for each
+simulation to assess parameter sensitivity.
 }
 \examples{
 \dontrun{
-# Example 1: IV route
+# Example: IV dosing scenario with automatic Vmax and Km
 out <- sim_sens_1cmpt_mm(
   dat = Bolus_1CPTMM,
-  sim_vmax = list(mode = "auto",est.cl=4),
+  sim_vmax = list(mode = "auto", est.cl = 4),
   sim_km   = list(mode = "auto"),
-  sim_vd   = list(mode = "manual", values = c(70)),
-  sim_ka   = list(mode = "manual", values = NA),  # NA for IV route
+  sim_vd   = list(mode = "manual", values = 70),
+  sim_ka   = list(mode = "manual", values = NA),
   route = "iv"
 )
-head(out)
-
-# Example 2: Oral route
-#out <- sim_sens_1cmpt_mm(
-#  dat = Oral_1CPTMM,
-#  sim_vmax = list(mode = "auto",est.cl=1),
-#  sim_km   = list(mode = "auto"),
-#  sim_vd   = list(mode = "manual", values = c(48)),
-#  sim_ka   = list(mode = "manual", values = c(1)),  # 1 for oral route
-#  route = "oral"
-#)
-#head(out)
+head(out[out$rRMSE2==min(out$rRMSE2),])
 }
 
+}
+\author{
+Zhonghui Huang
 }

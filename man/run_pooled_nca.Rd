@@ -2,10 +2,7 @@
 % Please edit documentation in R/run_pooled_nca.R
 \name{run_pooled_nca}
 \alias{run_pooled_nca}
-\title{Perform Non-Compartmental Analysis (NCA) on Pooled Pharmacokinetic Data
-Performs non-compartmental analysis (NCA) using pooled pharmacokinetic data
-for various dosing scenarios, including first dose, repeated doses, or a combined
-analysis of both.}
+\title{Perform non-compartmental analysis on pooled pharmacokinetic data}
 \usage{
 run_pooled_nca(
   dat,
@@ -42,10 +39,10 @@ If not supplied, the function will compute pooled data automatically.}
 \item{pooled_ctrl}{A list of control options created by \code{\link{pooled_control}}.
 Controls time binning and data preprocessing during pooled analysis.
 \describe{
-\item{\code{nbins}}{Number of bins to use when binning data.}
-\item{\code{bin_method}}{Method used for time binning. One of:
+\item{nbins}{Number of bins to use when binning data.}
+\item{bin_method}{Method used for time binning. One of:
 \code{"quantile"}, \code{"jenks"}, \code{"kmeans"}, \code{"pretty"}, \code{"sd"}, \code{"equal"}, or \code{"density"}.}
-\item{\code{tad_rounding}}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
+\item{tad_rounding}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
 are rounded to the nearest whole unit before comparing. This allows for
 small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
 }}
@@ -70,10 +67,8 @@ A named list containing:
 Any result not relevant to the \code{dose_type} will return \code{NA}.
 }
 \description{
-Perform Non-Compartmental Analysis (NCA) on Pooled Pharmacokinetic Data
-Performs non-compartmental analysis (NCA) using pooled pharmacokinetic data
-for various dosing scenarios, including first dose, repeated doses, or a combined
-analysis of both.
+Performs non-compartmental analysis (NCA) on pooled pharmacokinetic data
+under single-dose, multiple-dose, or combined dosing conditions.
 }
 \details{
 This function supports flexible NCA workflows where pooled data can either be computed

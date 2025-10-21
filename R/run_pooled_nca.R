@@ -1,8 +1,6 @@
-#' Control settings for non-compartmental analysis (NCA)
+#' Control options for non-compartmental analysis
 #'
-#' Defines control parameters used in non-compartmental pharmacokinetic analysis (NCA),
-#' including numerical integration method, duration, number of terminal points, and
-#' slope estimation strategy.
+#' Control options for non-compartmental analysis (NCA)
 #'
 #' @param trapezoidal.rule Character. Method for trapezoidal AUC integration:
 #' \itemize{
@@ -12,17 +10,21 @@
 #' @param duration Numeric. Optional. Duration of the observation window (same units as time).
 #' Used to restrict the integration or define the evaluation range.
 #' @param nlastpoints Integer. Number of terminal points for half-life regression (default = 3).
-#' @param slope.method Character. Method for estimating the terminal slope (\eqn{\lambda_z}):
+#' @param slope.method Character. Method for estimating the terminal slope (lambdaz):
 #' \itemize{
 #'   \item \code{"bestfitforce"} - Force estimation using decreasing number of terminal points if best-fit fails (default)
 #'   \item \code{"bestfit"} - Use automated best-fit selection based on adjusted R-squared
 #' }
 #'
 #' @return A list with NCA control parameters.
-#' @export
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' nca_control()
+#' @export
+#'
+
 nca_control <-
   function(trapezoidal.rule = c("linear_up_log_down", "linear"),
            duration=NULL,
@@ -34,10 +36,10 @@ nca_control <-
          slope.method=slope.method)
   }
 
-#' Perform Non-Compartmental Analysis (NCA) on Pooled Pharmacokinetic Data
-#' Performs non-compartmental analysis (NCA) using pooled pharmacokinetic data
-#' for various dosing scenarios, including first dose, repeated doses, or a combined
-#' analysis of both.
+#' Perform non-compartmental analysis on pooled pharmacokinetic data
+#'
+#' Performs non-compartmental analysis (NCA) on pooled pharmacokinetic data
+#' under single-dose, multiple-dose, or combined dosing conditions.
 #'
 #' @param dat A data frame containing pharmacokinetic data. Required columns depend on
 #'            the specified \code{dose_type} (see Details).
@@ -63,10 +65,10 @@ nca_control <-
 #' @param pooled_ctrl A list of control options created by \code{\link{pooled_control}}.
 #'   Controls time binning and data preprocessing during pooled analysis.
 #'   \describe{
-#'     \item{`nbins`}{Number of bins to use when binning data.}
-#'     \item{`bin_method`}{Method used for time binning. One of:
+#'     \item{nbins}{Number of bins to use when binning data.}
+#'     \item{bin_method}{Method used for time binning. One of:
 #'       `"quantile"`, `"jenks"`, `"kmeans"`, `"pretty"`, `"sd"`, `"equal"`, or `"density"`.}
-#'     \item{`tad_rounding`}{Logical. If TRUE (default), both `tad` and the most common dosing interval
+#'     \item{tad_rounding}{Logical. If TRUE (default), both `tad` and the most common dosing interval
 #'                           are rounded to the nearest whole unit before comparing. This allows for
 #'                           small deviations (e.g., a `tad` of 24.3 is treated as within a 24-unit interval).}
 #'   }

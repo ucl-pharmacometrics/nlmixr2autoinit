@@ -18,8 +18,8 @@ approx.vc(
 \item{dat}{A data frame containing pharmacokinetic data, including observed
 concentrations (DV), time after dose (tad), dose, and route information.}
 
-\item{half_life}{The elimination half-life (\eqn{t_{1/2}}) of the compound,
-used to identify early-phase \eqn{C_{\mathrm{max}}} values.}
+\item{half_life}{The elimination half-life (t1/2) of the compound,
+used to identify early-phase Cmax values.}
 
 \item{single_point_base.lst}{Optional list object returned by
 \link{run_single_point_base}(). If not supplied, the function will generate it internally.}
@@ -40,40 +40,38 @@ defining steady-state control options.}
 A list containing individual and population Vd estimates and related dose-level data.
 }
 \description{
-Estimates the volume of distribution (\eqn{V_d}) from observed peak
-concentrations (\eqn{C_{\mathrm{max}}}) in single-dose, multiple-dose, or mixed datasets.
+Estimates the volume of distribution (Vd) from observed peak
+concentrations (Cmax) in single-dose, multiple-dose, or mixed datasets.
 }
 \details{
-Estimates individual apparent volumes of distribution (\eqn{V_d})
-from observed peak concentrations (\eqn{C_{\mathrm{max}}}).
+Estimates individual apparent volumes of distribution from observed peak concentrations.
 Individual estimates are then summarized to obtain a population-level value.
 
-For single-dose data, \eqn{V_d} is calculated according to the route of administration:
+For single-dose data, Vd is calculated according to the route of administration:
 \itemize{
 \item Bolus: \eqn{V_d = \mathrm{Dose} / C_{\mathrm{max}}}
 \item Infusion: \eqn{V_d = (\mathrm{Rate} \times t_{\mathrm{inf}}) / C_{\mathrm{max}}}
 \item Oral: \eqn{V_d = (\mathrm{Dose} \times F) / C_{\mathrm{max}}}, where \eqn{F = 1 - e^{-k_a t}}
 }
 
-For multiple-dose data, observed \eqn{C_{\mathrm{max}}} values are adjusted to
+For multiple-dose data, observed Cmax values are adjusted to
 single-dose equivalents using the accumulation ratio:
 \deqn{R_{\mathrm{ac}} = \frac{1}{1 - e^{-k_e \tau}}, \quad k_e = \ln(2)/t_{1/2}}
-
-Adjusted values are used to estimate \eqn{V_d} using the same route-specific equations.
-
-The function returns separate subsets for single- and multiple-dose data
-(\code{approx.vc.dat.sd} and \code{approx.vc.dat.md}), their combined dataset (\code{approx.vc.dat}),
-and the final summary statistic (\code{approx.vc.value}).
+Adjusted values are used to estimate Vd using the same route-specific equations.
 }
 \examples{
+# Process dataset
 out <- processData(Bolus_1CPT)
-approx.vc(
-  dat = out$dat,
-  half_life = get_hf(dat = out$dat)$half_life_median,
-  route = out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-)$approx.vc.value
+# Get half-life and dose route
+hf <- get_hf(dat = out$dat)$half_life_median
+rt <- out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
+# Estimate Vd
+approx.vc(dat = out$dat, half_life = hf, route = rt)$approx.vc.value
 }
 \seealso{
 \code{\link{run_single_point_base}}, \code{\link{trimmed_geom_mean}},
 \code{\link{pooled_control}}, \code{\link{ss_control}}
+}
+\author{
+Zhonghui Huang
 }

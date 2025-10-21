@@ -42,7 +42,8 @@ ka is estimated using \code{uniroot()}, which solves for the root of the residua
 function (predicted Ct − observed Ct) within a bounded interval (ka > ke and ka <= 1000)
 }
 \examples{
-ka_calculation_sd(cl = 3.62, ke = 0.0556, t = 0.5, Ct = 310, Dose = 60000)
+# Example from Oral_1CPT dataset (ID = 1, 1st dose, t = 0.5 h)
+ka_calculation_sd(cl = 3.62, ke = 0.0556, t = 0.5, Ct = 310.6, Dose = 60000)
 
 }
 \author{

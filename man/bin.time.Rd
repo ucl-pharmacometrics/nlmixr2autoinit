@@ -14,19 +14,15 @@ bin.time(
 \item{dat}{A data frame containing PK data. Must include:
 \itemize{
 \item tad: time after dose
-\item DVstd: standardized concentration (e.g., DV/dose)
+\item DVstd: standardized concentration (DV/dose)
 \item EVID: optional event ID column used to filter observations (EVID == 0)
 }}
 
-\item{nbins}{Number of bins or "auto".
-If a numeric value is provided (e.g., 8) and bin.method = "quantile",
-that number of equal-frequency bins is used.
-When "auto" is specified:
-for bin.method = "quantile", 10 bins (deciles) are used;
-for other methods, bin count selection is delegated to
-vpc::auto_bin (type = bin.method, n_bins = "auto").
-If a numeric nbins is supplied with non-quantile methods,
-it is passed to vpc::auto_bin as the target number of bins.}
+\item{nbins}{Number of bins or "auto". If numeric with
+\code{bin.method = "quantile"}, specifies equal-frequency bins. If "auto",
+10 bins are used for quantile; otherwise binning is determined by
+\code{vpc::auto_bin}. Numeric nbins for non-quantile methods is passed to
+\code{vpc::auto_bin}.}
 
 \item{bin.method}{Binning strategy (default = "quantile").
 Available options are:
@@ -38,18 +34,11 @@ methods from vpc::auto_bin
 }}
 }
 \value{
-A list containing:
-\describe{
-\item{binned.df}{Data frame of median time and concentration per bin}
-\item{bin_limits.df}{Data frame with upper time boundary for each bin}
-\item{breaks}{Breakpoints used to define time bins}
-\item{method_used}{Binning method used}
-\item{nbins_final}{Final number of bins (length of breaks - 1)}
-}
+A list containing summary results of the time-concentration binning process.
 }
 \description{
-Bins data by time, using either equal-frequency (quantile)
-binning or algorithmic methods implemented in \link[vpc:auto_bin]{vpc::auto_bin}.
+Bins data by time using either equal-frequency (quantile) binning
+or algorithmic binning methods.
 }
 \details{
 Supports quantile-based binning and other data-driven methods
@@ -66,4 +55,7 @@ bin.time(dat)
 }
 \seealso{
 \code{\link[vpc:auto_bin]{vpc::auto_bin}}
+}
+\author{
+Zhonghui Huang
 }

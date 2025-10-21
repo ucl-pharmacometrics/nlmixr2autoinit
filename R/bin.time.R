@@ -1,22 +1,18 @@
 #' Bin time-concentration data using quantile or algorithmic binning
 #'
-#' Bins data by time, using either equal-frequency (quantile)
-#' binning or algorithmic methods implemented in \link[vpc:auto_bin]{vpc::auto_bin}.
+#' Bins data by time using either equal-frequency (quantile) binning
+#' or algorithmic binning methods.
 #'
 #' @param dat A data frame containing PK data. Must include:
 #'   - tad: time after dose
-#'   - DVstd: standardized concentration (e.g., DV/dose)
+#'   - DVstd: standardized concentration (DV/dose)
 #'   - EVID: optional event ID column used to filter observations (EVID == 0)
 #'
-#' @param nbins Number of bins or "auto".
-#'   If a numeric value is provided (e.g., 8) and bin.method = "quantile",
-#'   that number of equal-frequency bins is used.
-#'   When "auto" is specified:
-#'   for bin.method = "quantile", 10 bins (deciles) are used;
-#'   for other methods, bin count selection is delegated to
-#'   vpc::auto_bin (type = bin.method, n_bins = "auto").
-#'   If a numeric nbins is supplied with non-quantile methods,
-#'   it is passed to vpc::auto_bin as the target number of bins.
+#' @param nbins Number of bins or "auto". If numeric with
+#'   `bin.method = "quantile"`, specifies equal-frequency bins. If "auto",
+#'   10 bins are used for quantile; otherwise binning is determined by
+#'   `vpc::auto_bin`. Numeric nbins for non-quantile methods is passed to
+#'   `vpc::auto_bin`.
 #'
 #' @param bin.method Binning strategy (default = "quantile").
 #'   Available options are:
@@ -25,22 +21,17 @@
 #'   - kmeans, pretty, sd, equal, density: alternative binning
 #'     methods from vpc::auto_bin
 #'
-#' @return A list containing:
-#' \describe{
-#'   \item{binned.df}{Data frame of median time and concentration per bin}
-#'   \item{bin_limits.df}{Data frame with upper time boundary for each bin}
-#'   \item{breaks}{Breakpoints used to define time bins}
-#'   \item{method_used}{Binning method used}
-#'   \item{nbins_final}{Final number of bins (length of breaks - 1)}
-#' }
-#'
 #' @details
 #' Supports quantile-based binning and other data-driven methods
 #' (jenks, kmeans, pretty, sd, equal, density), with optional automatic
 #' bin count selection.
 #'
+#' @return A list containing summary results of the time-concentration binning process.
+#'
 #' @seealso
 #' \code{\link[vpc:auto_bin]{vpc::auto_bin}}
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
 #' dat <- Bolus_1CPT
