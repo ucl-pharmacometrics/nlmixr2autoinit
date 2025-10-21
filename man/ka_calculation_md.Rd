@@ -24,31 +24,29 @@ ka_calculation_md(cl, ke, t, Ct, Fbio = 1, Dose, tau)
 \value{
 A list containing the following components:
 \item{ka}{The calculated absorption rate constant.}
-\item{full_solution}{The full solution object returned by the \code{uniroot()} function, which includes additional details about the root-finding process.}
+\item{full_solution}{The full solution object returned by the \code{uniroot()}
+function, which includes additional details about the root-finding process.}
 }
 \description{
-Estimates the absorption rate constant (\code{ka}) for a drug administered orally
-in a multiple-dose regimen using a one-compartment model with first-order absorption
-and elimination kinetics. The calculation is based on known values of clearance (\code{cl}),
-elimination rate constant (\code{ke}), time since last dose (\code{t}), observed concentration
-(\code{Ct}), bioavailability (\code{Fbio}), dose (\code{Dose}), dosing interval (\code{tau}),
-and the number of doses administered (\code{n}).
+This estimates the absorption rate constant in a multiple-dose oral model using
+first-order pharmacokinetics.
 }
 \details{
-This function uses a multiple-dose one-compartment model with first-order absorption and
-elimination to estimate the absorption rate constant (\code{ka}). The function solves the
-following equation for \code{ka} numerically using \code{uniroot()}:
+The value of ka is obtained numerically using the uniroot unction by solving
+the following equation:
 
-\deqn{Ct = \frac{Fbio \cdot Dose \cdot ka}{Vd \cdot (ka - ke)} \left( \frac{e^{-ke \cdot t}}{1 - e^{-ke \cdot \tau}} - \frac{e^{-ka \cdot t}}{1 - e^{-ka \cdot \tau}} \right)}
+\deqn{Ct = \frac{Fbio \cdot Dose \cdot ka}{Vd \cdot (ka - ke)} \left(
+\frac{e^{-ke \cdot t}}{1 - e^{-ke \cdot \tau}} - \frac{e^{-ka \cdot t}}{1 -
+e^{-ka \cdot \tau}} \right)}
 
-The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
-between the predicted and observed concentrations equal to zero. The reasonable range for
-\code{ka} is set as \code{[0.01, 1000]} for root-finding.
+ka is estimated using \code{uniroot()}, which solves for the root of the residual
+function (predicted Ct − observed Ct) within a bounded interval (ka > ke and ka <= 1000)
 }
 \examples{
-# Example usage:
-ka_result <- ka_calculation_md(cl = 4, ke = 0.057, t = 2, Ct = 852, Dose = 60000, tau = 24)
-ka_result <- ka_calculation_md(cl = 4, ke = 0.057, t = 2, Ct = 189.6, Dose = 10000, tau = 24)
-print(ka_result$ka)
+# Example from Oral_1CPT dataset (ID = 1, 5th dose, t = 2 h)
+ka_calculation_md(cl = 4, ke = 0.057, t = 2, Ct = 852, Dose = 60000, tau = 24)
 
+}
+\author{
+Zhonghui Huang
 }

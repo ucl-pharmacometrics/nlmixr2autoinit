@@ -2,36 +2,61 @@
 % Please edit documentation in R/extra_ka.R
 \name{run_ka_solution}
 \alias{run_ka_solution}
-\title{Calculate absorption rate constant (ka) for oral administration Data}
+\title{Estimate the absorption rate constant using pointwise methods}
 \usage{
 run_ka_solution(df, cl, ke, Fbio = 1)
 }
 \arguments{
-\item{df}{A data frame containing pharmacokinetic data with columns: \code{ID} (subject identifier), \code{TIME} (time point), \code{DV} (drug concentration), and \code{DOSE} (dose amount). The data frame is typically filtered to include data only from the first dosing interval (e.g., single dose and evid = 0).}
+\item{cl}{A numeric value for drug clearance. It is assumed constant across subjects unless pre-specified per subject.}
 
-\item{cl}{A numeric value representing the clearance (CL) of the drug.}
+\item{ke}{A numeric value for the elimination rate constant. This is assumed known or estimated from the terminal phase.}
 
-\item{ke}{A numeric value representing the elimination rate constant (ke).}
+\item{Fbio}{A numeric value for bioavailability (F). Default is 1.}
 
-\item{Fbio}{A numeric value representing the fraction of the drug absorbed (bioavailability, F).}
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
 }
 \value{
-A list containing:
-\item{ka_calc_median}{The median ka value across all individuals.}
-\item{data_before_tmax}{The original data frame filtered for times before Tmax, with an added \code{ka_calc} column for individual ka values.}
+A list with the following elements:
+\describe{
+\item{ka_calc_median}{Median ka value across all valid observations.}
+\item{ka_calc_dat_sd}{Data frame containing absorption-phase single-dose data, with estimated ka and diagnostic messages.}
+\item{ka_calc_dat_md}{Data frame containing absorption-phase steady-state multiple-dose data, with ka estimates.}
+\item{ka_calc_dat}{Combined data frame (single-dose and multiple-dose) containing all ka estimates.}
+}
 }
 \description{
-Calculate the absorption rate constant (ka) using sampling points from the absorption phase (t<Tmax). The single-point method is applied, with each plasma concentration point used to calculate a corresponding ka value
+It implements pointwise estimation of absorption rate constants for single-dose
+and multiple-dose pharmacokinetic models.
 }
 \details{
-The function first calculates the time to maximum concentration (Tmax) for each individual in the dataset. It then filters the data to include only the time points up to Tmax for each individual. The absorption rate constant (ka) is calculated for each time point using the \code{ka_calculation} function.
+For each subject, the time of maximum observed concentration (Tmax) is identified as the time corresponding to the highest DV.
+Only records with TIME less than or equal to Tmax are retained, representing the absorption phase.
+
+Two scenario-specific calculations are implemented: single-dose and multiple-dose at steady state.
+\itemize{
+\item For single-dose data (dose_number == 1 and SteadyState == FALSE), the function uses \code{ka_calculation_sd()},
+which applies a one-compartment oral absorption model under first-order absorption and elimination.
+\item For steady-state multiple-dose data (dose_number > 1 and SteadyState == TRUE), the function uses \code{ka_calculation_md()},
+which accounts for accumulation using the dosing interval (dose_interval).
+}
+
+This function does not perform model fitting. The median is recommended for use in pharmacokinetic modeling.
 }
 \examples{
-# Example usage:
- df<-Oral_1CPT[Oral_1CPT$SD==1,]
- df<-processData(df)$dat
- result <- run_ka_solution(df = df, cl = 4, ke = 4/70, Fbio = 1)
- ka_median <- result[[1]]
- data_with_ka <- result[[2]]
+# Single-dose
+df <- Oral_1CPT[Oral_1CPT$SD == 1, ]
+df <- processData(df)$dat
+df <- is_ss(df)
+run_ka_solution(df = df, cl = 4, ke = 4/70, Fbio = 1)$ka_calc_median
 
+# Mixed doses
+dat <- Oral_1CPT
+df_ss <- processData(dat)$dat
+df_ss <- is_ss(df_ss)
+run_ka_solution(df = df_ss, cl = 4, ke = 4/70, Fbio = 1)$ka_calc_median
+
+}
+\author{
+Zhonghui Huang
 }

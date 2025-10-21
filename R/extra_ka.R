@@ -1,156 +1,169 @@
-#' Calculate the Absorption Rate Constant (ka) using the Wanger-Nelson Method
+#' Calculate the absorption rate constant using the Wagner-Nelson method
 #'
-#' Computes the absorption rate constant (ka) using the Wanger-Nelson method.
-#' The function makes use of non-compartmental analysis (NCA) function part to calculate the area under the curve (AUC) and the elimination rate constant (ke).
-#' Linear regression on the logarithm of the remaining fraction of drug is used to estimate the absorption rate constant (ka).
+#' Calculates absorption rate constant using the Wagner–Nelson method for
+#' single-dose extravascular pharmacokinetics.
 #'
-#' @param dat A data frame with at least two columns: `DV` (drug concentration)
-#' and `TIME` (time points of measurement).
+#' @param dat A data frame containing two columns: 'TIME' for sampling time
+#'   points and 'DV' for observed plasma drug concentrations.
 #'
-#' @param nca.out (Optional) An object containing results from a prior NCA
-#' computation (e.g., output from \code{getnca()}). If not provided, the function
-#' internally calls \code{getnca()} to estimate AUC and the elimination rate
-#' constant (\code{ke}). Providing \code{nca.out} can save computation time when
-#' NCA results are already available.
+#' @param nca.out Optional object containing results from a previous
+#'   noncompartmental analysis. It must include 'auc0_inf' for the area under
+#'   the concentration-time curve extrapolated to infinity and 'lambdaz' for the
+#'   terminal elimination rate constant. If not provided, the function calls
+#'   'getnca' internally using the input data.
 #'
 #' @details
-#' The function calculates the absorption rate constant (ka) as follows:
-#' \itemize{
-#'   \item The function uses the `nca.iv.normalised` method to calculate the area under the curve (AUC) and elimination rate constant (ke).
-#'   \item AUC is calculated using trapezoidal integration for the observed data points.
-#'   \item The fraction of drug absorbed is calculated based on ke and the cumulative AUC.
-#'   \item The logarithm of the remaining fraction of the drug is then modeled using linear regression to determine the absorption rate constant (ka).
-#' }
+#' The Wagner-Nelson method estimates the fraction of drug absorbed over time
+#' based on the principle of mass balance, where the unabsorbed fraction is
+#' quantified as the proportion of the administered dose that has not yet
+#' entered systemic circulation. A linear regression is applied to the natural
+#' logarithm of the unabsorbed fraction versus time, and the negative slope of
+#' this regression corresponds to the first-order absorption rate constant 'ka'.
 #'
-#' This method assumes that the drug absorption follows first-order kinetics.
+#' Key assumptions:
+#' * Single-dose oral or extravascular administration
+#' * First-order absorption and first-order elimination
+#' * Linear pharmacokinetics with 'ka' greater than 'ke'
 #'
-#' @return A numeric value representing the estimated absorption rate constant (ka).
+#' Computational steps:
+#' - AUC is calculated using trapezoidal integration.
+#' - The fraction absorbed is calculated from AUC and the terminal elimination
+#'   rate constant.
+#' - The remaining fraction is transformed using the natural logarithm.
+#' - Linear regression of log(remaining fraction) against time yields 'ka'.
+#'
+#' @return A list containing:
+#' \item{'ka'}{Estimated absorption rate constant.}
+#' \item{'dat_out_wanger_nelson'}{Input data frame augmented with calculated
+#' pharmacokinetic variables including cumulative AUC, fraction absorbed, and
+#' fraction remaining.}
+#'
+#' @references
+#' Wagner JG and Nelson E (1963). Percent absorbed time plots derived from
+#' blood level and/or urinary excretion data. Journal of Pharmaceutical
+#' Sciences, 52(6), 610-611.
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
-#'
-#' # Calculate ka for the first subject from Oral_1CPT
-#' dat<-Oral_1CPT[Oral_1CPT$ID==1 &Oral_1CPT$SD==1&Oral_1CPT$EVID==0,]
-#' dat<-data.frame(TIME=dat$TIME,DV=dat$DV)
-#' ka_wanger_nelson(dat=dat)$ka
-#'
+#' # Extract data for the first subject and first dosing occasion
+#' dat <- Oral_1CPT[Oral_1CPT$ID == 1 & Oral_1CPT$SD == 1 &
+#'                  Oral_1CPT$EVID == 0, ]
+#' dat <- data.frame(TIME = dat$TIME, DV = dat$DV)
+#' ka_wanger_nelson(dat = dat)$ka
 #' @export
-#'
-ka_wanger_nelson<-function(dat,
-                           nca.out=NULL){
 
-  colnames(dat)[1]<-"TIME"
-  colnames(dat)[2]<-"DV"
-  x<-dat$TIME
-  y<-dat$DV
+ka_wanger_nelson <- function(dat,
+                             nca.out = NULL) {
+  colnames(dat)[1] <- "TIME"
+  colnames(dat)[2] <- "DV"
+  x <- dat$TIME
+  y <- dat$DV
 
   if (missing(nca.out)) {
-    nca.out <- getnca(x = dat$TIME, y = dat$DV,ss = 0)
+    nca.out <- getnca(
+      x = dat$TIME,
+      y = dat$DV,
+      ss = 0,
+      route = "oral"
+    )
   }
 
   auc_ <- nca.out$auc0_inf
-  ke<- nca.out$lambdaz
-  auc_intervals<- diff(x) * (y[-1] + y[-length(y)])/2
+  ke <- nca.out$lambdaz
+  auc_intervals <- diff(x) * (y[-1] + y[-length(y)]) / 2
 
   # use a triangle to calculate 0 - first sample
-  dat$auc_intervals<-c( dat[1,]$DV * dat[1,]$TIME/2, auc_intervals)
-  dat$auc_accumulate<-NA
+  dat$auc_intervals <- c(dat[1, ]$DV * dat[1, ]$TIME / 2, auc_intervals)
+  dat$auc_accumulate <- NA
 
-  for (k in 1:nrow(dat)){
-    if (k==1){
-      dat[k,]$auc_accumulate<-dat[1,]$auc_intervals
+  for (k in 1:nrow(dat)) {
+    if (k == 1) {
+      dat[k, ]$auc_accumulate <- dat[1, ]$auc_intervals
     }
     else{
-      dat[k,]$auc_accumulate<-sum(dat[dat$TIME<=dat[k,]$TIME, ]$auc_intervals)
+      dat[k, ]$auc_accumulate <-
+        sum(dat[dat$TIME <= dat[k, ]$TIME,]$auc_intervals)
     }
   }
-  dat$frac_abs<-  (dat$DV+ ke*dat$auc_accumulate)/ (ke*auc_)
+  dat$frac_abs <-  (dat$DV + ke * dat$auc_accumulate) / (ke * auc_)
 
   # max_abs_time <- which(dat$frac_abs == max(dat$frac_abs ), arr.ind = T)
   # dat_absorb_phase <- dat[1:max_abs_time, ]
   # dat_absorb_phase$frac_remained<-1-  dat_absorb_phase$frac_abs
-  dat$frac_remained<-1-  dat$frac_abs
-  dat_absorb_phase<- dat[dat$frac_remained>0.1,]
+  dat$frac_remained <- 1 -  dat$frac_abs
+  dat_absorb_phase <- dat[dat$frac_remained > 0.1, ]
   # dat_absorb_phase<- dat_absorb_phase[dat_absorb_phase$frac_remained>0.05,]
-  if (nrow(dat_absorb_phase)<2){
-    ka=NA
+  if (nrow(dat_absorb_phase) < 2) {
+    ka = NA
   }
 
-  if (nrow(dat_absorb_phase)>1){
-  abc2 <- lm(log(dat_absorb_phase$frac_remained) ~  dat_absorb_phase$TIME)
-  slope_ka<-summary(abc2)[[4]][[2]]
-  ka= -slope_ka
+  if (nrow(dat_absorb_phase) > 1) {
+    abc2 <-
+      lm(log(dat_absorb_phase$frac_remained) ~  dat_absorb_phase$TIME)
+    slope_ka <- summary(abc2)[[4]][[2]]
+    ka = -slope_ka
   }
-  return(list(ka=ka,dat_out_wanger_nelson=dat))
+  return(list(ka = ka, dat_out_wanger_nelson = dat))
 }
 
 
 
-#' Calculate absorption rate constant (ka) in a single-dose one-compartment model
+#' Estimate absorption rate constant in a one-compartment oral model
 #'
-#' Calculates the absorption rate constant (\code{ka}) for a drug administered orally
-#' using a one-compartment model with first-order absorption and elimination kinetics.
-#' The calculation is based on known values of clearance (\code{cl}), elimination rate constant
-#' (\code{ke}), time (\code{t}), observed concentration (\code{Ct}), bioavailability (\code{Fbio}),
-#' and dose (\code{Dose}).
+#' This estimates the absorption rate constant in a single-dose oral model using
+#' first-order pharmacokinetics.
 #'
-#' @param cl Numeric. Clearance of the drug (in L/hr).
-#' @param ke Numeric. Elimination rate constant (in 1/hr).
-#' @param t Numeric. Time after drug administration (in hours) at which the concentration is measured.
-#' @param Ct Numeric. Observed concentration of the drug at time \code{t} (in mg/L).
-#' @param Fbio Numeric. Bioavailability fraction (default = 1, meaning 100% bioavailability).
-#' @param Dose Numeric. Administered dose of the drug (in mg).
-#'
-#' @return A list containing the following components:
-#' \item{ka}{The calculated absorption rate constant.}
-#' \item{full_solution}{The full solution object returned by the \code{uniroot()} function, which includes additional details about the root-finding process.}
-#' \item{message}{A character string providing status information about the estimation, including warnings if the observed concentration exceeds model-predicted limits or if numerical errors occurred.}
+#' @param cl Numeric. Clearance of the drug.
+#' @param ke Numeric. Elimination rate constant.
+#' @param t Numeric. Time after administration.
+#' @param Ct Numeric. Observed plasma concentration at time t.
+#' @param Fbio Numeric. Absolute bioavailability fraction. Default is 1.
+#' @param Dose Numeric. Administered oral dose.
 #'
 #' @details
-#' This function uses a one-compartment model with first-order absorption and elimination to
-#' estimate the absorption rate constant (\code{ka}). The function solves the following equation
-#' for \code{ka} numerically using \code{uniroot()}:
+#' The model assumes a one-compartment structure with first-order absorption and
+#' first-order elimination.
 #'
+#' The concentration-time relationship is:
 #' \deqn{Ct = \frac{Fbio \cdot Dose \cdot ka}{Vd \cdot (ka - ke)} \left( e^{-ke \cdot t} - e^{-ka \cdot t} \right)}
+#' where the volume of distribution is defined as:
+#' \deqn{Vd = \frac{cl}{ke}}
 #'
-#' The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
-#' between the predicted and observed concentrations equal to zero. The reasonable range for
-#' \code{ka} is set as \code{[0.01, 1000]} for root-finding.
+#' ka is estimated using `uniroot()`, which solves for the root of the residual
+#' function (predicted Ct − observed Ct) within a bounded interval (ka > ke and ka <= 1000)
 #'
-#' Additional safeguards include ensuring that \code{ka > ke} to avoid flip-flop kinetics, and rejecting
-#' values of \code{Ct} that exceed the model-predicted maximum concentration. In such cases, the function
-#' returns \code{NA} for \code{ka} and a descriptive \code{message}.
+#' @return A list containing:
+#' \item{ka}{Estimated absorption rate constant.}
+#' \item{full_solution}{The full result object returned by the root-finding process.}
+#' \item{message}{A character string indicating the status of the estimation or any warnings.}
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
-#' # Example usage:
-#' # Data from first point in simulated dataset Oral_1CPT
-#' ka_result <- ka_calculation_sd(cl = 3.62, ke = 0.0556, t = 0.5, Ct = 310, Dose = 60000)
-#' print(ka_result$ka)
+#' ka_calculation_sd(cl = 3.62, ke = 0.0556, t = 0.5, Ct = 310, Dose = 60000)
 #'
 #' @export
-ka_calculation_sd <- function(cl,     # Clearance of the drug (L/hr)
-                              ke,     # Elimination rate constant (1/hr)
-                              t,      # Time (hr) after drug administration at which concentration is measured
-                              Ct,     # Observed concentration of the drug at time 't' (mg/L)
-                              Fbio = 1, # Bioavailability fraction, default is 1 (100% bioavailability)
+
+ka_calculation_sd <- function(cl,
+                              ke,
+                              t,
+                              Ct,
+                              Fbio = 1,
                               Dose) {
   Vd <- cl / ke
-  # Define the equation to solve for the absorption rate constant (ka)
   ka.equation_sd <- function(ka) {
-    # Predicted concentration using the one-compartment model with first-order absorption and elimination
     predicted_Ct <- (Fbio * Dose * ka) / (Vd * (ka - ke)) *
       (exp(-ke * t) - exp(-ka * t))
-
-    # Return the difference between predicted concentration and observed concentration
     return(predicted_Ct - Ct)
   }
-
-  # Use the uniroot function to numerically solve for ka (absorption rate constant)
+  # Use the uniroot function to numerically solve for ka
   # The reasonable range for ka is provided as [lower, upper] for root finding
   # To avoid flip-flop, lower boundry of ka was set as higher than ke
   ka_lower <- ke + 1e-4
   ka_upper <- 1000
 
-  # Theoretical upper limit of Ct as ka → ∞
+  # Theoretical upper limit of Ct
   max_pred_Ct <- (Fbio * Dose / Vd) * exp(-ke * t)
 
   # Return early if Ct is too high
@@ -204,7 +217,6 @@ ka_calculation_sd <- function(cl,     # Clearance of the drug (L/hr)
     ))
   }
 
-  # Successful result
   return(list(
     ka = solution$root,
     full_solution = solution,
@@ -216,12 +228,8 @@ ka_calculation_sd <- function(cl,     # Clearance of the drug (L/hr)
 
 #' Calculate absorption rate constant (ka) in a multiple-dose one-compartment model
 #'
-#' Estimates the absorption rate constant (\code{ka}) for a drug administered orally
-#' in a multiple-dose regimen using a one-compartment model with first-order absorption
-#' and elimination kinetics. The calculation is based on known values of clearance (\code{cl}),
-#' elimination rate constant (\code{ke}), time since last dose (\code{t}), observed concentration
-#' (\code{Ct}), bioavailability (\code{Fbio}), dose (\code{Dose}), dosing interval (\code{tau}),
-#' and the number of doses administered (\code{n}).
+#' This estimates the absorption rate constant in a multiple-dose oral model using
+#' first-order pharmacokinetics.
 #'
 #' @param cl Numeric. Clearance of the drug (in L/hr).
 #' @param ke Numeric. Elimination rate constant (in 1/hr).
@@ -233,58 +241,50 @@ ka_calculation_sd <- function(cl,     # Clearance of the drug (L/hr)
 #'
 #' @return A list containing the following components:
 #' \item{ka}{The calculated absorption rate constant.}
-#' \item{full_solution}{The full solution object returned by the \code{uniroot()} function, which includes additional details about the root-finding process.}
+#' \item{full_solution}{The full solution object returned by the \code{uniroot()}
+#' function, which includes additional details about the root-finding process.}
 #'
 #' @details
-#' This function uses a multiple-dose one-compartment model with first-order absorption and
-#' elimination to estimate the absorption rate constant (\code{ka}). The function solves the
-#' following equation for \code{ka} numerically using \code{uniroot()}:
+#' The value of ka is obtained numerically using the uniroot unction by solving
+#' the following equation:
 #'
-#' \deqn{Ct = \frac{Fbio \cdot Dose \cdot ka}{Vd \cdot (ka - ke)} \left( \frac{e^{-ke \cdot t}}{1 - e^{-ke \cdot \tau}} - \frac{e^{-ka \cdot t}}{1 - e^{-ka \cdot \tau}} \right)}
+#' \deqn{Ct = \frac{Fbio \cdot Dose \cdot ka}{Vd \cdot (ka - ke)} \left(
+#' \frac{e^{-ke \cdot t}}{1 - e^{-ke \cdot \tau}} - \frac{e^{-ka \cdot t}}{1 -
+#' e^{-ka \cdot \tau}} \right)}
 #'
-#' The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
-#' between the predicted and observed concentrations equal to zero. The reasonable range for
-#' \code{ka} is set as \code{[0.01, 1000]} for root-finding.
+#' ka is estimated using `uniroot()`, which solves for the root of the residual
+#' function (predicted Ct − observed Ct) within a bounded interval (ka > ke and ka <= 1000)
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
-#' # Example usage:
-#' ka_result <- ka_calculation_md(cl = 4, ke = 0.057, t = 2, Ct = 852, Dose = 60000, tau = 24)
-#' ka_result <- ka_calculation_md(cl = 4, ke = 0.057, t = 2, Ct = 189.6, Dose = 10000, tau = 24)
-#' print(ka_result$ka)
+#' # Example from Oral_1CPT dataset (ID = 1, 5th dose, t = 2 h)
+#' ka_calculation_md(cl = 4, ke = 0.057, t = 2, Ct = 852, Dose = 60000, tau = 24)
 #'
 #' @export
-ka_calculation_md <- function(cl,      # Clearance of the drug (L/hr)
-                              ke,      # Elimination rate constant (1/hr)
-                              t,       # Time (hr) after last dose at which concentration is measured
-                              Ct,      # Observed concentration of the drug at time 't' (mg/L)
-                              Fbio = 1, # Bioavailability fraction, default is 1 (100% bioavailability)
-                              Dose,    # Administered dose of the drug (mg)
+ka_calculation_md <- function(cl,
+                              ke,
+                              t,
+                              Ct,
+                              Fbio = 1,
+                              Dose,
                               tau) {
-  # Dosing interval (hr) between doses
 
-  Vd <- cl / ke  # Calculate the volume of distribution
-
-  # Define the equation to solve for the absorption rate constant (ka)
+  Vd <- cl / ke
   ka.equation_md <- function(ka) {
-    # Predicted concentration using the multiple-dose formula
     predicted_Ct <- (Fbio * Dose * ka) / (Vd * (ka - ke)) *
       ((exp(-ke * t) / (1 - exp(-ke * tau))) - (exp(-ka * t) / (1 - exp(-ka * tau))))
 
-    # predicted_Ct <- (Fbio * Dose * ka) / (Vd * (ka - ke)) *
-    #   ((1 / (1 - exp(-ke * tau))) - (1 / (1 - exp(-ka * tau))))
-
-    # Return the difference between predicted concentration and observed concentration
     return(predicted_Ct - Ct)
   }
 
-  # Use the uniroot function to numerically solve for ka (absorption rate constant)
+  # Use the uniroot function to numerically solve for ka
   # The reasonable range for ka is provided as [lower, upper] for root finding
   # To avoid flip-flop, lower boundry of ka was set as higher than ke
   ka_lower <- ke + 1e-4
   ka_upper <- 1000
 
-
-  # Estimate theoretical max Ct (ka → ∞), i.e., first term dominates
+  # Estimate theoretical max Ct (ka to infinity)
   max_pred_Ct <-
     (Fbio * Dose) / Vd * (exp(-ke * t) / (1 - exp(-ke * tau)))
 
@@ -349,31 +349,57 @@ ka_calculation_md <- function(cl,      # Clearance of the drug (L/hr)
   ))
 }
 
-#' Calculate absorption rate constant (ka) for oral administration Data
+#' Estimate the absorption rate constant using pointwise methods
 #'
-#' Calculate the absorption rate constant (ka) using sampling points from the absorption phase (t<Tmax). The single-point method is applied, with each plasma concentration point used to calculate a corresponding ka value
+#' It implements pointwise estimation of absorption rate constants for single-dose
+#' and multiple-dose pharmacokinetic models.
 #'
-#' @param df A data frame containing pharmacokinetic data with columns: `ID` (subject identifier), `TIME` (time point), `DV` (drug concentration), and `DOSE` (dose amount). The data frame is typically filtered to include data only from the first dosing interval (e.g., single dose and evid = 0).
-#' @param cl A numeric value representing the clearance (CL) of the drug.
-#' @param ke A numeric value representing the elimination rate constant (ke).
-#' @param Fbio A numeric value representing the fraction of the drug absorbed (bioavailability, F).
+#' @param dat A data frame containing raw time–concentration data in the
+#'   standard nlmixr2 format.
+#'
+#' @param cl A numeric value for drug clearance. It is assumed constant across subjects unless pre-specified per subject.
+#' @param ke A numeric value for the elimination rate constant. This is assumed known or estimated from the terminal phase.
+#' @param Fbio A numeric value for bioavailability (F). Default is 1.
 #'
 #' @details
-#' The function first calculates the time to maximum concentration (Tmax) for each individual in the dataset. It then filters the data to include only the time points up to Tmax for each individual. The absorption rate constant (ka) is calculated for each time point using the `ka_calculation` function.
+#' For each subject, the time of maximum observed concentration (Tmax) is identified as the time corresponding to the highest DV.
+#' Only records with TIME less than or equal to Tmax are retained, representing the absorption phase.
 #'
-#' @return A list containing:
-#' \item{ka_calc_median}{The median ka value across all individuals.}
-#' \item{data_before_tmax}{The original data frame filtered for times before Tmax, with an added `ka_calc` column for individual ka values.}
+#' Two scenario-specific calculations are implemented: single-dose and multiple-dose at steady state.
+#' \itemize{
+#'   \item For single-dose data (dose_number == 1 and SteadyState == FALSE), the function uses `ka_calculation_sd()`,
+#'   which applies a one-compartment oral absorption model under first-order absorption and elimination.
+#'   \item For steady-state multiple-dose data (dose_number > 1 and SteadyState == TRUE), the function uses `ka_calculation_md()`,
+#'   which accounts for accumulation using the dosing interval (dose_interval).
+#' }
+#'
+#' This function does not perform model fitting. The median is recommended for use in pharmacokinetic modeling.
+#'
+#' @return A list with the following elements:
+#' \describe{
+#'   \item{ka_calc_median}{Median ka value across all valid observations.}
+#'   \item{ka_calc_dat_sd}{Data frame containing absorption-phase single-dose data, with estimated ka and diagnostic messages.}
+#'   \item{ka_calc_dat_md}{Data frame containing absorption-phase steady-state multiple-dose data, with ka estimates.}
+#'   \item{ka_calc_dat}{Combined data frame (single-dose and multiple-dose) containing all ka estimates.}
+#' }
+#'
+#' @author Zhonghui Huang
 #'
 #' @examples
-#' # Example usage:
-#'  df<-Oral_1CPT[Oral_1CPT$SD==1,]
-#'  df<-processData(df)$dat
-#'  result <- run_ka_solution(df = df, cl = 4, ke = 4/70, Fbio = 1)
-#'  ka_median <- result[[1]]
-#'  data_with_ka <- result[[2]]
+#' # Single-dose
+#' df <- Oral_1CPT[Oral_1CPT$SD == 1, ]
+#' df <- processData(df)$dat
+#' df <- is_ss(df)
+#' run_ka_solution(df = df, cl = 4, ke = 4/70, Fbio = 1)$ka_calc_median
+#'
+#' # Mixed doses
+#' dat <- Oral_1CPT
+#' df_ss <- processData(dat)$dat
+#' df_ss <- is_ss(df_ss)
+#' run_ka_solution(df = df_ss, cl = 4, ke = 4/70, Fbio = 1)$ka_calc_median
 #'
 #' @export
+
 run_ka_solution <- function(df,
                             cl,
                             ke,
@@ -397,17 +423,17 @@ run_ka_solution <- function(df,
   data_before_tmax_sd <- NULL
   data_before_tmax_md <- NULL
 
-  if (any(data_before_tmax$dose_number == 1 &
-          data_before_tmax$EVID == 0 &
-          data_before_tmax$SSflag == 0)) {
-
+  if (any(
+    data_before_tmax$dose_number == 1 &
+    data_before_tmax$EVID == 0 &
+    data_before_tmax$SSflag == 0
+  )) {
     data_before_tmax_sd <- data_before_tmax %>%
-      dplyr::filter(dose_number == 1, EVID == 0, SteadyState==F)
+      dplyr::filter(dose_number == 1, EVID == 0, SteadyState == F)
 
     # Use mapply to compute ka and diagnostic message for each row in single-dose data
     ka_sd_results <- mapply(
       function(cl, ke, t, Ct, Fbio, Dose) {
-        # Attempt to estimate ka using ka_calculation_sd()
         res <- try(ka_calculation_sd(
           cl = cl,
           ke = ke,
@@ -415,7 +441,8 @@ run_ka_solution <- function(df,
           Ct = Ct,
           Fbio = Fbio,
           Dose = Dose
-        ), silent = TRUE)
+        ),
+        silent = TRUE)
 
         # Return NA and message if error occurred
         if (inherits(res, "try-error")) {
@@ -427,8 +454,10 @@ run_ka_solution <- function(df,
       },
       cl    = data_before_tmax_sd$cl,
       ke    = data_before_tmax_sd$ke,
-      t     = data_before_tmax_sd$TIME,   # time after single dose
-      Ct    = data_before_tmax_sd$DV,     # observed concentration
+      t     = data_before_tmax_sd$TIME,
+      # time after single dose
+      Ct    = data_before_tmax_sd$DV,
+      # observed concentration
       Fbio  = data_before_tmax_sd$Fbio,
       Dose  = data_before_tmax_sd$dose,
       SIMPLIFY = FALSE
@@ -442,14 +471,14 @@ run_ka_solution <- function(df,
 
     # Optional: convert ka column to numeric explicitly, suppressing warnings
     data_before_tmax_sd$ka_calcv <-
-      suppressWarnings(suppressMessages(as.numeric(data_before_tmax_sd$ka_calc)
-))
+      suppressWarnings(suppressMessages(as.numeric(data_before_tmax_sd$ka_calc)))
   }
 
-  if (any(data_before_tmax$dose_number > 1 &
-          data_before_tmax$EVID == 0 &
-          data_before_tmax$SteadyState)) {
-
+  if (any(
+    data_before_tmax$dose_number > 1 &
+    data_before_tmax$EVID == 0 &
+    data_before_tmax$SteadyState
+  )) {
     data_before_tmax_md <- data_before_tmax %>%
       dplyr::filter(dose_number > 1, EVID == 0, SteadyState)
 
@@ -464,7 +493,8 @@ run_ka_solution <- function(df,
           Fbio = Fbio,
           Dose = Dose,
           tau = tau
-        ), silent = TRUE)
+        ),
+        silent = TRUE)
 
         # If error occurs, return NA and a message
         if (inherits(res, "try-error")) {
@@ -476,24 +506,30 @@ run_ka_solution <- function(df,
       },
       cl    = data_before_tmax_md$cl,
       ke    = data_before_tmax_md$ke,
-      t     = data_before_tmax_md$tad,        # time after last dose
-      Ct    = data_before_tmax_md$DV,         # observed concentration
+      t     = data_before_tmax_md$tad,
+      # time after last dose
+      Ct    = data_before_tmax_md$DV,
+      # observed concentration
       Fbio  = data_before_tmax_md$Fbio,
       Dose  = data_before_tmax_md$dose,
-      tau   = data_before_tmax_md$dose_interval,  # dosing interval
+      tau   = data_before_tmax_md$dose_interval,
+      # dosing interval
       SIMPLIFY = FALSE
     )
 
     # Extract ka and message columns from result list
-    data_before_tmax_md$ka_calc    <- sapply(ka_md_results, `[[`, "ka")
-    data_before_tmax_md$ka_message <- sapply(ka_md_results, `[[`, "message")
+    data_before_tmax_md$ka_calc    <-
+      sapply(ka_md_results, `[[`, "ka")
+    data_before_tmax_md$ka_message <-
+      sapply(ka_md_results, `[[`, "message")
 
     # Optional: convert ka column to numeric explicitly, suppressing warnings
     data_before_tmax_md$ka_calcv <-
       suppressWarnings(suppressMessages(as.numeric(data_before_tmax_md$ka_calc)))
   }
 
-  data_before_tmax <- rbind(data_before_tmax_sd, data_before_tmax_md)
+  data_before_tmax <-
+    rbind(data_before_tmax_sd, data_before_tmax_md)
 
   ka_calc_median <-
     suppressWarnings(suppressMessages(median(data_before_tmax$ka_calcv, na.rm = T)))

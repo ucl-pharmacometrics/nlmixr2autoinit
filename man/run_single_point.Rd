@@ -64,5 +64,7 @@ result <- run_single_point(
 # Step 5: View results
 print(result$singlepoint.results)
 
-
+}
+\seealso{
+\code{\link{run_single_point_base}}, \code{\link{run_single_point_extra}}
 }

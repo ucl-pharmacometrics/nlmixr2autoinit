@@ -2,55 +2,49 @@
 % Please edit documentation in R/extra_ka.R
 \name{ka_calculation_sd}
 \alias{ka_calculation_sd}
-\title{Calculate absorption rate constant (ka) in a single-dose one-compartment model}
+\title{Estimate absorption rate constant in a one-compartment oral model}
 \usage{
 ka_calculation_sd(cl, ke, t, Ct, Fbio = 1, Dose)
 }
 \arguments{
-\item{cl}{Numeric. Clearance of the drug (in L/hr).}
+\item{cl}{Numeric. Clearance of the drug.}
 
-\item{ke}{Numeric. Elimination rate constant (in 1/hr).}
+\item{ke}{Numeric. Elimination rate constant.}
 
-\item{t}{Numeric. Time after drug administration (in hours) at which the concentration is measured.}
+\item{t}{Numeric. Time after administration.}
 
-\item{Ct}{Numeric. Observed concentration of the drug at time \code{t} (in mg/L).}
+\item{Ct}{Numeric. Observed plasma concentration at time t.}
 
-\item{Fbio}{Numeric. Bioavailability fraction (default = 1, meaning 100\% bioavailability).}
+\item{Fbio}{Numeric. Absolute bioavailability fraction. Default is 1.}
 
-\item{Dose}{Numeric. Administered dose of the drug (in mg).}
+\item{Dose}{Numeric. Administered oral dose.}
 }
 \value{
-A list containing the following components:
-\item{ka}{The calculated absorption rate constant.}
-\item{full_solution}{The full solution object returned by the \code{uniroot()} function, which includes additional details about the root-finding process.}
-\item{message}{A character string providing status information about the estimation, including warnings if the observed concentration exceeds model-predicted limits or if numerical errors occurred.}
+A list containing:
+\item{ka}{Estimated absorption rate constant.}
+\item{full_solution}{The full result object returned by the root-finding process.}
+\item{message}{A character string indicating the status of the estimation or any warnings.}
 }
 \description{
-Calculates the absorption rate constant (\code{ka}) for a drug administered orally
-using a one-compartment model with first-order absorption and elimination kinetics.
-The calculation is based on known values of clearance (\code{cl}), elimination rate constant
-(\code{ke}), time (\code{t}), observed concentration (\code{Ct}), bioavailability (\code{Fbio}),
-and dose (\code{Dose}).
+This estimates the absorption rate constant in a single-dose oral model using
+first-order pharmacokinetics.
 }
 \details{
-This function uses a one-compartment model with first-order absorption and elimination to
-estimate the absorption rate constant (\code{ka}). The function solves the following equation
-for \code{ka} numerically using \code{uniroot()}:
+The model assumes a one-compartment structure with first-order absorption and
+first-order elimination.
 
+The concentration-time relationship is:
 \deqn{Ct = \frac{Fbio \cdot Dose \cdot ka}{Vd \cdot (ka - ke)} \left( e^{-ke \cdot t} - e^{-ka \cdot t} \right)}
+where the volume of distribution is defined as:
+\deqn{Vd = \frac{cl}{ke}}
 
-The \code{uniroot()} function is used to find the value of \code{ka} that makes the difference
-between the predicted and observed concentrations equal to zero. The reasonable range for
-\code{ka} is set as \code{[0.01, 1000]} for root-finding.
-
-Additional safeguards include ensuring that \code{ka > ke} to avoid flip-flop kinetics, and rejecting
-values of \code{Ct} that exceed the model-predicted maximum concentration. In such cases, the function
-returns \code{NA} for \code{ka} and a descriptive \code{message}.
+ka is estimated using \code{uniroot()}, which solves for the root of the residual
+function (predicted Ct − observed Ct) within a bounded interval (ka > ke and ka <= 1000)
 }
 \examples{
-# Example usage:
-# Data from first point in simulated dataset Oral_1CPT
-ka_result <- ka_calculation_sd(cl = 3.62, ke = 0.0556, t = 0.5, Ct = 310, Dose = 60000)
-print(ka_result$ka)
+ka_calculation_sd(cl = 3.62, ke = 0.0556, t = 0.5, Ct = 310, Dose = 60000)
 
+}
+\author{
+Zhonghui Huang
 }

@@ -8,7 +8,7 @@
 #'   standard nlmixr2 format.
 #'
 #' @param half_life Optional numeric value representing the elimination half-life of the drug.
-#'   If not provided, half-life is estimated within run_single_point_base() using get_hf() applied
+#'   If not provided, half-life is estimated within `run_single_point_base()` using `get_hf()` applied
 #'   to the pharmacokinetic observations.
 #'
 #' @param single_point_base.lst A list object returned from the base single-point calculation
@@ -21,12 +21,12 @@
 #' @param dose_type Classified as "first_dose", "repeated_doses", or "combined_doses"
 #'   based on whether observed concentrations occur following the first administration,
 #'   during repeated dosing, or across both contexts. This parameter is passed directly to
-#'   run_single_point_base().
+#'   `run_single_point_base()`.
 #'
-#' @param pooled_ctrl A list of pooled-analysis control options created using pooled_control().
+#' @param pooled_ctrl A list of pooled-analysis control options created using `pooled_control()`.
 #'   These control time binning and time-after-dose rounding when pooled summaries are required.
 #'
-#' @param ssctrl A list of steady-state control options created using ss_control().
+#' @param ssctrl A list of steady-state control options created using `ss_control()`.
 #'   These govern assumptions and thresholds used when interpreting steady-state behavior
 #'   in single-point logic.
 #'
@@ -60,20 +60,16 @@
 #'   and CL is subsequently derived:
 #'   \deqn{CL = \frac{V_d \cdot \ln(2)}{t_{1/2}}}
 #'
-#' - For oral administration, the absorption rate constant (ka) is estimated using concentration-time
-#'   data collected prior to Tmax and restricted to the absorption phase, defined as time after dose
-#'   (tad) less than 0.2 multiplied by the half-life. The value of ka is obtained using a solution-based
-#'   estimation method.
+#' - For oral administration, the absorption rate constant (ka) is estimated using a solution-based
+#'   approach implemented in `run_ka_solution()`. Only concentration–time data from the absorption
+#'   phase are used, defined as time after dose (tad) less than 20% of the terminal half-life and
+#'   occurring prior to Tmax, where absorption is the dominant process.
 #'
 #' The function supports bolus, oral, and infusion administration routes. For oral dosing,
 #' only data within the absorption phase are used to estimate the absorption rate constant (ka),
 #' specifically using concentration-time observations prior to the maximum concentration (Tmax).
 #'
-#' @seealso
-#'   \itemize{
-#'     \item run_single_point_base(): Performs the initial single-point estimation of CL and Vd.
-#'     \item run_single_point(): Wrapper function that sequentially runs both base and extended steps.
-#'   }
+#' @seealso \code{\link{run_single_point_base}}, \code{\link{run_single_point}}, \code{\link{run_ka_solution}}
 #'
 #' @examples
 #' dat <- Bolus_1CPT
@@ -297,10 +293,7 @@ run_single_point_extra <- function(dat = NULL,
 #' print(result$singlepoint.results)
 #'
 #' @seealso
-#'   \itemize{
-#'     \item run_single_point_base(): Performs the initial single-point estimation of CL and Vd.
-#'     \item run_single_point_extra(): Extends the base estimation to derive additional parameters such as ka.
-#'   }
+#' \code{\link{run_single_point_base}}, \code{\link{run_single_point_extra}}
 #'
 #' @export
 run_single_point <- function(dat,

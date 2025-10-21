@@ -2,44 +2,67 @@
 % Please edit documentation in R/extra_ka.R
 \name{ka_wanger_nelson}
 \alias{ka_wanger_nelson}
-\title{Calculate the Absorption Rate Constant (ka) using the Wanger-Nelson Method}
+\title{Calculate the absorption rate constant using the Wagner-Nelson method}
 \usage{
 ka_wanger_nelson(dat, nca.out = NULL)
 }
 \arguments{
-\item{dat}{A data frame with at least two columns: \code{DV} (drug concentration)
-and \code{TIME} (time points of measurement).}
+\item{dat}{A data frame containing two columns: 'TIME' for sampling time
+points and 'DV' for observed plasma drug concentrations.}
 
-\item{nca.out}{(Optional) An object containing results from a prior NCA
-computation (e.g., output from \code{getnca()}). If not provided, the function
-internally calls \code{getnca()} to estimate AUC and the elimination rate
-constant (\code{ke}). Providing \code{nca.out} can save computation time when
-NCA results are already available.}
+\item{nca.out}{Optional object containing results from a previous
+noncompartmental analysis. It must include 'auc0_inf' for the area under
+the concentration-time curve extrapolated to infinity and 'lambdaz' for the
+terminal elimination rate constant. If not provided, the function calls
+'getnca' internally using the input data.}
 }
 \value{
-A numeric value representing the estimated absorption rate constant (ka).
+A list containing:
+\item{'ka'}{Estimated absorption rate constant.}
+\item{'dat_out_wanger_nelson'}{Input data frame augmented with calculated
+pharmacokinetic variables including cumulative AUC, fraction absorbed, and
+fraction remaining.}
 }
 \description{
-Computes the absorption rate constant (ka) using the Wanger-Nelson method.
-The function makes use of non-compartmental analysis (NCA) function part to calculate the area under the curve (AUC) and the elimination rate constant (ke).
-Linear regression on the logarithm of the remaining fraction of drug is used to estimate the absorption rate constant (ka).
+Calculates absorption rate constant using the Wagner–Nelson method for
+single-dose extravascular pharmacokinetics.
 }
 \details{
-The function calculates the absorption rate constant (ka) as follows:
+The Wagner-Nelson method estimates the fraction of drug absorbed over time
+based on the principle of mass balance, where the unabsorbed fraction is
+quantified as the proportion of the administered dose that has not yet
+entered systemic circulation. A linear regression is applied to the natural
+logarithm of the unabsorbed fraction versus time, and the negative slope of
+this regression corresponds to the first-order absorption rate constant 'ka'.
+
+Key assumptions:
 \itemize{
-\item The function uses the \code{nca.iv.normalised} method to calculate the area under the curve (AUC) and elimination rate constant (ke).
-\item AUC is calculated using trapezoidal integration for the observed data points.
-\item The fraction of drug absorbed is calculated based on ke and the cumulative AUC.
-\item The logarithm of the remaining fraction of the drug is then modeled using linear regression to determine the absorption rate constant (ka).
+\item Single-dose oral or extravascular administration
+\item First-order absorption and first-order elimination
+\item Linear pharmacokinetics with 'ka' greater than 'ke'
 }
 
-This method assumes that the drug absorption follows first-order kinetics.
+Computational steps:
+\itemize{
+\item AUC is calculated using trapezoidal integration.
+\item The fraction absorbed is calculated from AUC and the terminal elimination
+rate constant.
+\item The remaining fraction is transformed using the natural logarithm.
+\item Linear regression of log(remaining fraction) against time yields 'ka'.
+}
 }
 \examples{
-
-# Calculate ka for the first subject from Oral_1CPT
-dat<-Oral_1CPT[Oral_1CPT$ID==1 &Oral_1CPT$SD==1&Oral_1CPT$EVID==0,]
-dat<-data.frame(TIME=dat$TIME,DV=dat$DV)
-ka_wanger_nelson(dat=dat)$ka
-
+# Extract data for the first subject and first dosing occasion
+dat <- Oral_1CPT[Oral_1CPT$ID == 1 & Oral_1CPT$SD == 1 &
+                 Oral_1CPT$EVID == 0, ]
+dat <- data.frame(TIME = dat$TIME, DV = dat$DV)
+ka_wanger_nelson(dat = dat)$ka
+}
+\references{
+Wagner JG and Nelson E (1963). Percent absorbed time plots derived from
+blood level and/or urinary excretion data. Journal of Pharmaceutical
+Sciences, 52(6), 610-611.
+}
+\author{
+Zhonghui Huang
 }

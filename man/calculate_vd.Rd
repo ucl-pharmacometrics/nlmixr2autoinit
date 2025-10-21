@@ -17,7 +17,7 @@ calculate_vd(
 standard nlmixr2 format.}
 
 \item{half_life}{Optional numeric value for the drug's half-life.
-If not provided, it will be estimated using get_hf() from pooled
+If not provided, it will be estimated using \code{get_hf()} from pooled
 observations.}
 
 \item{dose_type}{Specifies the dosing context of the pharmacokinetic
@@ -26,8 +26,8 @@ first_dose, repeated_doses, or combined_doses based on whether observed
 concentrations occur following the first administration, during repeated
 dosing, or across both contexts.}
 
-\item{pooled_ctrl}{Optional list of control parameters used by get_pooled_data()
-for pooling observations. Defaults to output from pooled_control().}
+\item{pooled_ctrl}{Optional list of control parameters used by \code{get_pooled_data()}
+for pooling observations. Defaults to output from \code{pooled_control()}.}
 
 \item{route}{Character string specifying the route of administration. Must be
 one of bolus, oral, or infusion. Currently, oral is not implemented.}
@@ -41,7 +41,7 @@ trimmed geometric mean using a 5 percent trimming level
 }
 }
 \description{
-Calculates the apparent volume of distribution (\eqn{V_d}) for intravenous
+Calculates the apparent volume of distribution (Vd) for intravenous
 bolus or infusion routes using an adaptive single-point method. If the
 half-life is not provided, it is estimated from pooled data.
 }
