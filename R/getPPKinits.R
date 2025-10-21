@@ -1088,7 +1088,7 @@ print.getPPKinits <- function(x, ...) {
   if (!is.null(x$Omegas)) {
     cat("\nETA variances and derived covariances:\n")
     print(x$Omegas)
-    cat("Note: The ETA variances and covariances listed below are predefined default initialization values automatically assigned by the package.\n")
+    cat("Note: The ETA variances and covariances listed above are predefined default initialization values automatically assigned by the package.\n")
   }
 
   cat("\nParameter descriptions:\n")
