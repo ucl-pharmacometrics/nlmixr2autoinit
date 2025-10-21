@@ -2,8 +2,7 @@
 % Please edit documentation in R/run_modelfit.R
 \name{run_npd_1cmpt_mm_iv}
 \alias{run_npd_1cmpt_mm_iv}
-\title{Run and evaluate one-compartment IV model with Michaelis-Menten Kinetics
-Perform parameter estimation on naive pooled data for a one-compartment Michaelis-Menten IV model.}
+\title{Run and evaluate a one-compartment IV Michaelis-Menten model}
 \usage{
 run_npd_1cmpt_mm_iv(
   dat,
@@ -17,61 +16,54 @@ run_npd_1cmpt_mm_iv(
 )
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data. Must include columns
-such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT}.}
+\item{dat}{A data frame containing pharmacokinetic data in standard nlmixr2
+format.}
 
-\item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
+\item{est.method}{Estimation method used in nlmixr2. Defaults to "nls".}
 
-\item{npdmm_inputvmax}{A numeric value for the initial estimate of Vmax. Default is exp(1).}
+\item{npdmm_inputvmax}{Initial estimate for Vmax. Defaults to exp(1),
+corresponding to a log-scale value of 1.}
 
-\item{npdmm_inputkm}{A numeric value for the initial estimate of Km. Default is exp(1).}
+\item{npdmm_inputkm}{Initial estimate for Km. Defaults to exp(1),
+corresponding to a log-scale value of 1.}
 
-\item{npdmm_inputcl}{A numeric value for the clearance. Default is exp(1).}
+\item{npdmm_inputcl}{Initial estimate for clearance (CL). Defaults to exp(1)
+, corresponding to a log-scale value of 1.}
 
-\item{npdmm_inputvd}{A numeric value for the initial estimate of volume of distribution (Vd). Default is exp(1).}
+\item{npdmm_inputvd}{Initial estimate for volume of distribution (Vd).
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.add}{A numeric value representing the additive residual error component
-included in the model fitting. Default is 1.}
+\item{input.add}{Additive error term. Defaults to 1.}
 
-\item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},
-initial estimates for \eqn{V_{max}} and \eqn{K_m} will be set based on the
-observed maximum concentration in the dataset and referenced clearance.}
+\item{km_threshold}{Logical value. If TRUE, initial estimates for Vmax and Km
+are calculated based on the maximum observed concentration.}
 }
 \value{
-A list with the following elements:
-\describe{
-\item{npd.1cmpt.mm_results}{A data frame with the estimated values of \eqn{V_{max}},
-\eqn{K_m}, and \eqn{V_d}, as well as the time taken for the estimation.}
-\item{npd.1cmpt.mm..APE}{The absolute prediction error (APE).}
-\item{npd.1cmpt.mm..MAE}{The mean absolute error (MAE).}
-\item{npd.1cmpt.mm..MAPE}{The mean absolute percentage error (MAPE).}
-\item{npd.1cmpt.mm..RMSE}{The root mean square error (RMSE).}
-\item{npd.1cmpt.mm.rRMSE}{The relative root mean square error (rRMSE).}
-\item{npd.1cmpt.mm.list}{The full output list from the \code{Fit_1cmpt_mm_iv} function.}
-}
+A list containing parameter estimates and prediction error metrics.
 }
 \description{
-Estimates the pharmacokinetic parameters (Vmax, Km, Vd) for a
-1-compartment Michaelis-Menten IV (Intravenous) model by fitting.
-Optionally, an initial estimate of Km is set based on the
-maximum concentration in the dataset (if \code{km_threshold = TRUE}).
+Fits a one-compartment intravenous pharmacokinetic model with
+Michaelis-Menten elimination using a naive pooled data approach and evaluates
+model performance based on prediction error metrics.
 }
 \details{
-If \code{km_threshold = TRUE}, this function first calculates initial estimates for \eqn{V_{max}} and \eqn{K_m}
-based on the observed maximum concentration in the dataset and referenced clearance. This approach ensures
-that the value of \eqn{K_m} is adjusted to lie between the linear and nonlinear regimes, providing a more robust
-starting estimate when there is uncertainty about whether the model follows linear or nonlinear kinetics.
-This adjustment ensures that the fitting process does not result in \eqn{K_m} values too far from reality,
-regardless of whether the dynamics are linear or nonlinear.
+Rows where \code{EVID == 2} are excluded before model fitting. The model is
+fitted using \code{Fit_1cmpt_mm_iv}. When \code{km_threshold = TRUE}, initial estimates
+for Vmax and Km are derived from the dataset to provide a representative
+starting point for nonlinear elimination.
 }
 \examples{
 \dontrun{
-# Example usage:
-result <- run_npd_1cmpt_mm_iv(dat = Bolus_1CPT,
-                              est.method="foce",
-                              npdmm_inputcl = 4,
-                              npdmm_inputvd = 70,
-                              km_threshold = TRUE)
+run_npd_1cmpt_mm_iv(
+  dat = Bolus_1CPT,
+  est.method = "focei",
+  npdmm_inputcl = 4,
+  npdmm_inputvd = 70,
+  km_threshold = TRUE
+)
 }
 
+}
+\seealso{
+\code{\link{Fit_1cmpt_mm_iv}}
 }

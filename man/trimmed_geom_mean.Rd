@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_single_point_base.R
 \name{trimmed_geom_mean}
 \alias{trimmed_geom_mean}
-\title{Calculate the trimmed geometric mean}
+\title{Computes the trimmed geometric mean}
 \usage{
 trimmed_geom_mean(x, trim = 0, na.rm = TRUE)
 }
@@ -21,8 +21,7 @@ A numeric value representing the trimmed geometric mean. Returns NA if no
 values remain after trimming.
 }
 \description{
-Computes the geometric mean of a numeric vector after removing a specified
-proportion of the smallest and largest values.
+Computes the trimmed geometric mean of a numeric vector
 }
 \examples{
 x <- c(1, 2, 3, 4, 5, 100)

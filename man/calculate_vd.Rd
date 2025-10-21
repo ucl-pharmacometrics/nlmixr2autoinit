@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_single_point_base.R
 \name{calculate_vd}
 \alias{calculate_vd}
-\title{Estimate volume of distribution from concentration data}
+\title{Calculates volume of distribution from concentration data}
 \usage{
 calculate_vd(
   dat,
@@ -41,9 +41,7 @@ trimmed geometric mean using a 5 percent trimming level
 }
 }
 \description{
-Calculates the apparent volume of distribution (Vd) for intravenous
-bolus or infusion routes using an adaptive single-point method. If the
-half-life is not provided, it is estimated from pooled data.
+Calculates the volume of distribution using an adaptive single-point approach
 }
 \details{
 The function uses an early concentration point (based on time since dosing and half-life)

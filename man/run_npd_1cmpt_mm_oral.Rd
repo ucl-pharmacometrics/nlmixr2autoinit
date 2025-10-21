@@ -2,8 +2,7 @@
 % Please edit documentation in R/run_modelfit.R
 \name{run_npd_1cmpt_mm_oral}
 \alias{run_npd_1cmpt_mm_oral}
-\title{Run and evaluate one-compartment oral model with Michaelis-Menten Kinetics
-Perform parameter estimation on naive pooled data for a one-compartment Michaelis-Menten oral model.}
+\title{Run and evaluate a one-compartment oral model with Michaelis-Menten kinetics}
 \usage{
 run_npd_1cmpt_mm_oral(
   dat,
@@ -18,76 +17,55 @@ run_npd_1cmpt_mm_oral(
 )
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data. Must include columns
-such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT}.}
+\item{dat}{A data frame containing raw time–concentration data in standard
+nlmixr2 format.}
 
-\item{est.method}{The estimation method in nlmixr2 to use. The default value is "nls".}
+\item{est.method}{Estimation method used in nlmixr2. Defaults to "nls".}
 
-\item{input.ka}{A numeric value for the initial estimate of the log-transformed absorption rate constant.
-Default is 1.}
+\item{input.ka}{Initial estimate for the absorption rate constant (ka).
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.vmax}{A numeric value for the initial estimate of Vmax (maximum rate of metabolism).
-Default is \code{exp(1)}. This serves as the initial value for \eqn{V_{max}} in the
-nonlinear Michaelis-Menten oral absorption model.}
+\item{input.vmax}{Initial estimate for the maximum metabolic rate (Vmax).
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.km}{A numeric value for the initial estimate of Km (Michaelis constant).
-Default is \code{exp(1)}. This defines the concentration at which the rate of metabolism
-is half of \eqn{V_{max}}.}
+\item{input.km}{Initial estimate for the Michaelis constant (Km). Defaults to
+exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.cl}{A numeric value for the clearance (CL) parameter. Default is \code{exp(1)}.
-This value is also used for Vmax and Km calculation when \code{km_threshold = TRUE}.}
+\item{input.cl}{Initial estimate for clearance (CL). Defaults to exp(1),
+corresponding to a log-scale value of 1. This value
+is used to derive initial Vmax and Km when \code{km_threshold = TRUE}.}
 
-\item{input.vd}{A numeric value for the initial estimate of the apparent volume of distribution (Vd).
-Default is \code{exp(1)}.}
+\item{input.vd}{Initial estimate for volume of distribution (Vd). Defaults to
+exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.add}{A numeric value for the additive error model. Default is 1.
-Adjust this if observed data show a different level of additive residual variability.}
+\item{input.add}{Additive error term. Defaults to 1.}
 
-\item{km_threshold}{A logical value (\code{TRUE} or \code{FALSE}). If \code{TRUE},
-initial estimates for \eqn{V_{max}} and \eqn{K_m} are adjusted based on the
-observed maximum concentration and clearance.}
+\item{km_threshold}{Logical indicating whether initial Vmax and Km should be
+automatically adjusted based on observed maximum concentration and
+clearance. Defaults to FALSE.}
 }
 \value{
-A list with the following elements:
-\describe{
-\item{npd.1cmpt.mm_results}{A data frame with the estimated values of  \eqn{K_a},\eqn{V_{max}},
-\eqn{K_m}, and \eqn{V_d}, as well as the time taken for the estimation.}
-\item{npd.1cmpt.mm..APE}{The absolute prediction error (APE).}
-\item{npd.1cmpt.mm..MAE}{The mean absolute error (MAE).}
-\item{npd.1cmpt.mm..MAPE}{The mean absolute percentage error (MAPE).}
-\item{npd.1cmpt.mm..RMSE}{The root mean square error (RMSE).}
-\item{npd.1cmpt.mm.rRMSE}{The relative root mean square error (rRMSE).}
-\item{npd.1cmpt.mm.list}{The full output list from the \code{Fit_1cmpt_mm_oral} function.}
-}
+A list containing the fitted parameter estimates and prediction error
+metrics.
 }
 \description{
-Estimates the pharmacokinetic parameters (Vmax, Km, Vd) for a
-1-compartment Michaelis-Menten Oral (Intravenous) model by fitting.
-Optionally, an initial estimate of Km is based on the
-maximum concentration in the dataset (if \code{km_threshold = TRUE}).
+Fits a one-compartment oral pharmacokinetic model with Michaelis-Menten
+elimination using a naive pooled data approach, and evaluates model
+performance using prediction error metrics.
 }
 \details{
-If \code{km_threshold = TRUE}, this function first calculates initial estimates for \eqn{V_{max}} and \eqn{K_m}
-based on the observed maximum concentration in the dataset and referenced clearance. This approach ensures
-that the value of \eqn{K_m} is adjusted to lie between the linear and nonlinear regimes, providing a more robust
-starting estimate when there is uncertainty about whether the model follows linear or nonlinear kinetics.
+The function excludes dosing records (\code{EVID == 2}) prior to model fitting.
+When \code{km_threshold = TRUE}, initial estimates for Vmax and Km are derived
+using the observed maximum concentration and clearance. The model is then
+fitted using \code{Fit_1cmpt_mm_oral}, and prediction-based metrics are calculated
+to assess performance.
 }
 \examples{
 \dontrun{
-# Example 1 (Linear kinetics case):
-result <- run_npd_1cmpt_mm_oral(dat = Oral_1CPT,
-                              est.method="foce",
-                              input.cl = 4,
-                              input.vd = 70,
-                              km_threshold = TRUE)
-result
-
-# Example 2 ( nonlinear-kinetics case):
-result2 <- run_npd_1cmpt_mm_oral(dat = Oral_1CPTMM,
-                              input.cl = 4,
-                              input.vd = 70,
-                              km_threshold = TRUE)
-result2
+run_npd_1cmpt_mm_oral(dat = Oral_1CPTMM, input.cl = 4, input.vd = 70,est.method="focei")
 }
 
+}
+\seealso{
+\code{\link{Fit_1cmpt_mm_oral}}
 }

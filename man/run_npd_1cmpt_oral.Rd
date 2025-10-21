@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_modelfit.R
 \name{run_npd_1cmpt_oral}
 \alias{run_npd_1cmpt_oral}
-\title{Run and evaluate one-compartment Oral Model}
+\title{Run and evaluate a one-compartment oral model}
 \usage{
 run_npd_1cmpt_oral(
   dat,
@@ -14,43 +14,41 @@ run_npd_1cmpt_oral(
 )
 }
 \arguments{
-\item{dat}{A data frame containing intravenous pharmacokinetic data. It should include
-columns such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT} and other necessary variables.}
+\item{dat}{A data frame containing raw time–concentration data in standard
+nlmixr2 format.}
 
-\item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
+\item{est.method}{Estimation method used in nlmixr2. Defaults to "nls".}
 
-\item{input.ka}{A numeric value for the initial estimate of the absorption rate constant. Default is exp(1).}
+\item{input.ka}{Initial estimate for the absorption rate constant (Ka).
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.cl}{A numeric value for the initial estimate of the clearance (CL). Default is exp(1).}
+\item{input.cl}{Initial estimate for clearance (CL). Defaults to exp(1),
+corresponding to a log-scale value of 1.}
 
-\item{input.vd}{A numeric value for the initial estimate of the volume of distribution (Vd). Default is exp(1).}
+\item{input.vd}{Initial estimate for volume of distribution (Vd). Defaults to
+exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.add}{A numeric value for the additive error model. Default is 1.}
+\item{input.add}{Additive error term. Defaults to 1.}
 }
 \value{
-A list containing the following elements:
-\item{npd.1cmpt_results}{A data frame with the estimated CL and Vd, as well
-as the time spent during estimation.}
-\item{npd.1cmpt.APE}{The absolute prediction error (APE).}
-\item{npd.1cmpt.MAE}{The mean absolute error (MAE).}
-\item{npd.1cmpt.MAPE}{The mean absolute percentage error (MAPE).}
-\item{npd.1cmpt.RMSE}{The root mean square error (RMSE).}
-\item{npd.1cmpt.rRMSE}{The relative root mean square error (rRMSE).}
-\item{nnpd.1cmpt.list}{The full output list from the \code{Fit_1cmpt_oral} function.}
+A list containing the fitted parameter estimates and prediction error
+metrics.
 }
 \description{
-Perform parameter estimation with naive pooled data approach analysis for a one-compartment oral model, and evaluate the model fitting performance by the absolute prediction error (APE) and mean absolute prediction error (MAPE).
+Fits a one-compartment oral pharmacokinetic model using a naive pooled data
+approach and evaluates model performance based on prediction error metrics.
 }
 \details{
-This function fits the one-compartment oral model to the given dataset using
-the specified estimation methods. It excludes rows where \code{EVID == 2}.
-After fitting the model, the function returns the estimated CL and Vd
-along with the metrics to assess model fit.
+Rows with \code{EVID == 2} are excluded before model fitting. The model is fitted
+using \code{Fit_1cmpt_oral}, and prediction-based metrics are calculated to assess
+performance.
 }
 \examples{
 \dontrun{
-# Example usage:
-result <- run_npd_1cmpt_oral(dat = Oral_1CPT,input.ka=1,input.cl=4,input.vd=70)
+run_npd_1cmpt_oral(dat = Oral_1CPT, input.ka = 1, input.cl = 4, input.vd = 70)
 }
 
+}
+\seealso{
+\code{\link{Fit_1cmpt_oral}}
 }

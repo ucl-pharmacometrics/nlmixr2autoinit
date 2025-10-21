@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_single_point_extra.R
 \name{run_single_point}
 \alias{run_single_point}
-\title{Run full adaptive single-point PK analysis (CL, Vd, ka)}
+\title{Run full adaptive single-point PK analysis}
 \usage{
 run_single_point(
   dat,
@@ -40,9 +40,8 @@ in single-point logic.}
 An object of class "single.point.lst" with results from the base and extended steps.
 }
 \description{
-Runs the base and extended single-point pharmacokinetic calculations to estimate
-clearance (CL), volume of distribution (Vd), and, when applicable, the absorption
-rate constant (ka).
+Runs full adaptive single-point pharmacokinetic analysis to estimate CL, Vd,
+and ka across bolus, oral, and infusion dosing scenarios.
 }
 \examples{
 # Example: Adaptive single-point PK analysis for bolus data

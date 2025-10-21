@@ -43,8 +43,7 @@ of outliers
 }
 }
 \description{
-Calculates drug clearance (CL) from steady-state pharmacokinetic data using
-an adaptive single-point approach.
+Calculates clearance using an adaptive single-point pharmacokinetic approach
 }
 \details{
 Estimates individual and population clearance from steady-state

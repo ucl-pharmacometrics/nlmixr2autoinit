@@ -71,7 +71,7 @@ sim_sens_3cmpt(
 A data frame containing parameter combinations with model fit metrics.
 }
 \description{
-Performs sensitivity analysis by varying pharmacokinetic parameters in a
+Performs parameter sweeping by varying pharmacokinetic parameters in a
 three-compartment model under IV or oral dosing. Parameter combinations
 include Vc, Vp1, Vp2, Q1, Q2, CL, and Ka (oral only).
 }
@@ -97,6 +97,9 @@ out <- sim_sens_3cmpt(
 head(out[out$rRMSE2==min(out$rRMSE2),])
 }
 
+}
+\seealso{
+\code{\link{Fit_3cmpt_iv}}, \code{\link{Fit_3cmpt_oral}}
 }
 \author{
 Zhonghui Huang

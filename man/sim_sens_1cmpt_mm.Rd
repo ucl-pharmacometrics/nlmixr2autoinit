@@ -14,7 +14,8 @@ sim_sens_1cmpt_mm(
 )
 }
 \arguments{
-\item{dat}{Pharmacokinetic dataset.}
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
 
 \item{sim_vmax}{List specifying Vmax:
 \itemize{
@@ -47,7 +48,7 @@ sim_sens_1cmpt_mm(
 A data frame containing parameter combinations and model fit metrics.
 }
 \description{
-Performs sensitivity analysis by varying pharmacokinetic parameters in a
+Performs parameter sweeping by varying pharmacokinetic parameters in a
 one-compartment model with Michaelis-Menten elimination.
 }
 \details{
@@ -70,6 +71,9 @@ out <- sim_sens_1cmpt_mm(
 head(out[out$rRMSE2==min(out$rRMSE2),])
 }
 
+}
+\seealso{
+\code{\link{fit_1cmpt_mm}}
 }
 \author{
 Zhonghui Huang

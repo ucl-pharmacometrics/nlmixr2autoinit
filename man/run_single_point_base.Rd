@@ -45,9 +45,8 @@ distribution, and run time information
 }
 }
 \description{
-Calculates clearance and volume of distribution from pharmacokinetic data
-using adaptive single-point methods. Half-life is estimated automatically
-if not provided.
+Implements adaptive single-point pharmacokinetic analysis to calculate
+clearance and volume of distribution.
 }
 \details{
 This function integrates clearance and volume estimation into a unified

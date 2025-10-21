@@ -1,9 +1,10 @@
 #' Parameter sweeping for a one-compartment Michaelis-Menten model
 #'
-#' Performs sensitivity analysis by varying pharmacokinetic parameters in a
+#' Performs parameter sweeping by varying pharmacokinetic parameters in a
 #' one-compartment model with Michaelis-Menten elimination.
 #'
-#' @param dat Pharmacokinetic dataset.
+#' @param dat A data frame containing raw time–concentration data in the
+#'   standard nlmixr2 format.
 #' @param sim_vmax List specifying Vmax:
 #'   - mode: "manual" or "auto"
 #'   - values: numeric vector if mode = "manual"
@@ -30,6 +31,8 @@
 #'
 #' @author Zhonghui Huang
 #'
+#' @seealso \code{\link{fit_1cmpt_mm}}
+
 #' @examples
 #' \dontrun{
 #' # Example: IV dosing scenario with automatic Vmax and Km
@@ -248,7 +251,7 @@ sim_sens_1cmpt_mm <- function(dat,
 
 #' Parameter sweeping for a two-compartment pharmacokinetic model
 #'
-#' Performs sensitivity analysis by varying pharmacokinetic parameters in a
+#' Performs parameter sweeping by varying pharmacokinetic parameters in a
 #' two-compartment model under IV or oral dosing. Model fit is evaluated across
 #' combinations of CL, Vc, Vp, Q, and Ka (oral only).
 #'
@@ -280,6 +283,8 @@ sim_sens_1cmpt_mm <- function(dat,
 #'
 #' @author Zhonghui Huang
 #'
+#' @seealso \code{\link{Fit_2cmpt_iv}}, \code{\link{Fit_2cmpt_oral}}
+
 #' @examples
 #' \dontrun{
 #' out <- sim_sens_2cmpt(
@@ -525,7 +530,7 @@ sim_sens_2cmpt <- function(dat,
 
 #' Parameter sweeping for a three-compartment pharmacokinetic model
 #'
-#' Performs sensitivity analysis by varying pharmacokinetic parameters in a
+#' Performs parameter sweeping by varying pharmacokinetic parameters in a
 #' three-compartment model under IV or oral dosing. Parameter combinations
 #' include Vc, Vp1, Vp2, Q1, Q2, CL, and Ka (oral only).
 #'
@@ -566,6 +571,8 @@ sim_sens_2cmpt <- function(dat,
 #'
 #' @author Zhonghui Huang
 #'
+#' @seealso \code{\link{Fit_3cmpt_iv}}, \code{\link{Fit_3cmpt_oral}}
+
 #' @examples
 #' \dontrun{
 #' out <- sim_sens_3cmpt(

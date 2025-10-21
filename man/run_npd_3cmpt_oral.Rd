@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_modelfit.R
 \name{run_npd_3cmpt_oral}
 \alias{run_npd_3cmpt_oral}
-\title{Run and evaluate three-compartment oral model}
+\title{Run and evaluate a three-compartment oral model}
 \usage{
 run_npd_3cmpt_oral(
   dat,
@@ -18,59 +18,53 @@ run_npd_3cmpt_oral(
 )
 }
 \arguments{
-\item{dat}{A data frame containing intravenous pharmacokinetic data. It should include
-columns such as \code{ID}, \code{EVID}, \code{DV}, \code{dose}, and \code{AMT} and other necessary variables.}
+\item{dat}{A data frame containing pharmacokinetic data in the standard
+nlmixr2 format, including required columns such as \code{ID}, \code{EVID}, \code{DV}, and
+\code{dose}.}
 
-\item{est.method}{The estimation method in nlmixr2 to use (e.g., "nls", "nlm", focei"...). The default value is "nls".}
+\item{est.method}{Estimation method used in nlmixr2. Defaults to "nls".}
 
-\item{input.ka}{A numeric value for the initial estimate of absorption rate constant. Default is exp(1).}
+\item{input.ka}{Initial estimate for the absorption rate constant (Ka).
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.cl}{A numeric value for the initial estimate of clearance (CL). Default is exp(1).}
+\item{input.cl}{Initial estimate for clearance (CL). Defaults to exp(1),
+corresponding to a log-scale value of 1.}
 
-\item{input.vc3cmpt}{A numeric value for the initial estimate of the volume of distribution in the central compartment (Vc). Default is exp(1).}
+\item{input.vc3cmpt}{Initial estimate for central volume of distribution (Vc).
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.vp3cmpt}{A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is exp(1).}
+\item{input.vp3cmpt}{Initial estimate for first peripheral volume (Vp1).
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.vp23cmpt}{A numeric value for the initial estimate of the volume of distribution in the peripheral compartment (Vp). Default is exp(1).}
+\item{input.vp23cmpt}{Initial estimate for second peripheral volume (Vp2).
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.q3cmpt}{A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is exp(1).}
+\item{input.q3cmpt}{Initial estimate for intercompartmental clearance Q1.
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.q23cmpt}{A numeric value for the initial estimate of the intercompartmental clearance (Q). Default is exp(1).}
+\item{input.q23cmpt}{Initial estimate for intercompartmental clearance Q2.
+Defaults to exp(1), corresponding to a log-scale value of 1.}
 
-\item{input.add}{A numeric value for the additive error model. Default is 1.}
+\item{input.add}{Additive error term. Defaults to 1.}
 }
 \value{
-A list containing the following elements:
-\item{npd.3cmpt_results}{A data frame with the estimated CL, Vc, Vp, Q, and
-the time spent during estimation.}
-\item{npd.3cmpt.APE}{The absolute prediction error (APE).}
-\item{npd.3cmpt.MAE}{The mean absolute error (MAE).}
-\item{npd.3cmpt.MAPE}{The mean absolute percentage error (MAPE).}
-\item{npd.3cmpt.RMSE}{The root mean square error (RMSE).}
-\item{npd.3cmpt.rRMSE}{The relative root mean square error (rRMSE).}
-\item{npd.list.3cmpt}{The full output list from the \code{Fit_3cmpt_oral} function.}
+A list containing parameter estimates and prediction error metrics.
 }
 \description{
-Perform parameter estimation with naive pooled data approach analysis for a three-compartment oral model, and evaluate the model fitting performance by the absolute prediction error (APE) and mean absolute prediction error (MAPE).
+Fits a three-compartment oral pharmacokinetic model using a naive pooled data
+approach and evaluates model performance using prediction error metrics.
 }
 \details{
-This function fits the three-compartment oral model to the given dataset using
-the specified estimation method. It excludes rows where \code{EVID == 2}
-After fitting the model, the function returns the estimated CL, Vc, Vp, Vp2, Q
-and Q2 along with metrics to assess model fit.
+Rows with \code{EVID == 2} are excluded prior to model fitting. The model is
+fitted using \code{Fit_3cmpt_oral}, and prediction-based metrics are calculated to
+assess model performance.
 }
 \examples{
 \dontrun{
-# Example usage:
-result <- run_npd_3cmpt_oral(dat = Oral_2CPT,
-                           input.ka = 1,
-                           input.cl = 4,
-                           input.vc3cmpt = 10,
-                           input.vp3cmpt = 10,
-                           input.vp23cmpt = 10,
-                           input.q3cmpt = 4,
-                           input.q23cmpt = 4
-                           )
+result <- run_npd_3cmpt_oral(dat = Oral_3CPT)
 }
 
+}
+\seealso{
+\code{\link{Fit_3cmpt_oral}}
 }

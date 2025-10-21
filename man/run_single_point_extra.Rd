@@ -56,9 +56,7 @@ concentration (Cmax) and dose when needed.
 }
 }
 \description{
-Extends the base single-point pharmacokinetic calculations by incorporating
-additional logic to derive clearance (CL), volume of distribution (Vd), and absorption rate
-constant (ka) based on availability of pharmacokinetic data.
+Extended single-point pharmacokinetic analysis for deriving CL, Vd, and ka
 }
 \details{
 The function derives pharmacokinetic parameters using the following logic:

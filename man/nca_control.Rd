@@ -18,15 +18,20 @@ nca_control(
 \item \code{"linear_up_log_down"} - Linear-up / log-down rule
 }}
 
-\item{duration}{Numeric. Optional. Duration of the observation window (same units as time).
-Used to restrict the integration or define the evaluation range.}
+\item{duration}{Numeric. Optional. Duration of the observation window (same
+units as time). Used to restrict the integration or define the evaluation
+range.}
 
-\item{nlastpoints}{Integer. Number of terminal points for half-life regression (default = 3).}
+\item{nlastpoints}{Integer. Number of terminal points for half-life
+regression (default = 3).}
 
-\item{slope.method}{Character. Method for estimating the terminal slope (lambdaz):
+\item{slope.method}{Character. Method for estimating the terminal slope
+(lambdaz):
 \itemize{
-\item \code{"bestfitforce"} - Force estimation using decreasing number of terminal points if best-fit fails (default)
-\item \code{"bestfit"} - Use automated best-fit selection based on adjusted R-squared
+\item \code{"bestfitforce"} - Force estimation using decreasing number of
+terminal points if best-fit fails (default)
+\item \code{"bestfit"} - Use automated best-fit selection based on adjusted
+R-squared
 }}
 }
 \value{

@@ -1,7 +1,6 @@
 #' Calculate clearance using adaptive single-point method
 #'
-#' Calculates drug clearance (CL) from steady-state pharmacokinetic data using
-#' an adaptive single-point approach.
+#' Calculates clearance using an adaptive single-point pharmacokinetic approach
 #'
 #' @param dat A data frame containing pharmacokinetic data.
 #'   Required columns typically include ID, TIME, DV, tad, recent_ii,
@@ -252,11 +251,9 @@ calculate_cl <- function(dat,
 
 
 
-#' Estimate volume of distribution from concentration data
+#' Calculates volume of distribution from concentration data
 #'
-#' Calculates the apparent volume of distribution (Vd) for intravenous
-#' bolus or infusion routes using an adaptive single-point method. If the
-#' half-life is not provided, it is estimated from pooled data.
+#' Calculates the volume of distribution using an adaptive single-point approach
 #'
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.
@@ -429,9 +426,8 @@ calculate_vd <- function(dat,
 
 #' Run adaptive single-point pharmacokinetic analysis
 #'
-#' Calculates clearance and volume of distribution from pharmacokinetic data
-#' using adaptive single-point methods. Half-life is estimated automatically
-#' if not provided.
+#' Implements adaptive single-point pharmacokinetic analysis to calculate
+#' clearance and volume of distribution.
 #'
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.
@@ -537,10 +533,9 @@ run_single_point_base <- function(dat,
   ))
 }
 
-#' Calculate the trimmed geometric mean
+#' Computes the trimmed geometric mean
 #'
-#' Computes the geometric mean of a numeric vector after removing a specified
-#' proportion of the smallest and largest values.
+#' Computes the trimmed geometric mean of a numeric vector
 #'
 #' @param x A numeric vector containing the values for geometric mean
 #'   calculation.

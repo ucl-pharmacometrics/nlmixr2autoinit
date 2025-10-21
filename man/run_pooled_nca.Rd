@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_pooled_nca.R
 \name{run_pooled_nca}
 \alias{run_pooled_nca}
-\title{Perform non-compartmental analysis on pooled pharmacokinetic data}
+\title{Performs non-compartmental analysis on pooled data}
 \usage{
 run_pooled_nca(
   dat,
@@ -14,103 +14,46 @@ run_pooled_nca(
 )
 }
 \arguments{
-\item{dat}{A data frame containing pharmacokinetic data. Required columns depend on
-the specified \code{dose_type} (see Details).}
+\item{dat}{A data frame containing raw time–concentration data in the
+standard nlmixr2 format.}
 
-\item{route}{Character string indicating the administration route.
-One of \code{"bolus"}, \code{"oral"}, or \code{"infusion"}.}
+\item{route}{Administration route: "bolus", "oral", or "infusion".}
 
-\item{dose_type}{Type of analysis to perform. One of:
-\itemize{
-\item{\code{"first_dose"}}: First-dose analysis (default)
-\item{\code{"repeated_doses"}}: Analysis of doses beyond the first (e.g., steady-state)
-\item{\code{"combined_doses"}}: Analysis combining first and repeated doses
-}}
+\item{dose_type}{Classified as first_dose, repeated_doses, or combined_doses
+based on whether observed concentrations occur following the first
+administration, during repeated dosing, or across both contexts.}
 
-\item{pooled}{(Optional) A precomputed pooled data list as returned by \code{\link{get_pooled_data}}.
-This must be a list that may contain one or more of the following named elements:
-\describe{
-\item{\code{datpooled_fd}}{Binned data for first-dose analysis (output of \code{bin.time})}
-\item{\code{datpooled_efd}}{Binned data for repeated-dose analysis}
-\item{\code{datpooled_all}}{Binned data combining first and repeated doses}
-}
-If not supplied, the function will compute pooled data automatically.}
+\item{pooled}{Optional pre-pooled data returned by \code{get_pooled_data}.}
 
-\item{pooled_ctrl}{A list of control options created by \code{\link{pooled_control}}.
-Controls time binning and data preprocessing during pooled analysis.
-\describe{
-\item{nbins}{Number of bins to use when binning data.}
-\item{bin_method}{Method used for time binning. One of:
-\code{"quantile"}, \code{"jenks"}, \code{"kmeans"}, \code{"pretty"}, \code{"sd"}, \code{"equal"}, or \code{"density"}.}
-\item{tad_rounding}{Logical. If TRUE (default), both \code{tad} and the most common dosing interval
-are rounded to the nearest whole unit before comparing. This allows for
-small deviations (e.g., a \code{tad} of 24.3 is treated as within a 24-unit interval).}
-}}
+\item{pooled_ctrl}{Optional list of control parameters used by \code{get_pooled_data()}
+for pooling observations. Defaults to output from \code{pooled_control()}.}
 
-\item{nca_ctrl}{A list of NCA control settings created by \code{\link{nca_control}}.
-Controls numerical integration, slope estimation, and regression point selection for NCA.
-\describe{
-\item{\code{trapezoidal_rule}}{Specifies the trapezoidal integration method:
-\code{"linear"} or \code{"linear_up_log_down"} (default).}
-\item{\code{nlastpoints}}{Number of terminal points used in half-life regression (default = 3).}
-\item{\code{slope.method}}{Method for estimating terminal slope (\eqn{\lambda_z}): \code{"bestfit"} or
-\code{"bestfitforce"} (default).}
-}}
+\item{nca_ctrl}{List of options created by \code{nca_control} for NCA settings.}
 }
 \value{
-A named list containing:
-\itemize{
-\item{\code{nca.fd.results}}: NCA results for first-dose data (if applicable)
-\item{\code{nca.efd.results}}: NCA results for repeated doses (if applicable)
-\item{\code{nca.all.results}}: NCA results for combined first and repeated doses (if applicable)
-}
-Any result not relevant to the \code{dose_type} will return \code{NA}.
+A list containing NCA results according to the selected dose_type.
 }
 \description{
-Performs non-compartmental analysis (NCA) on pooled pharmacokinetic data
-under single-dose, multiple-dose, or combined dosing conditions.
+Implements pooled concentration–time profiling followed by non-compartmental
+analysis (NCA) to derive pharmacokinetic parameters across single-dose, multiple-dose,
+or combined dosing scenarios under bolus, oral, or infusion routes.
 }
 \details{
-This function supports flexible NCA workflows where pooled data can either be computed
-internally using \code{\link{get_pooled_data}}, or supplied externally (e.g., reused across calls).
-Required columns in \code{dat} are automatically checked within \code{get_pooled_data}.
-
-For infusion analyses (\code{route = "infusion"}), the representative infusion duration is determined
-based on observation records (\code{EVID == 0}). Each sampling time point is associated with a corresponding
-infusion duration, recorded in the \code{durationobs} column. This value reflects the infusion responsible
-for the observed concentration at that time. When estimating a pooled duration (e.g., for lambda-z estimation),
-the most commonly used value in \code{durationobs} is selected to ensure consistency with the analyzed profile.
+The function first pools individual subject data into representative
+concentration–time profiles using \code{get_pooled_data} based on the settings in
+\code{pooled_ctrl}. The pooled profiles are then passed to \code{getnca}, which computes
+non-compartmental parameters using rules specified in \code{nca_ctrl}.
 }
 \examples{
-\dontrun{
+out   <- processData(Bolus_1CPT)
+dat   <- out$dat
+route <- out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
 
-# Example 1: Pre-pooling externally using get_pooled_data()
-dat <- Bolus_1CPT[Bolus_1CPT$SD == 1, ]
-out <- processData(dat)
-fdat<- out$dat
-froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-pooled <- get_pooled_data(fdat, dose_type = "first_dose")
-run_pooled_nca(dat, dose_type = "first_dose", route=froute, pooled = pooled)
-
-# Example 2: Automatic pooling within run_pooled_nca()
-dat <- Bolus_1CPT
-out <- processData(dat)
-fdat<- out$dat
-froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-pooled <- get_pooled_data(dat, dose_type = "first_dose")
-run_pooled_nca(fdat, dose_type = "combined_doses", route=froute)
-
-
-# Example 3: Infusion case
-dat <- Infusion_1CPT
-out <- processData(dat)
-fdat<- out$dat
-froute <-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Route"]
-fdosetype<-out$Datainfo$Value[out$Datainfo$Infometrics == "Dose Type"]
-pooled <- get_pooled_data(fdat, dose_type = fdosetype)
-run_pooled_nca(fdat, dose_type = fdosetype, route=froute)
-
-}
+run_pooled_nca(
+  dat       = dat,
+  dose_type = "first_dose",
+  route     = route
+)$nca.fd.results
 
 }
 \seealso{

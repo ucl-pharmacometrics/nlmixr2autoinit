@@ -1,8 +1,6 @@
 #' Perform extended single-point pharmacokinetic calculations
 #'
-#' Extends the base single-point pharmacokinetic calculations by incorporating
-#' additional logic to derive clearance (CL), volume of distribution (Vd), and absorption rate
-#' constant (ka) based on availability of pharmacokinetic data.
+#' Extended single-point pharmacokinetic analysis for deriving CL, Vd, and ka
 #
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.
@@ -242,11 +240,10 @@ run_single_point_extra <- function(dat = NULL,
 
 
 
-#' Run full adaptive single-point PK analysis (CL, Vd, ka)
+#' Run full adaptive single-point PK analysis
 #'
-#' Runs the base and extended single-point pharmacokinetic calculations to estimate
-#' clearance (CL), volume of distribution (Vd), and, when applicable, the absorption
-#' rate constant (ka).
+#' Runs full adaptive single-point pharmacokinetic analysis to estimate CL, Vd,
+#' and ka across bolus, oral, and infusion dosing scenarios.
 #'
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.

@@ -54,7 +54,7 @@ sim_sens_2cmpt(
 A data frame containing parameter combinations with model fit metrics.
 }
 \description{
-Performs sensitivity analysis by varying pharmacokinetic parameters in a
+Performs parameter sweeping by varying pharmacokinetic parameters in a
 two-compartment model under IV or oral dosing. Model fit is evaluated across
 combinations of CL, Vc, Vp, Q, and Ka (oral only).
 }
@@ -78,6 +78,9 @@ out <- sim_sens_2cmpt(
 head(out[out$rRMSE2==min(out$rRMSE2),])
 }
 
+}
+\seealso{
+\code{\link{Fit_2cmpt_iv}}, \code{\link{Fit_2cmpt_oral}}
 }
 \author{
 Zhonghui Huang
