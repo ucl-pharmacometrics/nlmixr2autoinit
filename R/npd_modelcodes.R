@@ -21,9 +21,8 @@
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
 #'
 #' @import nlmixr2data
-#' @importFrom nlmixr2 nlmixr2
 #' @importFrom rxode2 rxControl
-#' @importFrom nlmixr2est foceiControl nlsControl nlmControl nlminbControl
+#' @importFrom nlmixr2est nlmixr2 foceiControl nlsControl nlmControl nlminbControl
 #'
 #' @author Zhonghui Huang
 #'
