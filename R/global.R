@@ -113,4 +113,7 @@ if (getRversion() >= "3.5.0") {
 
   # ------------------------ Fit function  -----------------------
   utils::globalVariables(c("/", "/<-", "dt", "centre", "depot", "A1", "A2", "A3"))
+
+  # ------------------------ Model  -----------------------
+  utils::globalVariables(c("ini", "model"))
 }
