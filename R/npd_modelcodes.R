@@ -20,6 +20,7 @@
 #'   with a single column \code{cp} (predicted concentrations).
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
 #'
+#' @import nlmixr2
 #' @import nlmixr2data
 #' @importFrom rxode2 rxControl
 #' @importFrom nlmixr2est nlmixr2 foceiControl nlsControl nlmControl nlminbControl
