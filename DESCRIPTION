@@ -8,12 +8,12 @@ Authors@R: c(person("Zhonghui","Huang", role = c("aut", "cre"), email = "huangzh
    person("Frank", "Kloprogge", role = "ctb", email = "f.kloprogge@ucl.ac.uk"))
 Description: Provides automated methods for generating initial parameter estimates 
     in population pharmacokinetic modeling. The pipeline integrates adaptive single-point 
-    methods, naive pooled graphic methods, non-compartmental analysis (NCA), and parameter 
-    sweeping across pharmacokinetic models. It estimates residual unexplained variability (RUV) 
-    using data-driven or fixed-fraction approaches and assigns pragmatic initial values for 
-    inter-individual variability (IIV). These strategies improve robustness and convergence 
-    in nlmixr2 workflows. Methodology described in Huang et al. (2025) 
-    <https://doi.org/10.21203/rs.3.rs-5806446/v1>.
+    methods, naive pooled graphic approaches, noncompartmental analysis methods, and parameter 
+    sweeping across pharmacokinetic models. It estimates residual unexplained variability 
+    using either data-driven or fixed-fraction approaches and assigns pragmatic initial values 
+    for inter-individual variability. These strategies are designed to improve model 
+    robustness and convergence in nlmixr2 workflows. Methodology is available at 
+    <doi:10.21203/rs.3.rs-5806446/v1>.
 License: GPL (>= 3)
 URL: https://github.com/ucl-pharmacometrics/nlmixr2autoinit
 BugReports: https://github.com/ucl-pharmacometrics/nlmixr2autoinit/issues
