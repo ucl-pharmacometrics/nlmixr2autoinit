@@ -12,7 +12,8 @@ Description: Provides automated methods for generating initial parameter estimat
     sweeping across pharmacokinetic models. It estimates residual unexplained variability 
     using either data-driven or fixed-fraction approaches and assigns pragmatic initial values 
     for inter-individual variability. These strategies are designed to improve model 
-    robustness and convergence in 'nlmixr2' workflows. Methodology is available at 
+    robustness and convergence in 'nlmixr2' workflows. For more details see 
+    Huang Z, Fidler M, Lan M, Cheng IL, Kloprogge F, Standing JF (2025) 
     <doi:10.21203/rs.3.rs-5806446/v1>.
 License: GPL (>= 3)
 URL: https://github.com/ucl-pharmacometrics/nlmixr2autoinit
