@@ -20,6 +20,12 @@
 #'   - values: numeric vector
 #' @param route Dosing route, either "iv" or "oral". Default is "iv".
 #'
+#' @param verbose Logical (default = TRUE).
+#'   Controls whether progress information is displayed during parameter sweeping.
+#'   When TRUE, a dynamic progress bar is shown using the `progressr` package to
+#'   indicate simulation status and elapsed time.
+#'   When FALSE, progress output is suppressed and the function runs silently.
+
 #'
 #' @details
 #' The function generates a parameter grid and performs model fitting for each
@@ -287,6 +293,12 @@ sim_sens_1cmpt_mm <- function(dat,
 #'   - mode: "manual" or "auto"
 #'   - values: numeric vector if manual
 #' @param route Dosing route, either "iv" or "oral". Default is "iv".
+#'
+#' @param verbose Logical (default = TRUE).
+#'   Controls whether progress information is displayed during parameter sweeping.
+#'   When TRUE, a dynamic progress bar is shown using the `progressr` package to
+#'   indicate simulation status and elapsed time.
+#'   When FALSE, progress output is suppressed and the function runs silently.
 #'
 #' @return A data frame containing parameter combinations with model fit metrics.
 #'
@@ -577,6 +589,12 @@ sim_sens_2cmpt <- function(dat,
 #'   - mode: must be "manual"
 #'   - values: numeric vector
 #' @param route Dosing route, either "iv" or "oral". Default is "iv".
+#'
+#' @param verbose Logical (default = TRUE).
+#'   Controls whether progress information is displayed during parameter sweeping.
+#'   When TRUE, a dynamic progress bar is shown using the `progressr` package to
+#'   indicate simulation status and elapsed time.
+#'   When FALSE, progress output is suppressed and the function runs silently.
 #'
 #' @return A data frame containing parameter combinations with model fit metrics.
 #'

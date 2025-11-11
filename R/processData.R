@@ -6,7 +6,6 @@
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format. The following columns are required (case-insensitive)
 #'   and must be present:
-#'
 #'   \describe{
 #'     \item{ID}{Subject identifier (required)}
 #'     \item{TIME}{Nominal or actual time after dose (required)}
@@ -23,6 +22,11 @@
 #'     \item{CENS}{Censoring indicator (optional)}
 #'   }
 #'
+#' @param verbose Logical (default = TRUE).
+#'   When TRUE, the function prints detailed processing messages and summary
+#'   tables to the console, including notes on data cleaning and event handling.
+#'   When FALSE, these messages are suppressed and only the returned list is produced.
+
 #' @return
 #' A list with two elements:
 #' \itemize{
