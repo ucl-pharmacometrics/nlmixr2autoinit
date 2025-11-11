@@ -111,6 +111,8 @@
 
 processData<-function(dat,verbose = TRUE){
 
+  `%>%` <- magrittr::`%>%`
+
   # ---- Defensive checks ----#
   if (missing(dat) || is.null(dat)) {
     stop("Argument 'dat' is missing or NULL. Please provide a valid data frame.")

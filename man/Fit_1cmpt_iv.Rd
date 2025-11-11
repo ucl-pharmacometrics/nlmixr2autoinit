@@ -45,7 +45,6 @@ only predicted concentrations to support efficient simulation workflows.
 }
 \examples{
 dat <- Bolus_1CPT
-
 # Fit using 'nls' with default control
 Fit_1cmpt_iv(
   data = dat,
@@ -54,7 +53,6 @@ Fit_1cmpt_iv(
   input.vd = 70,
   input.add = 1
 )
-
 # Return only predicted concentrations
 Fit_1cmpt_iv(
  data = dat,

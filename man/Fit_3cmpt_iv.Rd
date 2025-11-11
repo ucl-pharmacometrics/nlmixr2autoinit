@@ -61,15 +61,15 @@ dat <- Bolus_2CPT
 # Fit using 'focei' with custom control
 Fit_3cmpt_iv(
   data = dat,
-  est.method = "focei",
+  est.method = "nls",
   input.cl = 4,
   input.vc3cmpt = 70,
   input.vp3cmpt = 35,
-  input.vp23cmpt = 35,
+  input.vp23cmpt = 5,
   input.q3cmpt = 4,
   input.q23cmpt = 4,
   input.add = 10,
-  control = foceiControl(rxControl = rxControl(maxSS = 200))
+  control = nlsControl(rxControl = rxControl(maxSS = 200))
 )
 # Return only predicted concentrations
 Fit_3cmpt_iv(

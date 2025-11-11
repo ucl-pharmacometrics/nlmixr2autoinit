@@ -48,7 +48,6 @@ returns only predicted concentrations to reduce memory use in simulation workflo
 }
 \examples{
 dat <- Bolus_1CPTMM
-
 # Fit using 'focei' with custom rxControl settings
 Fit_1cmpt_mm_iv(
   data = dat,

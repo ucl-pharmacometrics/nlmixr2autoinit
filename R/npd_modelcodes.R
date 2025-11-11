@@ -29,7 +29,6 @@
 #'
 #' @examples
 #' dat <- Bolus_1CPT
-#'
 #' # Fit using 'nls' with default control
 #' Fit_1cmpt_iv(
 #'   data = dat,
@@ -38,7 +37,6 @@
 #'   input.vd = 70,
 #'   input.add = 1
 #' )
-#'
 #' # Return only predicted concentrations
 #' Fit_1cmpt_iv(
 #'  data = dat,
@@ -74,7 +72,7 @@ Fit_1cmpt_iv <- function(data,
     })
   }
 
-  model_fun <- iv(input.cl, input.vd, input.add)
+  model_fun <- nlmixr2est::nlmixr2(iv(input.cl, input.vd, input.add))
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -149,7 +147,6 @@ Fit_1cmpt_iv <- function(data,
 #'
 #' @examples
 #' dat <- Bolus_1CPTMM
-#'
 #' # Fit using 'focei' with custom rxControl settings
 #' Fit_1cmpt_mm_iv(
 #'   data = dat,
@@ -190,7 +187,7 @@ Fit_1cmpt_mm_iv <- function(data,
     })
   }
 
-  model_fun <-iv.mm(input.vmax,input.km,input.vd,input.add)
+  model_fun <-nlmixr2est::nlmixr2(iv.mm(input.vmax,input.km,input.vd,input.add))
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -314,7 +311,7 @@ Fit_2cmpt_iv <- function(data,
     })
   }
 
-  model_fun <- iv2(input.cl,input.vc2cmpt, input.vp2cmpt, input.q2cmpt, input.add)
+  model_fun <- nlmixr2est::nlmixr2(iv2(input.cl,input.vc2cmpt, input.vp2cmpt, input.q2cmpt, input.add))
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -395,17 +392,16 @@ Fit_2cmpt_iv <- function(data,
 #' # Fit using 'focei' with custom control
 #' Fit_3cmpt_iv(
 #'   data = dat,
-#'   est.method = "focei",
+#'   est.method = "nls",
 #'   input.cl = 4,
 #'   input.vc3cmpt = 70,
 #'   input.vp3cmpt = 35,
-#'   input.vp23cmpt = 35,
+#'   input.vp23cmpt = 5,
 #'   input.q3cmpt = 4,
 #'   input.q23cmpt = 4,
 #'   input.add = 10,
-#'   control = foceiControl(rxControl = rxControl(maxSS = 200))
+#'   control = nlsControl(rxControl = rxControl(maxSS = 200))
 #' )
-
 #' # Return only predicted concentrations
 #' Fit_3cmpt_iv(
 #'   data = dat,
@@ -467,8 +463,8 @@ Fit_3cmpt_iv <- function(data,
     })
   }
 
-  model_fun <- iv3(input.cl,  input.vc3cmpt,  input.vp3cmpt, input.vp23cmpt,
-                   input.q3cmpt, input.q23cmpt, input.add)
+  model_fun <- nlmixr2est::nlmixr2(iv3(input.cl,  input.vc3cmpt,  input.vp3cmpt, input.vp23cmpt,
+                   input.q3cmpt, input.q23cmpt, input.add))
 
   dot_args <- list(...)
   user_control <- "control" %in% names(dot_args)
@@ -537,9 +533,8 @@ Fit_3cmpt_iv <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' dat <- Oral_1CPT
-#'
 #' # Fit using 'nls'
 #' Fit_1cmpt_oral(
 #'   data = dat,
@@ -549,18 +544,6 @@ Fit_3cmpt_iv <- function(data,
 #'   input.vd = 70,
 #'   input.add = 10
 #' )
-#'
-#' # Fit using 'focei' with custom control
-#' Fit_1cmpt_oral(
-#'   data = dat,
-#'   est.method = "focei",
-#'   input.ka = 2,
-#'   input.cl = 4,
-#'   input.vd = 70,
-#'   input.add = 10,
-#'   control = foceiControl(rxControl = rxControl(maxSS = 200))
-#' )
-#'
 #' # Return only predicted concentrations
 #' Fit_1cmpt_oral(
 #'   data = dat,
@@ -605,7 +588,7 @@ Fit_1cmpt_oral <- function(data,
     })
   }
 
-  model_fun <- oral(input.ka, input.cl, input.vd,input.add)
+  model_fun <- nlmixr2est::nlmixr2(oral(input.ka, input.cl, input.vd,input.add))
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -735,7 +718,7 @@ Fit_1cmpt_mm_oral <- function(data,
     })
   }
 
-  model_fun <- oral.mm(input.ka,input.vmax, input.km, input.vd,input.add)
+  model_fun <- nlmixr2est::nlmixr2(oral.mm(input.ka,input.vmax, input.km, input.vd,input.add))
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -878,8 +861,8 @@ Fit_2cmpt_oral <- function(data,
     })
   }
 
-  model_fun <-  oral2(input.ka, input.cl, input.vc2cmpt, input.vp2cmpt,
-                      input.q2cmpt, input.add)
+  model_fun <-  nlmixr2est::nlmixr2(oral2(input.ka, input.cl, input.vc2cmpt, input.vp2cmpt,
+                      input.q2cmpt, input.add))
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -960,16 +943,16 @@ Fit_2cmpt_oral <- function(data,
 #' # Fit using 'focei' with custom control
 #' Fit_3cmpt_oral(
 #'   data = dat,
-#'   est.method = "focei",
+#'   est.method = "nls",
 #'   input.ka = 1,
 #'   input.cl = 4,
 #'   input.vc3cmpt = 70,
 #'   input.vp3cmpt = 35,
-#'   input.vp23cmpt = 35,
+#'   input.vp23cmpt = 4,
 #'   input.q3cmpt = 4,
 #'   input.q23cmpt = 4,
 #'   input.add = 10,
-#'   control = foceiControl(rxControl = rxControl(maxSS = 200))
+#'   control = nlsControl(rxControl = rxControl(maxSS = 200))
 #' )
 #'
 #' # Return only predicted concentrations
@@ -1040,8 +1023,8 @@ Fit_3cmpt_oral <- function(data,
     })
   }
 
-  model_fun <-  oral3(input.ka,input.cl,input.vc3cmpt, input.vp3cmpt,
-                        input.vp23cmpt, input.q3cmpt, input.q23cmpt,input.add)
+  model_fun <-  nlmixr2est::nlmixr2(oral3(input.ka,input.cl,input.vc3cmpt, input.vp3cmpt,
+                        input.vp23cmpt, input.q3cmpt, input.q23cmpt,input.add))
 
   # Parse additional arguments
   dot_args <- list(...)
