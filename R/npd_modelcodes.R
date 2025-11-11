@@ -170,6 +170,7 @@ Fit_1cmpt_iv <- function(data,
 #'   input.vd = 70,
 #'   input.add = 0,
 #'   return.pred.only = TRUE
+#'   )
 #'   }
 #' @export
 
