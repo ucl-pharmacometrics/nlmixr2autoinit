@@ -65,6 +65,7 @@ automatically derived. Model predictions and fit metrics are computed for each
 simulation to assess parameter sensitivity.
 }
 \examples{
+\donttest{
 # Example: IV dosing scenario with automatic Vmax and Km
 out <- sim_sens_1cmpt_mm(
   dat = Bolus_1CPTMM[Bolus_1CPTMM$ID<50,],
@@ -75,7 +76,7 @@ out <- sim_sens_1cmpt_mm(
   route = "iv"
 )
 head(out[out$rRMSE2==min(out$rRMSE2),])
-
+}
 }
 \seealso{
 \code{\link{Fit_1cmpt_mm_iv}}, \code{\link{Fit_1cmpt_mm_oral}}

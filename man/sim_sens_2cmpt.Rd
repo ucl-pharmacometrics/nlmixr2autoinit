@@ -72,6 +72,7 @@ specified manually or automatically derived. Model predictions and fit metrics
 are computed for each simulation to assess parameter sensitivity.
 }
 \examples{
+\donttest{
 out <- sim_sens_2cmpt(
   dat = Bolus_2CPT[Bolus_2CPT$ID<50,],
   sim_cl = list(mode = "manual", values = 4),
@@ -82,7 +83,7 @@ out <- sim_sens_2cmpt(
   route = "iv",verbose=FALSE
 )
 head(out[out$rRMSE2==min(out$rRMSE2),])
-
+}
 }
 \seealso{
 \code{\link{Fit_2cmpt_iv}}, \code{\link{Fit_2cmpt_oral}}

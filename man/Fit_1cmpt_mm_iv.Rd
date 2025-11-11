@@ -47,6 +47,7 @@ Supports multiple estimation methods available in nlmixr2, and optionally
 returns only predicted concentrations to reduce memory use in simulation workflows.
 }
 \examples{
+ \donttest{
 dat <- Bolus_1CPTMM
 # Fit using 'nls'
 Fit_1cmpt_mm_iv(
@@ -56,6 +57,17 @@ Fit_1cmpt_mm_iv(
   input.km = 250,
   input.vd = 70,
   input.add = 10)
+
+# Return only predicted concentrations
+Fit_1cmpt_mm_iv(
+  data = dat,
+  est.method = "rxSolve",
+  input.vmax = 1000,
+  input.km = 250,
+  input.vd = 70,
+  input.add = 0,
+  return.pred.only = TRUE
+  }
 }
 \author{
 Zhonghui Huang

@@ -489,8 +489,9 @@ run_npd_3cmpt_iv <- function(dat,
 #' @author Zhonghui Huang
 #'
 #' @examples
+#' \donttest{
 #' run_npd_1cmpt_oral(dat = Oral_1CPT, input.ka = 1, input.cl = 4, input.vd = 70)
-#'
+#'  }
 #' @seealso \code{\link{Fit_1cmpt_oral}}
 #' @export
 

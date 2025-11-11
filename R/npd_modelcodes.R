@@ -29,6 +29,7 @@
 #' @author Zhonghui Huang
 #'
 #' @examples
+#'  \donttest{
 #' dat <- Bolus_1CPT
 #' # Fit using 'nls' with default control
 #' Fit_1cmpt_iv(
@@ -44,9 +45,10 @@
 #'  est.method = "rxSolve",
 #'  input.cl = 4,
 #'  input.vd = 70,
-#'  input.add = 1,
+#'  input.add = 0,
 #'  return.pred.only = TRUE
 #')
+#'}
 #' @export
 #'
 Fit_1cmpt_iv <- function(data,
@@ -148,6 +150,7 @@ Fit_1cmpt_iv <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
+#'  \donttest{
 #' dat <- Bolus_1CPTMM
 #' # Fit using 'nls'
 #' Fit_1cmpt_mm_iv(
@@ -157,6 +160,17 @@ Fit_1cmpt_iv <- function(data,
 #'   input.km = 250,
 #'   input.vd = 70,
 #'   input.add = 10)
+#'
+#' # Return only predicted concentrations
+#' Fit_1cmpt_mm_iv(
+#'   data = dat,
+#'   est.method = "rxSolve",
+#'   input.vmax = 1000,
+#'   input.km = 250,
+#'   input.vd = 70,
+#'   input.add = 0,
+#'   return.pred.only = TRUE
+#'   }
 #' @export
 
 Fit_1cmpt_mm_iv <- function(data,
@@ -260,6 +274,7 @@ Fit_1cmpt_mm_iv <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
+#'  \donttest{
 #' dat <- Bolus_2CPT
 #' # Fit using 'nls'
 #' Fit_2cmpt_iv(
@@ -271,6 +286,18 @@ Fit_1cmpt_mm_iv <- function(data,
 #'   input.q2cmpt = 4,
 #'   input.add = 10
 #' )
+#' # Return only predicted concentrations
+#' Fit_2cmpt_iv(
+#'   data = dat,
+#'   est.method = "rxSolve",
+#'   input.cl = 4,
+#'   input.vc2cmpt = 70,
+#'   input.vp2cmpt = 40,
+#'   input.q2cmpt = 4,
+#'   input.add = 0,
+#'   return.pred.only = TRUE
+#' )
+#' }
 #'
 #' @export
 #'
@@ -550,7 +577,7 @@ Fit_3cmpt_iv <- function(data,
 #'   input.ka = 1,
 #'   input.cl = 4,
 #'   input.vd = 70,
-#'   input.add = 10,
+#'   input.add = 0,
 #'   return.pred.only = TRUE
 #' )
 #' }
@@ -660,6 +687,7 @@ Fit_1cmpt_oral <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
+#'  \donttest{
 #' dat <- Oral_1CPTMM
 #' # Fit using 'nls'
 #' Fit_1cmpt_mm_oral(
@@ -671,6 +699,17 @@ Fit_1cmpt_oral <- function(data,
 #'   input.vd = 70,
 #'   input.add = 10
 #' )
+#' # Return only predicted concentrations
+#' Fit_1cmpt_mm_oral(
+#'   data = dat,
+#'   est.method = "rxSolve",
+#'   input.ka = 1,
+#'   input.vmax = 1000,
+#'   input.km = 250,
+#'   input.vd = 70,
+#'   input.add = 10
+#' )
+#' }
 #' @export
 
 Fit_1cmpt_mm_oral <- function(data,

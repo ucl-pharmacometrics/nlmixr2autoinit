@@ -40,6 +40,7 @@
 #' @seealso \code{\link{Fit_1cmpt_mm_iv}}, \code{\link{Fit_1cmpt_mm_oral}}
 
 #' @examples
+#' \donttest{
 #' # Example: IV dosing scenario with automatic Vmax and Km
 #' out <- sim_sens_1cmpt_mm(
 #'   dat = Bolus_1CPTMM[Bolus_1CPTMM$ID<50,],
@@ -50,7 +51,7 @@
 #'   route = "iv"
 #' )
 #' head(out[out$rRMSE2==min(out$rRMSE2),])
-#'
+#'}
 #' @export
 
 sim_sens_1cmpt_mm <- function(dat,
@@ -305,6 +306,7 @@ sim_sens_1cmpt_mm <- function(dat,
 #' @seealso \code{\link{Fit_2cmpt_iv}}, \code{\link{Fit_2cmpt_oral}}
 
 #' @examples
+#' \donttest{
 #' out <- sim_sens_2cmpt(
 #'   dat = Bolus_2CPT[Bolus_2CPT$ID<50,],
 #'   sim_cl = list(mode = "manual", values = 4),
@@ -315,7 +317,7 @@ sim_sens_1cmpt_mm <- function(dat,
 #'   route = "iv",verbose=FALSE
 #' )
 #' head(out[out$rRMSE2==min(out$rRMSE2),])
-#'
+#' }
 #' @export
 
 sim_sens_2cmpt <- function(dat,

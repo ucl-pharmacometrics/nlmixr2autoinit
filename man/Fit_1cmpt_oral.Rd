@@ -65,7 +65,7 @@ Fit_1cmpt_oral(
   input.ka = 1,
   input.cl = 4,
   input.vd = 70,
-  input.add = 10,
+  input.add = 0,
   return.pred.only = TRUE
 )
 }

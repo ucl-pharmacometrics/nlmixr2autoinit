@@ -28,8 +28,8 @@ It is the default S3 \code{print} method for objects of class \code{getPPKinits}
 \examples{
 \donttest{
 ## Oral example
-init_oral <- getPPKinits(dat_oral)
-print(init_oral)
+inits.out <- getPPKinits(Bolus_1CPT)
+print(Bolus_1CPT)
 }
 
 }
