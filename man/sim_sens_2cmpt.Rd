@@ -50,6 +50,12 @@ sim_sens_2cmpt(
 }}
 
 \item{route}{Dosing route, either "iv" or "oral". Default is "iv".}
+
+\item{verbose}{Logical (default = TRUE).
+Controls whether progress information is displayed during parameter sweeping.
+When TRUE, a dynamic progress bar is shown using the \code{progressr} package to
+indicate simulation status and elapsed time.
+When FALSE, progress output is suppressed and the function runs silently.}
 }
 \value{
 A data frame containing parameter combinations with model fit metrics.
