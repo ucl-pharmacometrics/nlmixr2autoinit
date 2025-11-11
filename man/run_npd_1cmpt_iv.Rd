@@ -41,8 +41,9 @@ using \code{Fit_1cmpt_iv}, and prediction-based metrics are calculated to assess
 performance.
 }
 \examples{
+\donttest{
 run_npd_1cmpt_iv(dat = Bolus_1CPT, input.cl = 4, input.vd = 70)
-
+}
 }
 \seealso{
 \code{\link{Fit_1cmpt_iv}}
