@@ -34,18 +34,18 @@
 #' @seealso \code{\link{Fit_1cmpt_mm_iv}}, \code{\link{Fit_1cmpt_mm_oral}}
 
 #' @examples
-#' \dontrun{
 #' # Example: IV dosing scenario with automatic Vmax and Km
+#' Sys.time()
 #' out <- sim_sens_1cmpt_mm(
-#'   dat = Bolus_1CPTMM,
+#'   dat = Bolus_1CPTMM[Bolus_1CPTMM$ID<50,],
 #'   sim_vmax = list(mode = "auto", est.cl = 4),
 #'   sim_km   = list(mode = "auto"),
 #'   sim_vd   = list(mode = "manual", values = 70),
 #'   sim_ka   = list(mode = "manual", values = NA),
-#'   route = "iv"
+#'   route = "iv",verbose=FALSE
 #' )
 #' head(out[out$rRMSE2==min(out$rRMSE2),])
-#' }
+#' Sys.time()
 #'
 #' @export
 
@@ -57,7 +57,8 @@ sim_sens_1cmpt_mm <- function(dat,
                                               values = NULL),
                               sim_vd   = list(mode = "manual", values = NULL),
                               sim_ka   = list(mode = "manual", values = NULL),
-                              route = c("iv", "oral")) {
+                              route = c("iv", "oral"),
+                              verbose= TRUE) {
   `%>%` <- magrittr::`%>%`
   route <- tryCatch(
     match.arg(route, choices = c("iv", "oral")),
@@ -140,8 +141,8 @@ sim_sens_1cmpt_mm <- function(dat,
     pop.cmax <- aggregate(dat.obs$DV,
                           list(dat.obs$ID),
                           FUN = max,
-                          na.rm = T)
-    cmax <- mean(pop.cmax$x, trim = 0.05, na.rm = T)
+                          na.rm = TRUE)
+    cmax <- mean(pop.cmax$x, trim = 0.05, na.rm = TRUE)
     km_range <- c(4, 2, 1, 0.5, 0.25, 0.125, 0.1, 0.05) * cmax
     conc_range <- c(0.05, 0.1, 0.25, 0.5, 0.75) * cmax
     combs <-
@@ -189,9 +190,17 @@ sim_sens_1cmpt_mm <- function(dat,
   }
 
   start_time <- Sys.time()
-  progressr::handlers(
-    progressr::handler_progress(format = ":message [:bar] :percent (:current/:total)", width = 80)
-  )
+
+  if (isTRUE(verbose)) {
+    handler.lists <- list(
+      progressr::handler_progress(
+        format = ":message [:bar] :percent (:current/:total)",
+        width = 80
+      )
+    )
+  } else {
+    handler.lists <- list(progressr::handler_void())
+  }
 
   sim.1cmpt.mm.results.all <- progressr::with_progress({
     p <- progressr::progressor(steps = nrow(param_grid))
@@ -224,8 +233,8 @@ sim_sens_1cmpt_mm <- function(dat,
           metrics.(pred.x = sim_out$cp, obs.y = dat[dat$EVID == 0,]$DV)
         elapsed <-
           round(difftime(Sys.time(), start_time, units = "secs"), 2)
-        rm(sim_out)
-        gc()
+        # rm(sim_out)
+        # gc()
 
         tibble::tibble(
           Vmax = Vmax,
@@ -244,7 +253,7 @@ sim_sens_1cmpt_mm <- function(dat,
           Cumulative.Time.Sec = as.numeric(elapsed)
         )
       })
-  })
+  },handlers = handler.lists)
 
   return(sim.1cmpt.mm.results.all)
 }
@@ -286,18 +295,16 @@ sim_sens_1cmpt_mm <- function(dat,
 #' @seealso \code{\link{Fit_2cmpt_iv}}, \code{\link{Fit_2cmpt_oral}}
 
 #' @examples
-#' \dontrun{
 #' out <- sim_sens_2cmpt(
-#'   dat = Bolus_2CPT,
+#'   dat = Bolus_2CPT[Bolus_2CPT$ID<50,],
 #'   sim_cl = list(mode = "manual", values = 4),
 #'   sim_vc = list(mode = "manual", values = 50),
 #'   sim_vp = list(mode = "auto"),
 #'   sim_q  = list(mode = "auto"),
 #'   sim_ka = list(mode = "manual", values = NA),
-#'   route = "iv"
+#'   route = "iv",verbose=FALSE
 #' )
 #' head(out[out$rRMSE2==min(out$rRMSE2),])
-#' }
 #'
 #' @export
 
@@ -311,7 +318,8 @@ sim_sens_2cmpt <- function(dat,
                              values = NULL,
                              auto.strategy = c("scaled", "fixed")
                            ),
-                           route = c("iv", "oral")) {
+                           route = c("iv", "oral"),
+                           verbose=TRUE) {
   `%>%` <- magrittr::`%>%`
 
   # Safe check
@@ -460,11 +468,16 @@ sim_sens_2cmpt <- function(dat,
   # === Begin Simulation ===
   start_time <- Sys.time()
 
-  # Use a custom handler for pretty output in R console
-  progressr::handlers(
-    progressr::handler_progress(format = ":message [:bar] :percent (:current/:total)",
-                                width = 80)
-  )
+  if (isTRUE(verbose)) {
+    handler.lists <- list(
+      progressr::handler_progress(
+        format = ":message [:bar] :percent (:current/:total)",
+        width = 80
+      )
+    )
+  } else {
+    handler.lists <- list(progressr::handler_void())
+  }
 
   sim.2cmpt.results.all <- progressr::with_progress({
     p <- progressr::progressor(steps = nrow(param_grid))
@@ -501,9 +514,7 @@ sim_sens_2cmpt <- function(dat,
         elapsed <-
           round(difftime(Sys.time(), start_time, units = "secs"), 2)
 
-        rm(sim_out)
-        gc()
-
+        # sim_out<-NULL
         tibble::tibble(
           Vc = Vc,
           Vp = Vp,
@@ -522,7 +533,7 @@ sim_sens_2cmpt <- function(dat,
           Cumulative.Time.Sec = as.numeric(elapsed)
         )
       })
-  })
+  },handlers =   handler.lists)
 
   return(sim.2cmpt.results.all)
 }
@@ -574,7 +585,7 @@ sim_sens_2cmpt <- function(dat,
 #' @seealso \code{\link{Fit_3cmpt_iv}}, \code{\link{Fit_3cmpt_oral}}
 
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' out <- sim_sens_3cmpt(
 #'   dat = Bolus_2CPT,
 #'   sim_cl = list(mode = "manual", values = 4),
@@ -583,7 +594,7 @@ sim_sens_2cmpt <- function(dat,
 #'   sim_vp2 = list(mode = "auto"),
 #'   sim_q  = list(mode = "auto", auto.strategy = "scaled"),
 #'   sim_q2 = list(mode = "auto", auto.strategy = "scaled"),
-#'   route = "iv"
+#'   route = "iv",verbose=FALSE
 #' )
 #' head(out[out$rRMSE2==min(out$rRMSE2),])
 #' }
@@ -606,9 +617,8 @@ sim_sens_3cmpt <- function(dat,
                            ),
                            sim_cl = list(mode = "manual", values = NULL),
                            sim_ka = list(mode = "manual", values = NULL),
-                           route = c("iv", "oral")) {
-  `%>%` <- magrittr::`%>%`
-
+                           route = c("iv", "oral"),
+                           verbose=TRUE) {
   # --- Route check ---
   route <- tryCatch(
     match.arg(route, choices = c("iv", "oral")),
@@ -830,9 +840,18 @@ sim_sens_3cmpt <- function(dat,
 
   # --- Simulations ---
   start_time <- Sys.time()
-  progressr::handlers(
-    progressr::handler_progress(format = ":message [:bar] :percent (:current/:total)", width = 80)
-  )
+
+  if (isTRUE(verbose)) {
+    handler.lists <- list(
+      progressr::handler_progress(
+        format = ":message [:bar] :percent (:current/:total)",
+        width = 80
+      )
+    )
+  } else {
+    handler.lists <- list(progressr::handler_void())
+  }
+
   results <- progressr::with_progress({
     p <- progressr::progressor(steps = nrow(param_grid))
     param_grid %>%
@@ -874,7 +893,7 @@ sim_sens_3cmpt <- function(dat,
           Cumulative.Time.Sec = as.numeric(elapsed)
         )
       })
-  })
+  },handlers =  handler.lists)
 
   return(results)
 }

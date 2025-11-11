@@ -83,7 +83,7 @@ identify optimal regions of the parameter space. Parameters can be provided
 manually or derived automatically.
 }
 \examples{
-\dontrun{
+\donttest{
 out <- sim_sens_3cmpt(
   dat = Bolus_2CPT,
   sim_cl = list(mode = "manual", values = 4),

@@ -96,7 +96,7 @@ ka_wanger_nelson <- function(dat,
   }
   dat$frac_abs <-  (dat$DV + ke * dat$auc_accumulate) / (ke * auc_)
 
-  # max_abs_time <- which(dat$frac_abs == max(dat$frac_abs ), arr.ind = T)
+  # max_abs_time <- which(dat$frac_abs == max(dat$frac_abs ), arr.ind = TRUE)
   # dat_absorb_phase <- dat[1:max_abs_time, ]
   # dat_absorb_phase$frac_remained<-1-  dat_absorb_phase$frac_abs
   dat$frac_remained <- 1 -  dat$frac_abs
@@ -438,7 +438,7 @@ run_ka_solution <- function(df,
     data_before_tmax$SSflag == 0
   )) {
     data_before_tmax_sd <- data_before_tmax %>%
-      dplyr::filter(dose_number == 1, EVID == 0, SteadyState == F)
+      dplyr::filter(dose_number == 1, EVID == 0, SteadyState == FALSE)
 
     # Use mapply to compute ka and diagnostic message for each row in single-dose data
     ka_sd_results <- mapply(
@@ -541,7 +541,7 @@ run_ka_solution <- function(df,
     rbind(data_before_tmax_sd, data_before_tmax_md)
 
   ka_calc_median <-
-    suppressWarnings(suppressMessages(median(data_before_tmax$ka_calcv, na.rm = T)))
+    suppressWarnings(suppressMessages(median(data_before_tmax$ka_calcv, na.rm = TRUE)))
 
   if (is.null(ka_calc_median)) {
     ka_calc_median <- NA

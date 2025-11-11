@@ -105,8 +105,19 @@
 #'
 #' @export
 
-processData<-function(dat){
+processData<-function(dat,verbose = TRUE){
 
+  # ---- Defensive checks ----#
+  if (missing(dat) || is.null(dat)) {
+    stop("Argument 'dat' is missing or NULL. Please provide a valid data frame.")
+  }
+
+  if (!is.data.frame(dat)) {
+    stop(sprintf(
+      "Invalid input type for 'dat': expected a data.frame, got %s.",
+      class(dat)[1]
+    ))
+  }
 #-------------- STEP 1: Data Standardization -------------------------#
   # Standardize column names to uppercase
   column_names <- toupper(colnames(dat))
@@ -553,12 +564,14 @@ if (length(evid_messages) > 0) {
   complete_output <- summary_doseinfo_output
 }
 
+# Optional informative message (only when verbose = TRUE)
+if (verbose) {
 # Display the complete output with footnote in the console
 message(crayon::magenta(complete_output))
-
 message(crayon::magenta(paste0(
   "----------------------------------------  ------"
 )))
+}
 
 return(list(dat=dat,Datainfo =summary_doseinfo))
 }

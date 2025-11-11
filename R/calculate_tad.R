@@ -4,6 +4,8 @@
 #'
 #' @param dat A data frame containing raw time–concentration data in the
 #'   standard nlmixr2 format.
+#' @param verbose Logical; if TRUE, prints informational messages during
+#'   processing (e.g., when generating dose numbers). Default is FALSE.
 #'
 #' @return A modified data frame with added columns:
 #'   - tad: time after dose, calculated as the observation time minus the time
@@ -29,7 +31,7 @@
 #'
 #' @export
 #'
-calculate_tad <- function(dat) {
+calculate_tad <- function(dat,verbose=FALSE) {
 
   if ("DOSE" %in% colnames(dat)) {
     if ("raw_dose" %in% colnames(dat)) {
@@ -46,7 +48,7 @@ calculate_tad <- function(dat) {
   }
 
   if (!"dose_number" %in% colnames(dat)) {
-    cat("Calculate dose number...............")
+    if (isTRUE(verbose)) message("Calculating dose number ...")
     dat <- mark_dose_number(dat)
   }
 

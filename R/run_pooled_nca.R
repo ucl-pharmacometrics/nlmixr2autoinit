@@ -90,13 +90,24 @@ run_pooled_nca <- function(dat,
                            route = c("bolus", "oral", "infusion"),
                            dose_type = c("first_dose", "repeated_doses", "combined_doses"),
                            pooled = NULL,
-                           pooled_ctrl=pooled_control(),
-                           nca_ctrl=nca_control()) {
+                           pooled_ctrl = pooled_control(),
+                           nca_ctrl = nca_control()) {
+  # defensive check
+  route <- tryCatch(
+    match.arg(route, choices = c("bolus", "oral", "infusion")),
+    error = function(e) {
+      stop(sprintf(
+        "Invalid `route`: '%s'. Must be one of: %s.",
+        as.character(route),
+        paste(shQuote(c(
+          "bolus", "oral", "infusion"
+        )), collapse = ", ")
+      ),
+      call. = FALSE)
+    }
+  )
 
-  `%>%` <- magrittr::`%>%`
-
-  # --- Check for infusion route and extract most common II from EVID == 1 ---
-  if (!is.null(route) && route == "infusion") {
+  if (route == "infusion") {
     if (!"durationobs" %in% names(dat) || !"EVID" %in% names(dat)) {
       stop(
         "To determine infusion duration, `dat` must contain 'durationobs' and 'EVID' columns.",

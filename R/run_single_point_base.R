@@ -68,7 +68,6 @@ calculate_cl <- function(dat,
                          dose_type = NULL,
                          pooled_ctrl = pooled_control(),
                          ssctrl = ss_control()) {
-  `%>%` <- magrittr::`%>%`
 
   # Estimate half-life if not provided
   if (is.null(half_life)) {
@@ -317,8 +316,6 @@ calculate_vd <- function(dat,
                          pooled_ctrl = pooled_control(),
                          route = c("bolus", "oral", "infusion")) {
 
-  `%>%` <- magrittr::`%>%`
-
   # Estimate half-life if not provided
   if (is.null(half_life)) {
     # Defensive check: dose_type is required when half_life is not provided
@@ -481,7 +478,7 @@ run_single_point_base <- function(dat,
                              dose_type = NULL,
                              pooled_ctrl = pooled_control(),
                              ssctrl = ss_control()) {
-  `%>%` <- magrittr::`%>%`
+
   start.time <- Sys.time()
 
   # Defensive check for route

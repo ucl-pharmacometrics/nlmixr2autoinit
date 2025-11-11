@@ -24,9 +24,7 @@
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
 #' run_npd_1cmpt_iv(dat = Bolus_1CPT, input.cl = 4, input.vd = 70)
-#' }
 #'
 #' @seealso \code{\link{Fit_1cmpt_iv}}
 #' @export
@@ -122,10 +120,9 @@ run_npd_1cmpt_iv <- function(dat,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' run_npd_1cmpt_mm_iv(
 #'   dat = Bolus_1CPT,
-#'   est.method = "focei",
 #'   npdmm_inputcl = 4,
 #'   npdmm_inputvd = 70,
 #'   km_threshold = TRUE
@@ -142,7 +139,7 @@ run_npd_1cmpt_mm_iv <- function(dat,
                                 npdmm_inputcl=exp(1),
                                 npdmm_inputvd=exp(1),
                                 input.add=1,
-                                km_threshold=F) {
+                                km_threshold=FALSE) {
   start.time <- Sys.time()
   estvmax<-npdmm_inputvmax
   estkm<-npdmm_inputkm
@@ -159,15 +156,15 @@ run_npd_1cmpt_mm_iv <- function(dat,
   npd.RMSE <-NA
   npd.rRMSE<-NA
 
-  # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=T
+  # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=TRUE
   # Determine the maximum concentration
   if (km_threshold){
     dat.obs <- dat[dat$EVID == 0, ]
     pop.cmax <- aggregate(dat.obs$DV,
                           list(dat.obs$ID),
                           FUN = max,
-                          na.rm = T)
-    mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
+                          na.rm = TRUE)
+    mean.pop.cmax <- mean(pop.cmax$x, na.rm = TRUE)
     estmaxkm <- mean.pop.cmax * 4 # if km>>4cmax, it nearly fall into the linear range
     estkm<-mean.pop.cmax # initial km starts from cmax
     estvmax <-  estmaxkm * npdmm_inputcl
@@ -241,7 +238,7 @@ run_npd_1cmpt_mm_iv <- function(dat,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' run_npd_2cmpt_iv(dat = Bolus_2CPT,
 #'                            input.cl = 4,
 #'                            input.vc2cmpt = 35,
@@ -365,12 +362,12 @@ run_npd_2cmpt_iv <- function(dat,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' run_npd_3cmpt_iv(
 #'   dat = Bolus_2CPT,
 #'   input.cl = 4,
-#'   input.vc3cmpt = 10,
-#'   input.vp3cmpt = 10,
+#'   input.vc3cmpt = 70,
+#'   input.vp3cmpt = 40,
 #'   input.vp23cmpt = 10,
 #'   input.q3cmpt = 4,
 #'   input.q23cmpt = 4
@@ -492,9 +489,7 @@ run_npd_3cmpt_iv <- function(dat,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
 #' run_npd_1cmpt_oral(dat = Oral_1CPT, input.ka = 1, input.cl = 4, input.vd = 70)
-#' }
 #'
 #' @seealso \code{\link{Fit_1cmpt_oral}}
 #' @export
@@ -606,8 +601,14 @@ run_npd_1cmpt_oral <- function(dat,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
-#' run_npd_1cmpt_mm_oral(dat = Oral_1CPTMM, input.cl = 4, input.vd = 70,est.method="focei")
+#' \donttest{
+#'   run_npd_1cmpt_mm_oral(
+#'     dat = Oral_1CPTMM,
+#'     input.ka = 1,
+#'     input.vmax = 1000,
+#'     input.km = 250,
+#'     input.vd = 70
+#'   )
 #' }
 #'
 #' @seealso \code{\link{Fit_1cmpt_mm_oral}}
@@ -621,7 +622,7 @@ run_npd_1cmpt_mm_oral <- function(dat,
                                   input.cl = exp(1),
                                   input.vd = exp(1),
                                   input.add = 1,
-                                  km_threshold = F) {
+                                  km_threshold = FALSE) {
   start.time <- Sys.time()
   estvmax <- input.vmax
   estkm <- input.km
@@ -642,15 +643,15 @@ run_npd_1cmpt_mm_oral <- function(dat,
   npd.RMSE <- NA
   npd.rRMSE <- NA
 
-  # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=T
+  # Initial estimates of Vmax and Km will be set based on threshold if km_threshold=TRUE
   # Determine the maximum concentration
   if (km_threshold) {
     dat.obs <- dat[dat$EVID == 0,]
     pop.cmax <- aggregate(dat.obs$DV,
                           list(dat.obs$ID),
                           FUN = max,
-                          na.rm = T)
-    mean.pop.cmax <- mean(pop.cmax$x, na.rm = T)
+                          na.rm = TRUE)
+    mean.pop.cmax <- mean(pop.cmax$x, na.rm = TRUE)
     estmaxkm <-
       mean.pop.cmax * 4 # if km>>4cmax, it nearly fall into the linear range
     estkm <- mean.pop.cmax # initial km starts from cmax
@@ -733,8 +734,8 @@ run_npd_1cmpt_mm_oral <- function(dat,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
-#' result <- run_npd_2cmpt_oral(
+#' \donttest{
+#' run_npd_2cmpt_oral(
 #'   dat = Oral_2CPT,
 #'   input.ka = 1,
 #'   input.cl = 4,
@@ -862,8 +863,16 @@ run_npd_2cmpt_oral <- function(dat,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
-#' result <- run_npd_3cmpt_oral(dat = Oral_3CPT)
+#' \donttest{
+#' run_npd_3cmpt_oral(
+#'   dat = Oral_2CPT,
+#'   input.cl = 4,
+#'   input.vc3cmpt = 70,
+#'   input.vp3cmpt = 40,
+#'   input.vp23cmpt = 40,
+#'   input.q3cmpt = 4,
+#'   input.q23cmpt = 4
+#' )
 #' }
 #'
 #' @seealso \code{\link{Fit_3cmpt_oral}}

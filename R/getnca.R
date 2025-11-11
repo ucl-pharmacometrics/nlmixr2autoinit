@@ -45,7 +45,6 @@
 #'   \item messages - Warning or diagnostic messages returned during the calculation
 #' }
 #' @examples
-#' \dontrun{
 #' # IV bolus example
 #' dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8),
 #'                   DV = c(12, 8, 5, 3, 2, 1))
@@ -58,9 +57,8 @@
 #'
 #' # Oral administration example
 #' dat <- data.frame(TIME = c(0, 1, 2, 4, 6, 8),
-#'                   DV = c(0, 9, 12, 8, 4, 2))
+#'                   DV = c(0, 9, 12, 8, 6, 2))
 #' getnca(x = dat$TIME, y = dat$DV, route = "oral")
-#' }
 #'
 #' @export
 #'
@@ -206,11 +204,11 @@ getnca <- function(x,
   #----- AUC Calculation -----#
   if (trapezoidal.rule == "linear") {
     auct <- trapezoidal_linear(dat$TIME, dat$DV)
-    aumc_0_t <- trapezoidal_linear(dat$TIME, dat$DV, moment = T)
+    aumc_0_t <- trapezoidal_linear(dat$TIME, dat$DV, moment = TRUE)
   } else if (trapezoidal.rule == "linear_up_log_down") {
     auct <- trapezoidal_linear_up_log_down(dat$TIME, dat$DV)
     aumc_0_t <-
-      trapezoidal_linear_up_log_down(dat$TIME, dat$DV, moment = T)
+      trapezoidal_linear_up_log_down(dat$TIME, dat$DV, moment = TRUE)
   } else {
     messages <- c(messages, "Invalid trapezoidal rule specified")
   }

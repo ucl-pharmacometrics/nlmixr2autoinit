@@ -5,10 +5,13 @@
 #' using concentration–time data from bolus, infusion, or oral administration.
 #'
 #' @param dat A data frame containing pharmacokinetic records in standard nlmixr2
-#'   format, including ID, TIME, EVI`, and `DV`.
+#'   format, including ID, TIME, EVID, and DV.
 #' @param control A list created by `initsControl()` specifying configuration for
 #'   pooling, non-compartmental analysis, steady-state detection, fallback rules,
 #'   statistical model components, and parameter selection metrics.
+#' @param verbose Logical (default = TRUE); when TRUE, displays key progress
+#'   messages and stepwise updates during the initialization process. When FALSE,
+#'   the function runs quietly without printing intermediate information.
 #'
 #' @details
 #' The pipeline integrates four model-informed analytical components applied to
@@ -44,26 +47,18 @@
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
-#' ## Intravenous bolus example
-#' dat_iv <- Bolus_1CPT
-#' init_iv <- getPPKinits(dat_iv)
-#' print(init_iv)
-#'
-#' ## Infusion example
-#' dat_infusion <- Infusion_1CPT
-#' init_infusion <- getPPKinits(dat_infusion)
-#' print(init_infusion)
-#'
-#' ## Oral example
-#' dat_oral <- Oral_1CPT
-#' init_oral <- getPPKinits(dat_oral)
-#' print(init_oral)
+#' \donttest{
+#' ## Bolus example
+#' getPPKinits(Bolus_1CPT,verbose = TRUE)
+#' ## Oral example (run quietly)
+#' getPPKinits(Oral_1CPT,verbose = FALSE)
 #' }
 #'
 #' @export
 
-getPPKinits <- function(dat, control=initsControl()) {
+getPPKinits <- function(dat,
+                        control = initsControl(),
+                        verbose = TRUE) {
 
   # load control
   nlmixr2est::nlsControl()
@@ -84,8 +79,7 @@ getPPKinits <- function(dat, control=initsControl()) {
   ################# 1. Data preprocessing #################
   # Record start time
   start.time <- Sys.time()
-
-  process_result <- processData(dat)
+  process_result <- processData(dat,verbose=verbose)
   dat <- process_result$dat
   dose_type <-
     process_result$Datainfo$Value[process_result$Datainfo$Infometrics == "Dose Type"]
@@ -120,7 +114,7 @@ getPPKinits <- function(dat, control=initsControl()) {
                                  .pooledctrl)
 
   # estimate the half-life
-  half_life_out <- get_hf(dat = dat,pooled = pooled_data)
+  half_life_out <- get_hf(dat = dat,pooled = pooled_data,verbose = verbose)
   half_life <-half_life_out$half_life_median
   ##################2. Single-point method  #################
   sp_result <- run_single_point(
@@ -196,17 +190,17 @@ getPPKinits <- function(dat, control=initsControl()) {
   }
 
   ###############5. Base parameter predictive performance   ##################
-
   # This section performs model evaluation using parameters from each method separately,
   # without mixing ka, CL, and Vd across methods (i.e., not hybrid).
-
   if (!hybrid.base){
+    if (verbose){
     message(crayon::black(
       paste0(
         "Evaluating the predictive performance of calculated one-compartment model parameters",
         strrep(".", 20)
       )
     ))
+    }
   base_perf.out <- list(
     simpcal = eval_perf_1cmpt(dat, "rxSolve", sp_out$ka, sp_out$cl, sp_out$vd, route),
     graph   = eval_perf_1cmpt(dat, "rxSolve", graph_out$ka, graph_out$cl, graph_out$vd, route),
@@ -348,16 +342,14 @@ getPPKinits <- function(dat, control=initsControl()) {
 
   # Hybrid mode: evaluates predictive performance using mixed-source parameters.
   if (hybrid.base){
+    if (verbose){
     message(crayon::black(
       paste0(
         "Evaluating the predictive performance of calculated one-compartment model parameters",
         strrep(".", 20)
       )
     ))
-    # message(crayon::black(
-    #   paste0("(hybrid mode: parameters combined across sources)", strrep(".", 20))
-    # ))
-
+    }
     base.out <- hybrid_eval_perf_1cmpt(
       route = route,
       dat = dat,
@@ -375,7 +367,8 @@ getPPKinits <- function(dat, control=initsControl()) {
       nca_efd_vd    = nca_out$nca.efd.results$vzobs,
       nca_all_ka    = ka_nca_all,
       nca_all_cl    = nca_out$nca.all.results$clobs,
-      nca_all_vd    = nca_out$nca.all.results$vzobs
+      nca_all_vd    = nca_out$nca.all.results$vzobs,
+      verbose = verbose
     )
 
     colnames(base.out) <- c(
@@ -501,15 +494,14 @@ getPPKinits <- function(dat, control=initsControl()) {
     ", estimated CL: ", base.cl.best,
     ", estimated Vd: ", base.vd.best
   )
-
+  if (verbose){
   cat(message_text, "\n")
-
 ################# 8. Parameter Sweeping on Vmax and Km #######################
-
   message(crayon::black(
     paste0("Run parameter sweeping on nonlinear elimination kinetics PK parameters",strrep(".", 20))))
-  sim.vmax.km.results.all <- NULL
+  }
 
+  sim.vmax.km.results.all <- NULL
   approx.vc.value <- sp_result$approx.vc.out$approx.vc.value
 
   # defensive fallback
@@ -527,7 +519,8 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_km   = list(mode = "auto"),
       sim_vd   = list(mode = "manual", values = base.vd.best),
       sim_ka   = list(mode = "manual", values = NA),
-      route    = "iv"
+      route    = "iv",
+      verbose = verbose
     )
   }
 
@@ -539,14 +532,16 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_km   = list(mode = "auto"),
       sim_vd   = list(mode = "manual", values = c(approx.vc.value, base.vd.best)),
       sim_ka   = list(mode = "manual", values = base.ka.best),
-      route    = "oral"
+      route    = "oral",
+      verbose = verbose
     )
   }
 
   ########### 9. Parameter Sweeping on Multi-Compartmental Model Parameters#####
+  if (verbose){
   message(crayon::black(
     paste0("Run parameter sweeping on multi-compartmental PK parameters",strrep(".", 20))))
-
+  }
   # Collect identified vc from single-point extra and base.best.vd
   # Two-compartment model simulation
   sim.2cmpt.results.all <- NULL
@@ -559,7 +554,8 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_vp  = list(mode = "auto"),
       sim_q   = list(mode = "auto", auto.strategy = "scaled"),
       sim_ka  = list(mode = "manual", values = NA),
-      route   = "iv"
+      route   = "iv",
+      verbose = verbose
     )
   }
 
@@ -571,7 +567,8 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_vp  = list(mode = "auto"),
       sim_q   = list(mode = "auto", auto.strategy = "scaled"),
       sim_ka  = list(mode = "manual", values = base.ka.best),
-      route   = "oral"
+      route   = "oral",
+      verbose = verbose
      )
     }
 
@@ -588,7 +585,8 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_q    = list(mode = "auto", auto.strategy = "scaled"),
       sim_q2   = list(mode = "auto", auto.strategy = "scaled"),
       sim_ka   = list(mode = "manual", values = NA),
-      route    = "iv"
+      route    = "iv",
+      verbose = verbose
     )
   }
 
@@ -602,7 +600,8 @@ getPPKinits <- function(dat, control=initsControl()) {
       sim_q    = list(mode = "auto", auto.strategy = "scaled"),
       sim_q2   = list(mode = "auto", auto.strategy = "scaled"),
       sim_ka   = list(mode = "manual", values = base.ka.best),
-      route    = "oral"
+      route    = "oral",
+      verbose = verbose
     )
   }
 
@@ -764,31 +763,6 @@ getPPKinits <- function(dat, control=initsControl()) {
   recommended_vp23cmpt_init <- recommended.multi2$`Simulated Vp2`
   recommended_q3cmpt_init <- recommended.multi2$`Simulated Q`
   recommended_q23cmpt_init <- recommended.multi2$`Simulated Q2`
-
-  # Remove these temporary global variables run before.
-  # List of variables to remove
-  vars_to_remove <-
-    c(
-      "input.add",
-      "input.ka",
-      "input.cl",
-      "input.vc2cmpt",
-      "input.vc3cmpt",
-      "input.vp2cmpt",
-      "input.vp3cmpt",
-      "input.vp23cmpt",
-      "input.q2cmpt",
-      "input.q3cmpt",
-      "input.q23cmpt",
-      "input.vmax",
-      "input.km",
-      "input.vd"
-    )
-
-  # Check if variables exist and remove them
-  vars_to_remove <-
-    vars_to_remove[vars_to_remove %in% ls(envir = .GlobalEnv)]
-  rm(list = vars_to_remove, envir = .GlobalEnv)
 
   ############## 12. Finally selection####################
   #
@@ -1069,9 +1043,10 @@ getPPKinits <- function(dat, control=initsControl()) {
 #' @return Prints a formatted summary to the console.
 #'
 #' @examples
-#' \dontrun{
-#' # Assume `obj` is the output from getPPKinits()
-#' print(obj)
+#' \donttest{
+#' ## Oral example
+#' init_oral <- getPPKinits(dat_oral)
+#' print(init_oral)
 #' }
 #'
 #' @export

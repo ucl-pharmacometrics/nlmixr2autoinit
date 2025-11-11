@@ -102,6 +102,20 @@ run_single_point_extra <- function(dat = NULL,
   start.time <-
     single_point_base.lst$summary$start.time
 
+  route <- tryCatch(
+    match.arg(route, choices = c("bolus", "oral", "infusion")),
+    error = function(e) {
+      stop(sprintf(
+        "Invalid `route`: '%s'. Must be one of: %s.",
+        as.character(route),
+        paste(shQuote(c(
+          "bolus", "oral", "infusion"
+        )), collapse = ", ")
+      ),
+      call. = FALSE)
+    }
+  )
+
   # If base result not supplied, compute it
   if (is.null(single_point_base.lst)) {
     if (is.null(dat))
@@ -186,7 +200,7 @@ run_single_point_extra <- function(dat = NULL,
 
   # extra ka for oral case
   if (route == "oral") {
-    if (is.na(trimmed_mean_cl) == F & is.na(trimmed_mean_vd) == F) {
+    if (is.na(trimmed_mean_cl) == FALSE & is.na(trimmed_mean_vd) == FALSE) {
       datobs <- dat[dat$EVID == 0, ]
 
       cmax_by_group <- datobs %>%

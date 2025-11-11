@@ -65,7 +65,7 @@ specified manually or automatically derived. Model predictions and fit metrics
 are computed for each simulation to assess parameter sensitivity.
 }
 \examples{
-\dontrun{
+\donttest{
 out <- sim_sens_2cmpt(
   dat = Bolus_2CPT,
   sim_cl = list(mode = "manual", values = 4),

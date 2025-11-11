@@ -41,12 +41,10 @@
 #'   - rRMSE2: relative RMSE (type 2)
 #'
 #' @examples
-#' \dontrun{
-#' set.seed(123)
+#'
 #' obs.y  <- rnorm(100, mean = 100, sd = 10)
 #' pred.x <- obs.y + rnorm(100, mean = 0, sd = 5)
 #' metrics.(pred.x = pred.x, obs.y = obs.y)
-#' }
 #'
 #' @export
 
@@ -57,16 +55,16 @@ metrics. <- function(pred.x,
     stop("Error, number of simuations are different with predictions")
   }
   # Absolute Predicted Error (APE)
-  metrics.ape <- sum(abs(pred.x - obs.y), na.rm = T)
+  metrics.ape <- sum(abs(pred.x - obs.y), na.rm = TRUE)
 
   # Mean Absolute Error (MAE)
-  metrics.mae <- mean(abs(pred.x - obs.y), na.rm = T)
+  metrics.mae <- mean(abs(pred.x - obs.y), na.rm = TRUE)
 
   # mean absolute percentage error  (MAPE)
-  metrics.mape <- mean(abs(pred.x - obs.y) / obs.y, na.rm = T) * 100
+  metrics.mape <- mean(abs(pred.x - obs.y) / obs.y, na.rm = TRUE) * 100
 
   # Root mean squared error (RMSE)
-  metrics.rmse <- sqrt(mean((pred.x - obs.y) ^ 2, na.rm = T))
+  metrics.rmse <- sqrt(mean((pred.x - obs.y) ^ 2, na.rm = TRUE))
 
   # relative root mean squared error (rRMSE) (type1, traditional Relative RMSE)
   metrics.rrmse1 <-
@@ -74,7 +72,7 @@ metrics. <- function(pred.x,
 
   # relative root mean squared error (rRMSE) (type2, Symmetric Relative RMSE)
   metrics.rrmse2 <-
-    sqrt(mean(((pred.x - obs.y) ^ 2 / ((pred.x + obs.y) / 2) ^ 2), na.rm = T)) * 100
+    sqrt(mean(((pred.x - obs.y) ^ 2 / ((pred.x + obs.y) / 2) ^ 2), na.rm = TRUE)) * 100
 
   return(
     c(
@@ -120,7 +118,6 @@ metrics. <- function(pred.x,
 #'
 #' @examples
 #'
-#' \dontrun{
 #' eval_perf_1cmpt(
 #'   dat = Oral_1CPT,
 #'   est.method = "rxSolve",
@@ -129,7 +126,6 @@ metrics. <- function(pred.x,
 #'   vd = 70,
 #'   route = "oral"
 #' )
-#' }
 #'
 eval_perf_1cmpt <- function(dat,
                             est.method = "rxSolve",
@@ -192,8 +188,8 @@ eval_perf_1cmpt <- function(dat,
   metrics_vec <- metrics.(pred.x = pred, obs.y = obs)
   names(metrics_vec) <- c("APE", "MAE", "MAPE", "RMSE", "rRMSE1","rRMSE2")
 
-  rm(sim)
-  gc()
+  # safely release the simulation object
+  sim<-NULL
 
   return(round(metrics_vec, 3))
 }
@@ -223,9 +219,31 @@ eval_perf_1cmpt <- function(dat,
 #' @param nca_all_ka Numeric; ka estimated from naive pooled NCA using combined first- and repeated-dose data.
 #' @param nca_all_cl Numeric; clearance estimated from naive pooled NCA using combined first- and repeated-dose data.
 #' @param nca_all_vd Numeric; volume of distribution estimated from naive pooled NCA using combined first- and repeated-dose data.
+#' @param verbose Logical; if TRUE (default), displays a textual progress bar during model
+#'   evaluation using the 'progressr' package. Set to FALSE to run
+#'   silently without showing progress information, which is recommended for
+#'   automated analyses or CRAN checks.
 #'
 #' @return A `data.frame` of unique parameter combinations with source labels and values.
-#'
+#' @examples
+#' dat <- Bolus_1CPT
+#' # Example parameter estimates from different methods
+#' sp_out_ka <- 1.2; sp_out_cl <- 3.5; sp_out_vd <- 50
+#' graph_out_ka <- 1.1; graph_out_cl <- 3.6; graph_out_vd <- 52
+#' nca_fd_ka <- 1.3; nca_fd_cl <- 3.4; nca_fd_vd <- 49
+#' nca_efd_ka <- NA;  nca_efd_cl <- NA;  nca_efd_vd <- NA
+#' nca_all_ka <- 1.25; nca_all_cl <- 3.55; nca_all_vd <- 51
+#' # Run hybrid evaluation (silent)
+#'  hybrid_eval_perf_1cmpt(
+#'   route = "oral",
+#'   dat = dat,
+#'   sp_out_ka = sp_out_ka, sp_out_cl = sp_out_cl, sp_out_vd = sp_out_vd,
+#'   graph_out_ka = graph_out_ka, graph_out_cl = graph_out_cl, graph_out_vd = graph_out_vd,
+#'   nca_fd_ka = nca_fd_ka, nca_fd_cl = nca_fd_cl, nca_fd_vd = nca_fd_vd,
+#'   nca_efd_ka = nca_efd_ka, nca_efd_cl = nca_efd_cl, nca_efd_vd = nca_efd_vd,
+#'   nca_all_ka = nca_all_ka, nca_all_cl = nca_all_cl, nca_all_vd = nca_all_vd,
+#'   verbose = FALSE
+#' )
 #' @export
 
 hybrid_eval_perf_1cmpt <- function(route = "bolus",
@@ -244,7 +262,8 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
                                    nca_efd_vd,
                                    nca_all_ka,
                                    nca_all_cl,
-                                   nca_all_vd) {
+                                   nca_all_vd,
+                                   verbose=TRUE) {
   # Source labels
   all_sources <-
     c("simpcal", "graph", "nca_fd", "nca_efd", "nca_all")
@@ -380,9 +399,16 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
                            c("ka_source", "cl_source", "vd_source")))
   param_grid_unique <- param_grid_unique[, col_order]
 
-  progressr::handlers(
-    progressr::handler_progress(format = ":message [:bar] :percent (:current/:total)", width = 80)
-  )
+  if (isTRUE(verbose)) {
+    handler.lists <- list(
+      progressr::handler_progress(
+        format = ":message [:bar] :percent (:current/:total)",
+        width = 80
+      )
+    )
+  } else {
+    handler.lists <- list(progressr::handler_void())
+  }
 
   results <- progressr::with_progress({
     p <-
@@ -404,7 +430,7 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
       # Combine row info + performance results
       c(as.list(row), as.list(perf))
     })
-  })
+  },handlers =handler.lists  )
 
   # Convert to data.frame
   results_df <-

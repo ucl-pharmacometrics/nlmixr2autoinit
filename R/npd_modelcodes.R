@@ -28,7 +28,6 @@
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
 #' dat <- Bolus_1CPT
 #'
 #' # Fit using 'nls' with default control
@@ -40,16 +39,6 @@
 #'   input.add = 1
 #' )
 #'
-#' # Fit using 'focei' with custom control settings
-#' Fit_1cmpt_iv(
-#'   data = dat,
-#'   est.method = "focei",
-#'   input.cl = 4,
-#'   input.vd = 70,
-#'   input.add = 1,
-#'   control = foceiControl(rxControl = rxControl(maxSS = 200, atol = 1e-8))
-#' )
-#'
 #' # Return only predicted concentrations
 #' Fit_1cmpt_iv(
 #'  data = dat,
@@ -59,7 +48,6 @@
 #'  input.add = 1,
 #'  return.pred.only = TRUE
 #')
-#' }
 #' @export
 #'
 
@@ -70,13 +58,7 @@ Fit_1cmpt_iv <- function(data,
                          input.add,
                          return.pred.only = FALSE,
                          ...) {
-  # Assign parameters to global environment (<<-)
-  input.cl  <<- input.cl
-  input.vd  <<- input.vd
-  input.add <<- input.add
-
-  # Define the IV one-compartment model with linear clearance
-  iv <- function() {
+  iv <- function(input.cl, input.vd, input.add) {
     ini({
       tcl     <- round(log(input.cl), 2)  # log(CL)
       tv      <- round(log(input.vd), 2)  # log(V)
@@ -92,9 +74,12 @@ Fit_1cmpt_iv <- function(data,
     })
   }
 
+  model_fun <- iv(input.cl, input.vd, input.add)
+
   # Parse additional arguments
   dot_args <- list(...)
   user_control <- "control" %in% names(dot_args)
+
 
   if (!user_control) {
     maxSSv <- 100
@@ -112,7 +97,7 @@ Fit_1cmpt_iv <- function(data,
 
     fit.1cmpt.lst <- suppressMessages(suppressWarnings(
       nlmixr2(
-        object = iv,
+        object =  model_fun,
         data = data,
         est = est.method,
         control = ctrl
@@ -120,7 +105,7 @@ Fit_1cmpt_iv <- function(data,
     ))
   } else {
     fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(
-      object = iv,
+      object =  model_fun,
       data = data,
       est = est.method,
       ...
@@ -163,17 +148,8 @@ Fit_1cmpt_iv <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
 #' dat <- Bolus_1CPTMM
-#' # Fit using 'nls' method with default control
-#' Fit_1cmpt_mm_iv(
-#'   data = dat,
-#'   est.method = "nls",
-#'   input.vmax = 1000,
-#'   input.km = 250,
-#'   input.vd = 70,
-#'   input.add = 10
-#' )
+#'
 #' # Fit using 'focei' with custom rxControl settings
 #' Fit_1cmpt_mm_iv(
 #'   data = dat,
@@ -184,17 +160,8 @@ Fit_1cmpt_iv <- function(data,
 #'   input.add = 10,
 #'   control = foceiControl(rxControl = rxControl(maxSS = 300, atol = 1e-8))
 #' )
-#' # Return only predicted concentrations
-#' Fit_1cmpt_mm_iv(
-#'   data = dat,
-#'   est.method = "rxSolve",
-#'   input.vmax = 1000,
-#'   input.km = 250,
-#'   input.vd = 70,
-#'   input.add = 10,
-#'   return.pred.only = TRUE
-#' )
-#' }
+#'
+#'
 #' @export
 
 Fit_1cmpt_mm_iv <- function(data,
@@ -205,14 +172,8 @@ Fit_1cmpt_mm_iv <- function(data,
                             input.add,
                             return.pred.only = FALSE,
                             ...) {
-  # Assign parameters to global environment (<<-)
-  input.vmax <<- input.vmax
-  input.km   <<- input.km
-  input.vd   <<- input.vd
-  input.add  <<- input.add
 
-  # Define the IV MM model
-  iv.mm <- function() {
+  iv.mm <- function(input.vmax,input.km,input.vd,input.add) {
     ini({
       lvmax <- round(log(input.vmax), 2)
       lkm   <- round(log(input.km), 2)
@@ -228,6 +189,8 @@ Fit_1cmpt_mm_iv <- function(data,
       cp ~ add(add.err)
     })
   }
+
+  model_fun <-iv.mm(input.vmax,input.km,input.vd,input.add)
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -249,7 +212,7 @@ Fit_1cmpt_mm_iv <- function(data,
 
     fit.1cmpt.mm.lst <- suppressMessages(suppressWarnings(
       nlmixr2(
-        object = iv.mm,
+        object =  model_fun,
         data = data,
         est = est.method,
         control = ctrl
@@ -257,7 +220,7 @@ Fit_1cmpt_mm_iv <- function(data,
     ))
   } else {
     fit.1cmpt.mm.lst <- suppressMessages(suppressWarnings(nlmixr2(
-      object = iv.mm,
+      object =   model_fun,
       data = data,
       est = est.method,
       ...
@@ -302,9 +265,7 @@ Fit_1cmpt_mm_iv <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
 #' dat <- Bolus_2CPT
-#' # Fit using 'nls' method with default control settings
 #' Fit_2cmpt_iv(
 #'   data = dat,
 #'   est.method = "nls",
@@ -314,32 +275,8 @@ Fit_1cmpt_mm_iv <- function(data,
 #'   input.q2cmpt = 4,
 #'   input.add = 10
 #' )
-
-#' # Fit using 'focei' with custom control settings
-#' Fit_2cmpt_iv(
-#'   data = dat,
-#'   est.method = "focei",
-#'   input.cl = 4,
-#'   input.vc2cmpt = 70,
-#'   input.vp2cmpt = 40,
-#'   input.q2cmpt = 4,
-#'   input.add = 10,
-#'   control = foceiControl(rxControl = rxControl(maxSS = 200))
-#' )
-
-#' # Return only predicted concentrations (cp) for all timepoints
-#' Fit_2cmpt_iv(
-#'   data = dat,
-#'   est.method = "rxSolve",
-#'   input.cl = 4,
-#'   input.vc2cmpt = 70,
-#'   input.vp2cmpt = 40,
-#'   input.q2cmpt = 4,
-#'   input.add = 10,
-#'   return.pred.only = TRUE
-#' )
-#' }
 #' @export
+#'
 Fit_2cmpt_iv <- function(data,
                          est.method,
                          input.cl,
@@ -349,15 +286,9 @@ Fit_2cmpt_iv <- function(data,
                          input.add,
                          return.pred.only = FALSE,
                          ...) {
-  # Assign parameters to global environment (<<-)
-  input.cl       <<- input.cl
-  input.vc2cmpt  <<- input.vc2cmpt
-  input.vp2cmpt  <<- input.vp2cmpt
-  input.q2cmpt   <<- input.q2cmpt
-  input.add      <<- input.add
 
   # Define the IV two-compartment model
-  iv2 <- function() {
+  iv2 <- function(input.cl,input.vc2cmpt, input.vp2cmpt, input.q2cmpt, input.add) {
     ini({
       tcl     <- round(log(input.cl), 2)       # log(CL)
       tv1     <- round(log(input.vc2cmpt), 2)   # log(V1)
@@ -383,6 +314,8 @@ Fit_2cmpt_iv <- function(data,
     })
   }
 
+  model_fun <- iv2(input.cl,input.vc2cmpt, input.vp2cmpt, input.q2cmpt, input.add)
+
   # Parse additional arguments
   dot_args <- list(...)
   user_control <- "control" %in% names(dot_args)
@@ -402,7 +335,7 @@ Fit_2cmpt_iv <- function(data,
 
     fit.2cmpt.lst <- suppressMessages(suppressWarnings(
       nlmixr2(
-        object = iv2,
+        object =  model_fun,
         data = data,
         est = est.method,
         control = ctrl
@@ -410,7 +343,7 @@ Fit_2cmpt_iv <- function(data,
     ))
   } else {
     fit.2cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(
-      object = iv2,
+      object =  model_fun,
       data = data,
       est = est.method,
       ...
@@ -457,22 +390,8 @@ Fit_2cmpt_iv <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' dat <- Bolus_2CPT
-#'
-#' # Fit using 'nls' method
-#' Fit_3cmpt_iv(
-#'   data = dat,
-#'   est.method = "nls",
-#'   input.cl = 4,
-#'   input.vc3cmpt = 70,
-#'   input.vp3cmpt = 35,
-#'   input.vp23cmpt = 35,
-#'   input.q3cmpt = 4,
-#'   input.q23cmpt = 4,
-#'   input.add = 10
-#' )
-
 #' # Fit using 'focei' with custom control
 #' Fit_3cmpt_iv(
 #'   data = dat,
@@ -513,15 +432,9 @@ Fit_3cmpt_iv <- function(data,
                          input.add,
                          return.pred.only = FALSE,
                          ...) {
-  input.cl       <<- input.cl
-  input.vc3cmpt  <<- input.vc3cmpt
-  input.vp3cmpt  <<- input.vp3cmpt
-  input.vp23cmpt <<- input.vp23cmpt
-  input.q3cmpt   <<- input.q3cmpt
-  input.q23cmpt  <<- input.q23cmpt
-  input.add      <<- input.add
 
-  iv3 <- function() {
+  iv3 <- function(input.cl,  input.vc3cmpt,  input.vp3cmpt, input.vp23cmpt,
+                  input.q3cmpt, input.q23cmpt, input.add) {
     ini({
       tcl    <- round(log(input.cl), 2)
       tv1    <- round(log(input.vc3cmpt), 2)
@@ -554,6 +467,9 @@ Fit_3cmpt_iv <- function(data,
     })
   }
 
+  model_fun <- iv3(input.cl,  input.vc3cmpt,  input.vp3cmpt, input.vp23cmpt,
+                   input.q3cmpt, input.q23cmpt, input.add)
+
   dot_args <- list(...)
   user_control <- "control" %in% names(dot_args)
 
@@ -572,7 +488,7 @@ Fit_3cmpt_iv <- function(data,
 
     fit.3cmpt.lst <- suppressMessages(suppressWarnings(
       nlmixr2(
-        object = iv3,
+        object = model_fun,
         data = data,
         est = est.method,
         control = ctrl
@@ -580,7 +496,7 @@ Fit_3cmpt_iv <- function(data,
     ))
   } else {
     fit.3cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(
-      object = iv3,
+      object = model_fun,
       data = data,
       est = est.method,
       ...
@@ -666,14 +582,9 @@ Fit_1cmpt_oral <- function(data,
                            input.add,
                            return.pred.only = FALSE,
                            ...) {
-  # Assign parameters to global environment (<<-)
-  input.ka  <<- input.ka
-  input.cl  <<- input.cl
-  input.vd  <<- input.vd
-  input.add <<- input.add
 
   # Define the oral one-compartment model with first-order absorption and elimination
-  oral <- function() {
+  oral <- function(input.ka, input.cl, input.vd,input.add) {
     ini({
       tka     <- round(log(input.ka), 2)  # log(ka)
       tcl     <- round(log(input.cl), 2)  # log(CL)
@@ -693,6 +604,8 @@ Fit_1cmpt_oral <- function(data,
       cp ~ add(add.err)
     })
   }
+
+  model_fun <- oral(input.ka, input.cl, input.vd,input.add)
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -714,7 +627,7 @@ Fit_1cmpt_oral <- function(data,
 
     fit.1cmpt.lst <- suppressMessages(suppressWarnings(
       nlmixr2(
-        object = oral,
+        object =  model_fun,
         data = data,
         est = est.method,
         control = ctrl
@@ -722,7 +635,7 @@ Fit_1cmpt_oral <- function(data,
     ))
   } else {
     fit.1cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(
-      object = oral,
+      object =  model_fun,
       data = data,
       est = est.method,
       ...
@@ -734,7 +647,6 @@ Fit_1cmpt_oral <- function(data,
     sim_out <- data.frame(cp = fit.1cmpt.lst$cp)
     return(sim_out)
   }
-
   return(fit.1cmpt.lst)
 }
 
@@ -766,7 +678,6 @@ Fit_1cmpt_oral <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
 #' dat <- Oral_1CPTMM
 #' # Fit using 'nls'
 #' Fit_1cmpt_mm_oral(
@@ -777,17 +688,6 @@ Fit_1cmpt_oral <- function(data,
 #'   input.km = 250,
 #'   input.vd = 70,
 #'   input.add = 10
-#' )
-#' # Fit using 'focei' with custom control
-#' Fit_1cmpt_mm_oral(
-#'   data = dat,
-#'   est.method = "focei",
-#'   input.ka = 1,
-#'   input.vmax = 1000,
-#'   input.km = 250,
-#'   input.vd = 70,
-#'   input.add = 10,
-#'   control = foceiControl(rxControl = rxControl(maxSS = 200))
 #' )
 #' # Return only predicted concentrations
 #' Fit_1cmpt_mm_oral(
@@ -800,7 +700,6 @@ Fit_1cmpt_oral <- function(data,
 #'   input.add = 10,
 #'   return.pred.only = TRUE
 #' )
-#' }
 #' @export
 
 Fit_1cmpt_mm_oral <- function(data,
@@ -812,15 +711,9 @@ Fit_1cmpt_mm_oral <- function(data,
                               input.add,
                               return.pred.only = FALSE,
                               ...) {
-  # Assign parameters to global environment (<<-)
-  input.ka    <<- input.ka
-  input.vmax  <<- input.vmax
-  input.km    <<- input.km
-  input.vd    <<- input.vd
-  input.add   <<- input.add
 
   # Define the oral one-compartment MM model
-  oral.mm <- function() {
+  oral.mm <- function(input.ka,input.vmax, input.km, input.vd,input.add) {
     ini({
       tka    <- round(log(input.ka), 2)
       lvmax  <- round(log(input.vmax), 2)
@@ -842,6 +735,8 @@ Fit_1cmpt_mm_oral <- function(data,
     })
   }
 
+  model_fun <- oral.mm(input.ka,input.vmax, input.km, input.vd,input.add)
+
   # Parse additional arguments
   dot_args <- list(...)
   user_control <- "control" %in% names(dot_args)
@@ -862,7 +757,7 @@ Fit_1cmpt_mm_oral <- function(data,
 
     fit.1cmpt.mm.lst <- suppressMessages(suppressWarnings(
       nlmixr2(
-        object = oral.mm,
+        object = model_fun,
         data = data,
         est = est.method,
         control = ctrl
@@ -870,7 +765,7 @@ Fit_1cmpt_mm_oral <- function(data,
     ))
   } else {
     fit.1cmpt.mm.lst <- suppressMessages(suppressWarnings(nlmixr2(
-      object = oral.mm,
+      object = model_fun,
       data = data,
       est = est.method,
       ...
@@ -885,7 +780,6 @@ Fit_1cmpt_mm_oral <- function(data,
 
   return(fit.1cmpt.mm.lst)
 }
-
 
 #' Fit oral pharmacokinetic data to a two-compartment model
 #'
@@ -915,10 +809,8 @@ Fit_1cmpt_mm_oral <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' dat <- Oral_2CPT
-
-# Fit using 'nls'
 #' Fit_2cmpt_oral(
 #'   data = dat,
 #'   est.method = "nls",
@@ -929,20 +821,7 @@ Fit_1cmpt_mm_oral <- function(data,
 #'   input.q2cmpt = 10,
 #'   input.add = 10
 #' )
-
-# Fit using 'focei' with custom rxControl settings
-#' Fit_2cmpt_oral(
-#'   data = dat,
-#'   est.method = "focei",
-#'   input.ka = 1,
-#'   input.cl = 4,
-#'   input.vc2cmpt = 70,
-#'   input.vp2cmpt = 40,
-#'   input.q2cmpt = 4,
-#'   input.add = 10,
-#'   control = foceiControl(rxControl = rxControl(maxSS = 200, atol = 1e-8))
-#' )
-# Return only predicted concentrations
+#' # Return only predicted concentrations
 #' Fit_2cmpt_oral(
 #'   data = dat,
 #'   est.method = "rxSolve",
@@ -967,16 +846,10 @@ Fit_2cmpt_oral <- function(data,
                            input.add,
                            return.pred.only = FALSE,
                            ...) {
-  # Assign parameters to global environment (<<-)
-  input.ka       <<- input.ka
-  input.cl       <<- input.cl
-  input.vc2cmpt  <<- input.vc2cmpt
-  input.vp2cmpt  <<- input.vp2cmpt
-  input.q2cmpt   <<- input.q2cmpt
-  input.add      <<- input.add
 
   # Define the oral two-compartment model
-  oral2 <- function() {
+  oral2 <- function(input.ka, input.cl, input.vc2cmpt, input.vp2cmpt,
+                    input.q2cmpt, input.add) {
     ini({
       tka     <- round(log(input.ka), 2)        # log(ka)
       tcl     <- round(log(input.cl), 2)        # log(CL)
@@ -1005,6 +878,9 @@ Fit_2cmpt_oral <- function(data,
     })
   }
 
+  model_fun <-  oral2(input.ka, input.cl, input.vc2cmpt, input.vp2cmpt,
+                      input.q2cmpt, input.add)
+
   # Parse additional arguments
   dot_args <- list(...)
   user_control <- "control" %in% names(dot_args)
@@ -1024,7 +900,7 @@ Fit_2cmpt_oral <- function(data,
 
     fit.2cmpt.lst <- suppressMessages(suppressWarnings(
       nlmixr2(
-        object = oral2,
+        object = model_fun,
         data = data,
         est = est.method,
         control = ctrl
@@ -1032,7 +908,7 @@ Fit_2cmpt_oral <- function(data,
     ))
   } else {
     fit.2cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(
-      object = oral2,
+      object = model_fun,
       data = data,
       est = est.method,
       ...
@@ -1079,23 +955,8 @@ Fit_2cmpt_oral <- function(data,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
-#' dat <- Oral_2CPT
-#'
-#' # Fit using 'nls'
-#' Fit_3cmpt_oral(
-#'   data = dat,
-#'   est.method = "nls",
-#'   input.ka = 1,
-#'   input.cl = 4,
-#'   input.vc3cmpt = 70,
-#'   input.vp3cmpt = 35,
-#'   input.vp23cmpt = 35,
-#'   input.q3cmpt = 4,
-#'   input.q23cmpt = 4,
-#'   input.add = 10
-#' )
-#'
+#' \donttest{
+#' dat <- Oral_2CPT[Oral_2CPT$ID<21,]
 #' # Fit using 'focei' with custom control
 #' Fit_3cmpt_oral(
 #'   data = dat,
@@ -1140,18 +1001,10 @@ Fit_3cmpt_oral <- function(data,
                            input.add,
                            return.pred.only = FALSE,
                            ...) {
-  # Assign parameters to global environment
-  input.ka       <<- input.ka
-  input.cl       <<- input.cl
-  input.vc3cmpt  <<- input.vc3cmpt
-  input.vp3cmpt  <<- input.vp3cmpt
-  input.vp23cmpt <<- input.vp23cmpt
-  input.q3cmpt   <<- input.q3cmpt
-  input.q23cmpt  <<- input.q23cmpt
-  input.add      <<- input.add
 
   # Define the oral three-compartment model
-  oral3 <- function() {
+  oral3 <- function(input.ka,input.cl,input.vc3cmpt, input.vp3cmpt,
+                    input.vp23cmpt, input.q3cmpt, input.q23cmpt,input.add) {
     ini({
       tka    <- round(log(input.ka), 2)
       tcl    <- round(log(input.cl), 2)
@@ -1187,6 +1040,9 @@ Fit_3cmpt_oral <- function(data,
     })
   }
 
+  model_fun <-  oral3(input.ka,input.cl,input.vc3cmpt, input.vp3cmpt,
+                        input.vp23cmpt, input.q3cmpt, input.q23cmpt,input.add)
+
   # Parse additional arguments
   dot_args <- list(...)
   user_control <- "control" %in% names(dot_args)
@@ -1206,7 +1062,7 @@ Fit_3cmpt_oral <- function(data,
 
     fit.3cmpt.lst <- suppressMessages(suppressWarnings(
       nlmixr2(
-        object = oral3,
+        object = model_fun ,
         data = data,
         est = est.method,
         control = ctrl
@@ -1214,7 +1070,7 @@ Fit_3cmpt_oral <- function(data,
     ))
   } else {
     fit.3cmpt.lst <- suppressMessages(suppressWarnings(nlmixr2(
-      object = oral3,
+      object = model_fun ,
       data = data,
       est = est.method,
       ...

@@ -1,4 +1,4 @@
-#' Generate ETA Variance and Covariance Table
+#' Generate ETA variance and covariance table
 #'
 #' This function constructs a combined table containing:
 #' \itemize{
@@ -14,6 +14,8 @@
 #' The resulting output format aligns with \code{Recommended_initial_estimates}.
 #'
 #' @return A \code{data.frame} with columns: \code{Parameters}, \code{Methods}, and \code{Values}.
+#' @examples
+#' getOmegas()
 #' @export
 
 getOmegas <- function() {

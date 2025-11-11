@@ -58,7 +58,7 @@ automatically derived. Model predictions and fit metrics are computed for each
 simulation to assess parameter sensitivity.
 }
 \examples{
-\dontrun{
+\donttest{
 # Example: IV dosing scenario with automatic Vmax and Km
 out <- sim_sens_1cmpt_mm(
   dat = Bolus_1CPTMM,

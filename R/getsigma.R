@@ -28,11 +28,9 @@
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
 #' dat <- Bolus_1CPT
 #' dat <- processData(dat)$dat
 #' getsigma(dat)
-#' }
 #'
 #' @export
 
@@ -115,12 +113,10 @@ getsigma <- function(df,
 #' @author Zhonghui Huang
 #'
 #' @examples
-#' \dontrun{
 #' dat <- Bolus_1CPT
 #' dat <- processData(dat)$dat
 #' getsigmas(dat[dat$ID == 1 & dat$dose_number == 1 & dat$resetflag == 1 &
 #'               dat$EVID == 0, ])
-#' }
 #'
 #' @export
 

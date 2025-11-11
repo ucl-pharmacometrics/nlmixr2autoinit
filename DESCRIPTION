@@ -14,7 +14,7 @@ Description: Provides automated methods for generating initial parameter estimat
     for inter-individual variability. These strategies are designed to improve model 
     robustness and convergence in 'nlmixr2' workflows. For more details see 
     Huang Z, Fidler M, Lan M, Cheng IL, Kloprogge F, Standing JF (2025) 
-    <doi:10.21203/rs.3.rs-5806446/v1>.
+    <doi:10.1007/s10928-025-10000-z>.
 License: GPL (>= 3)
 URL: https://github.com/ucl-pharmacometrics/nlmixr2autoinit
 BugReports: https://github.com/ucl-pharmacometrics/nlmixr2autoinit/issues
