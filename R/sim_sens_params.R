@@ -41,17 +41,15 @@
 
 #' @examples
 #' # Example: IV dosing scenario with automatic Vmax and Km
-#' Sys.time()
 #' out <- sim_sens_1cmpt_mm(
 #'   dat = Bolus_1CPTMM[Bolus_1CPTMM$ID<50,],
 #'   sim_vmax = list(mode = "auto", est.cl = 4),
 #'   sim_km   = list(mode = "auto"),
 #'   sim_vd   = list(mode = "manual", values = 70),
 #'   sim_ka   = list(mode = "manual", values = NA),
-#'   route = "iv",verbose=FALSE
+#'   route = "iv"
 #' )
 #' head(out[out$rRMSE2==min(out$rRMSE2),])
-#' Sys.time()
 #'
 #' @export
 
@@ -199,7 +197,7 @@ sim_sens_1cmpt_mm <- function(dat,
 
   if (isTRUE(verbose)) {
     handler.lists <- list(
-      progressr::handler_progress(
+      progressr::handler_txtprogressbar(
         format = ":message [:bar] :percent (:current/:total)",
         width = 80
       )
@@ -215,16 +213,16 @@ sim_sens_1cmpt_mm <- function(dat,
       purrr::pmap_dfr(function(Vmax, Km, Vd, Ka, row) {
         p(sprintf("Running simulation: Vmax=%.2f, Km=%.2f", Vmax, Km))
         sim_out <- if (route == "iv") {
-          Fit_1cmpt_mm_iv(
+          suppressMessages(suppressWarnings(Fit_1cmpt_mm_iv(
             data = dat[dat$EVID != 2,],
             est.method = "rxSolve",
             input.vmax = Vmax,
             input.km = Km,
             input.vd = Vd,
             input.add = 0
-          )
+          )))
         } else {
-          Fit_1cmpt_mm_oral(
+          suppressMessages(suppressWarnings(Fit_1cmpt_mm_oral(
             data = dat[dat$EVID != 2,],
             est.method = "rxSolve",
             input.ka = Ka,
@@ -232,7 +230,7 @@ sim_sens_1cmpt_mm <- function(dat,
             input.km = Km,
             input.vd = Vd,
             input.add = 0
-          )
+          )))
         }
 
         met <-
@@ -498,7 +496,7 @@ sim_sens_2cmpt <- function(dat,
       purrr::pmap_dfr(function(Vc, Vp, Q, CL, Ka, row) {
         p(sprintf("Running simulation: Vc=%.2f, Vp=%.2f", Vc, Vp))
         sim_out <- if (route == "iv") {
-          Fit_2cmpt_iv(
+          suppressMessages(suppressWarnings(Fit_2cmpt_iv(
             data = dat[dat$EVID != 2,],
             est.method = "rxSolve",
             input.cl = CL,
@@ -506,10 +504,10 @@ sim_sens_2cmpt <- function(dat,
             input.vp2cmpt = Vp,
             input.q2cmpt = Q,
             input.add = 0
-          )
+          )))
 
         } else {
-          Fit_2cmpt_oral(
+          suppressMessages(suppressWarnings(Fit_2cmpt_oral(
             data = dat[dat$EVID != 2,],
             est.method = "rxSolve",
             input.ka = Ka,
@@ -518,7 +516,7 @@ sim_sens_2cmpt <- function(dat,
             input.vp2cmpt = Vp,
             input.q2cmpt = Q,
             input.add = 0
-          )
+          )))
         }
 
         met <-
@@ -882,9 +880,9 @@ sim_sens_3cmpt <- function(dat,
           Vp2
         ))
         sim_out <- if (route == "iv") {
-          Fit_3cmpt_iv(dat[dat$EVID != 2, ], "rxSolve", CL, Vc, Vp1, Vp2, Q1, Q2, input.add = 0)
+          suppressMessages(suppressWarnings(Fit_3cmpt_iv(dat[dat$EVID != 2, ], "rxSolve", CL, Vc, Vp1, Vp2, Q1, Q2, input.add = 0)))
         } else {
-          Fit_3cmpt_oral(dat[dat$EVID != 2, ], "rxSolve", Ka, CL, Vc, Vp1, Vp2, Q1, Q2, input.add = 0)
+          suppressMessages(suppressWarnings(Fit_3cmpt_oral(dat[dat$EVID != 2, ], "rxSolve", Ka, CL, Vc, Vp1, Vp2, Q1, Q2, input.add = 0)))
         }
         met <-
           metrics.(pred.x = sim_out$cp, obs.y = dat[dat$EVID == 0,]$DV)
