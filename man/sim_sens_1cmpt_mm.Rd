@@ -66,17 +66,15 @@ simulation to assess parameter sensitivity.
 }
 \examples{
 # Example: IV dosing scenario with automatic Vmax and Km
-Sys.time()
 out <- sim_sens_1cmpt_mm(
   dat = Bolus_1CPTMM[Bolus_1CPTMM$ID<50,],
   sim_vmax = list(mode = "auto", est.cl = 4),
   sim_km   = list(mode = "auto"),
   sim_vd   = list(mode = "manual", values = 70),
   sim_ka   = list(mode = "manual", values = NA),
-  route = "iv",verbose=FALSE
+  route = "iv"
 )
 head(out[out$rRMSE2==min(out$rRMSE2),])
-Sys.time()
 
 }
 \seealso{
