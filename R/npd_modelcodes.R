@@ -20,6 +20,7 @@
 #'   with a single column \code{cp} (predicted concentrations).
 #'   Otherwise, returns a fitted model object produced by nlmixr2.
 #'
+#' @import rxode2
 #' @import nlmixr2
 #' @import nlmixr2data
 #' @importFrom rxode2 rxControl
@@ -48,7 +49,6 @@
 #')
 #' @export
 #'
-
 Fit_1cmpt_iv <- function(data,
                          est.method,
                          input.cl,
@@ -56,6 +56,8 @@ Fit_1cmpt_iv <- function(data,
                          input.add,
                          return.pred.only = FALSE,
                          ...) {
+
+
   iv <- function(input.cl, input.vd, input.add) {
     ini({
       tcl     <- round(log(input.cl), 2)  # log(CL)
@@ -72,7 +74,7 @@ Fit_1cmpt_iv <- function(data,
     })
   }
 
-  model_fun <- nlmixr2est::nlmixr2(iv(input.cl, input.vd, input.add))
+  model_fun <- iv(input.cl, input.vd, input.add)
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -187,7 +189,7 @@ Fit_1cmpt_mm_iv <- function(data,
     })
   }
 
-  model_fun <-nlmixr2est::nlmixr2(iv.mm(input.vmax,input.km,input.vd,input.add))
+  model_fun <-iv.mm(input.vmax,input.km,input.vd,input.add)
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -311,7 +313,7 @@ Fit_2cmpt_iv <- function(data,
     })
   }
 
-  model_fun <- nlmixr2est::nlmixr2(iv2(input.cl,input.vc2cmpt, input.vp2cmpt, input.q2cmpt, input.add))
+  model_fun <- iv2(input.cl,input.vc2cmpt, input.vp2cmpt, input.q2cmpt, input.add)
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -463,8 +465,8 @@ Fit_3cmpt_iv <- function(data,
     })
   }
 
-  model_fun <- nlmixr2est::nlmixr2(iv3(input.cl,  input.vc3cmpt,  input.vp3cmpt, input.vp23cmpt,
-                   input.q3cmpt, input.q23cmpt, input.add))
+  model_fun <- iv3(input.cl,  input.vc3cmpt,  input.vp3cmpt, input.vp23cmpt,
+                   input.q3cmpt, input.q23cmpt, input.add)
 
   dot_args <- list(...)
   user_control <- "control" %in% names(dot_args)
@@ -588,7 +590,7 @@ Fit_1cmpt_oral <- function(data,
     })
   }
 
-  model_fun <- nlmixr2est::nlmixr2(oral(input.ka, input.cl, input.vd,input.add))
+  model_fun <- oral(input.ka, input.cl, input.vd,input.add)
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -718,7 +720,7 @@ Fit_1cmpt_mm_oral <- function(data,
     })
   }
 
-  model_fun <- nlmixr2est::nlmixr2(oral.mm(input.ka,input.vmax, input.km, input.vd,input.add))
+  model_fun <- oral.mm(input.ka,input.vmax, input.km, input.vd,input.add)
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -861,8 +863,8 @@ Fit_2cmpt_oral <- function(data,
     })
   }
 
-  model_fun <-  nlmixr2est::nlmixr2(oral2(input.ka, input.cl, input.vc2cmpt, input.vp2cmpt,
-                      input.q2cmpt, input.add))
+  model_fun <-  oral2(input.ka, input.cl, input.vc2cmpt, input.vp2cmpt,
+                      input.q2cmpt, input.add)
 
   # Parse additional arguments
   dot_args <- list(...)
@@ -1023,8 +1025,8 @@ Fit_3cmpt_oral <- function(data,
     })
   }
 
-  model_fun <-  nlmixr2est::nlmixr2(oral3(input.ka,input.cl,input.vc3cmpt, input.vp3cmpt,
-                        input.vp23cmpt, input.q3cmpt, input.q23cmpt,input.add))
+  model_fun <- oral3(input.ka,input.cl,input.vc3cmpt, input.vp3cmpt,
+                        input.vp23cmpt, input.q3cmpt, input.q23cmpt,input.add)
 
   # Parse additional arguments
   dot_args <- list(...)

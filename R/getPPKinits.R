@@ -67,6 +67,8 @@ getPPKinits <- function(dat,
   nlmixr2est::saemControl()
   nlmixr2est::foceiControl()
 
+  `%>%` <- magrittr::`%>%`
+
   # Unpack control components
   .pooledctrl    <- control$pooled.control
   .ncactrl       <- control$nca.control
