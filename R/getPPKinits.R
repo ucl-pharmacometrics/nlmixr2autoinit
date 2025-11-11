@@ -1048,7 +1048,7 @@ getPPKinits <- function(dat,
 #' \donttest{
 #' ## Oral example
 #' inits.out <- getPPKinits(Bolus_1CPT)
-#' print(Bolus_1CPT)
+#' print(inits.out)
 #' }
 #'
 #' @export

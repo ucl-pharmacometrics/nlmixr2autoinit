@@ -29,7 +29,7 @@ It is the default S3 \code{print} method for objects of class \code{getPPKinits}
 \donttest{
 ## Oral example
 inits.out <- getPPKinits(Bolus_1CPT)
-print(Bolus_1CPT)
+print(inits.out)
 }
 
 }
