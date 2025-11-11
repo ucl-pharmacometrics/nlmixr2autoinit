@@ -48,18 +48,14 @@ returns only predicted concentrations to reduce memory use in simulation workflo
 }
 \examples{
 dat <- Bolus_1CPTMM
-# Fit using 'focei' with custom rxControl settings
+# Fit using 'nls'
 Fit_1cmpt_mm_iv(
   data = dat,
-  est.method = "focei",
+  est.method = "nls",
   input.vmax = 1000,
   input.km = 250,
   input.vd = 70,
-  input.add = 10,
-  control = foceiControl(rxControl = rxControl(maxSS = 300, atol = 1e-8))
-)
-
-
+  input.add = 10)
 }
 \author{
 Zhonghui Huang

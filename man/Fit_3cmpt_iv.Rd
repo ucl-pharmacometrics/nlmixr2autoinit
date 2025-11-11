@@ -58,7 +58,7 @@ only predicted concentrations to support efficient simulation workflows.
 \examples{
 \donttest{
 dat <- Bolus_2CPT
-# Fit using 'focei' with custom control
+# Fit using 'nls'
 Fit_3cmpt_iv(
   data = dat,
   est.method = "nls",
@@ -68,8 +68,7 @@ Fit_3cmpt_iv(
   input.vp23cmpt = 5,
   input.q3cmpt = 4,
   input.q23cmpt = 4,
-  input.add = 10,
-  control = nlsControl(rxControl = rxControl(maxSS = 200))
+  input.add = 10
 )
 # Return only predicted concentrations
 Fit_3cmpt_iv(

@@ -149,18 +149,14 @@ Fit_1cmpt_iv <- function(data,
 #'
 #' @examples
 #' dat <- Bolus_1CPTMM
-#' # Fit using 'focei' with custom rxControl settings
+#' # Fit using 'nls'
 #' Fit_1cmpt_mm_iv(
 #'   data = dat,
-#'   est.method = "focei",
+#'   est.method = "nls",
 #'   input.vmax = 1000,
 #'   input.km = 250,
 #'   input.vd = 70,
-#'   input.add = 10,
-#'   control = foceiControl(rxControl = rxControl(maxSS = 300, atol = 1e-8))
-#' )
-#'
-#'
+#'   input.add = 10)
 #' @export
 
 Fit_1cmpt_mm_iv <- function(data,
@@ -265,6 +261,7 @@ Fit_1cmpt_mm_iv <- function(data,
 #'
 #' @examples
 #' dat <- Bolus_2CPT
+#' # Fit using 'nls'
 #' Fit_2cmpt_iv(
 #'   data = dat,
 #'   est.method = "nls",
@@ -274,6 +271,7 @@ Fit_1cmpt_mm_iv <- function(data,
 #'   input.q2cmpt = 4,
 #'   input.add = 10
 #' )
+#'
 #' @export
 #'
 Fit_2cmpt_iv <- function(data,
@@ -391,7 +389,7 @@ Fit_2cmpt_iv <- function(data,
 #' @examples
 #' \donttest{
 #' dat <- Bolus_2CPT
-#' # Fit using 'focei' with custom control
+#' # Fit using 'nls'
 #' Fit_3cmpt_iv(
 #'   data = dat,
 #'   est.method = "nls",
@@ -401,8 +399,7 @@ Fit_2cmpt_iv <- function(data,
 #'   input.vp23cmpt = 5,
 #'   input.q3cmpt = 4,
 #'   input.q23cmpt = 4,
-#'   input.add = 10,
-#'   control = nlsControl(rxControl = rxControl(maxSS = 200))
+#'   input.add = 10
 #' )
 #' # Return only predicted concentrations
 #' Fit_3cmpt_iv(
@@ -674,17 +671,6 @@ Fit_1cmpt_oral <- function(data,
 #'   input.vd = 70,
 #'   input.add = 10
 #' )
-#' # Return only predicted concentrations
-#' Fit_1cmpt_mm_oral(
-#'   data = dat,
-#'   est.method = "rxSolve",
-#'   input.ka = 1,
-#'   input.vmax = 1000,
-#'   input.km = 250,
-#'   input.vd = 70,
-#'   input.add = 10,
-#'   return.pred.only = TRUE
-#' )
 #' @export
 
 Fit_1cmpt_mm_oral <- function(data,
@@ -796,6 +782,7 @@ Fit_1cmpt_mm_oral <- function(data,
 #' @examples
 #' \donttest{
 #' dat <- Oral_2CPT
+#' # Fit using 'nls'
 #' Fit_2cmpt_oral(
 #'   data = dat,
 #'   est.method = "nls",
@@ -941,22 +928,7 @@ Fit_2cmpt_oral <- function(data,
 #'
 #' @examples
 #' \donttest{
-#' dat <- Oral_2CPT[Oral_2CPT$ID<21,]
-#' # Fit using 'focei' with custom control
-#' Fit_3cmpt_oral(
-#'   data = dat,
-#'   est.method = "nls",
-#'   input.ka = 1,
-#'   input.cl = 4,
-#'   input.vc3cmpt = 70,
-#'   input.vp3cmpt = 35,
-#'   input.vp23cmpt = 4,
-#'   input.q3cmpt = 4,
-#'   input.q23cmpt = 4,
-#'   input.add = 10,
-#'   control = nlsControl(rxControl = rxControl(maxSS = 200))
-#' )
-#'
+#' dat <- Oral_2CPT
 #' # Return only predicted concentrations
 #' Fit_3cmpt_oral(
 #'   data = dat,

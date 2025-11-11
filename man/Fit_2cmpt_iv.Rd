@@ -51,6 +51,7 @@ only predicted concentrations to support efficient simulation workflows.
 }
 \examples{
 dat <- Bolus_2CPT
+# Fit using 'nls'
 Fit_2cmpt_iv(
   data = dat,
   est.method = "nls",
@@ -60,6 +61,7 @@ Fit_2cmpt_iv(
   input.q2cmpt = 4,
   input.add = 10
 )
+
 }
 \author{
 Zhonghui Huang

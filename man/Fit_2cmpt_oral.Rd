@@ -55,6 +55,7 @@ returns only predicted concentrations to support simulation workflows.
 \examples{
 \donttest{
 dat <- Oral_2CPT
+# Fit using 'nls'
 Fit_2cmpt_oral(
   data = dat,
   est.method = "nls",

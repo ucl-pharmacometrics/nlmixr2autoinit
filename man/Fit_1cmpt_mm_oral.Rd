@@ -61,17 +61,6 @@ Fit_1cmpt_mm_oral(
   input.vd = 70,
   input.add = 10
 )
-# Return only predicted concentrations
-Fit_1cmpt_mm_oral(
-  data = dat,
-  est.method = "rxSolve",
-  input.ka = 1,
-  input.vmax = 1000,
-  input.km = 250,
-  input.vd = 70,
-  input.add = 10,
-  return.pred.only = TRUE
-)
 }
 \author{
 Zhonghui Huang
