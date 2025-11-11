@@ -15,7 +15,8 @@ sim_sens_3cmpt(
     "fixed")),
   sim_cl = list(mode = "manual", values = NULL),
   sim_ka = list(mode = "manual", values = NULL),
-  route = c("iv", "oral")
+  route = c("iv", "oral"),
+  verbose = TRUE
 )
 }
 \arguments{
@@ -92,7 +93,7 @@ out <- sim_sens_3cmpt(
   sim_vp2 = list(mode = "auto"),
   sim_q  = list(mode = "auto", auto.strategy = "scaled"),
   sim_q2 = list(mode = "auto", auto.strategy = "scaled"),
-  route = "iv"
+  route = "iv",verbose=FALSE
 )
 head(out[out$rRMSE2==min(out$rRMSE2),])
 }

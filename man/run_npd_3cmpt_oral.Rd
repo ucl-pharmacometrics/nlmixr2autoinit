@@ -60,8 +60,16 @@ fitted using \code{Fit_3cmpt_oral}, and prediction-based metrics are calculated 
 assess model performance.
 }
 \examples{
-\dontrun{
-result <- run_npd_3cmpt_oral(dat = Oral_3CPT)
+\donttest{
+run_npd_3cmpt_oral(
+  dat = Oral_2CPT,
+  input.cl = 4,
+  input.vc3cmpt = 70,
+  input.vp3cmpt = 40,
+  input.vp23cmpt = 40,
+  input.q3cmpt = 4,
+  input.q23cmpt = 4
+)
 }
 
 }

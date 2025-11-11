@@ -12,7 +12,8 @@ sim_sens_2cmpt(
   sim_vp = list(mode = c("auto", "manual"), values = NULL),
   sim_q = list(mode = c("auto", "manual"), values = NULL, auto.strategy = c("scaled",
     "fixed")),
-  route = c("iv", "oral")
+  route = c("iv", "oral"),
+  verbose = TRUE
 )
 }
 \arguments{
@@ -65,18 +66,16 @@ specified manually or automatically derived. Model predictions and fit metrics
 are computed for each simulation to assess parameter sensitivity.
 }
 \examples{
-\donttest{
 out <- sim_sens_2cmpt(
-  dat = Bolus_2CPT,
+  dat = Bolus_2CPT[Bolus_2CPT$ID<50,],
   sim_cl = list(mode = "manual", values = 4),
   sim_vc = list(mode = "manual", values = 50),
   sim_vp = list(mode = "auto"),
   sim_q  = list(mode = "auto"),
   sim_ka = list(mode = "manual", values = NA),
-  route = "iv"
+  route = "iv",verbose=FALSE
 )
 head(out[out$rRMSE2==min(out$rRMSE2),])
-}
 
 }
 \seealso{

@@ -44,7 +44,6 @@ multiple estimation methods provided by nlmixr2 and can optionally return
 only predicted concentrations to support efficient simulation workflows.
 }
 \examples{
-\dontrun{
 dat <- Bolus_1CPT
 
 # Fit using 'nls' with default control
@@ -56,16 +55,6 @@ Fit_1cmpt_iv(
   input.add = 1
 )
 
-# Fit using 'focei' with custom control settings
-Fit_1cmpt_iv(
-  data = dat,
-  est.method = "focei",
-  input.cl = 4,
-  input.vd = 70,
-  input.add = 1,
-  control = foceiControl(rxControl = rxControl(maxSS = 200, atol = 1e-8))
-)
-
 # Return only predicted concentrations
 Fit_1cmpt_iv(
  data = dat,
@@ -75,7 +64,6 @@ Fit_1cmpt_iv(
  input.add = 1,
  return.pred.only = TRUE
 )
-}
 }
 \author{
 Zhonghui Huang

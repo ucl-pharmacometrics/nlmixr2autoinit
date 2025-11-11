@@ -52,8 +52,8 @@ fitted using \code{Fit_2cmpt_oral}, and prediction-based metrics are computed to
 evaluate performance.
 }
 \examples{
-\dontrun{
-result <- run_npd_2cmpt_oral(
+\donttest{
+run_npd_2cmpt_oral(
   dat = Oral_2CPT,
   input.ka = 1,
   input.cl = 4,

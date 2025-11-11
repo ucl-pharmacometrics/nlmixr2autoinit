@@ -59,23 +59,8 @@ Supports multiple estimation methods provided by nlmixr2 and can optionally retu
 only predicted concentrations to support efficient simulation workflows.
 }
 \examples{
-\dontrun{
-dat <- Oral_2CPT
-
-# Fit using 'nls'
-Fit_3cmpt_oral(
-  data = dat,
-  est.method = "nls",
-  input.ka = 1,
-  input.cl = 4,
-  input.vc3cmpt = 70,
-  input.vp3cmpt = 35,
-  input.vp23cmpt = 35,
-  input.q3cmpt = 4,
-  input.q23cmpt = 4,
-  input.add = 10
-)
-
+\donttest{
+dat <- Oral_2CPT[Oral_2CPT$ID<21,]
 # Fit using 'focei' with custom control
 Fit_3cmpt_oral(
   data = dat,

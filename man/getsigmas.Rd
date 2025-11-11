@@ -46,12 +46,10 @@ log-linear regression. The additive residual standard deviation
 (\eqn{\sigma_{prop}}) are calculated per individual.
 }
 \examples{
-\dontrun{
 dat <- Bolus_1CPT
 dat <- processData(dat)$dat
 getsigmas(dat[dat$ID == 1 & dat$dose_number == 1 & dat$resetflag == 1 &
               dat$EVID == 0, ])
-}
 
 }
 \author{

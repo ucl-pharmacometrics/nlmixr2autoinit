@@ -4,15 +4,19 @@
 \alias{getPPKinits}
 \title{Automated pipeline for generating initial estimates in population PK models}
 \usage{
-getPPKinits(dat, control = initsControl())
+getPPKinits(dat, control = initsControl(), verbose = TRUE)
 }
 \arguments{
 \item{dat}{A data frame containing pharmacokinetic records in standard nlmixr2
-format, including ID, TIME, EVI\verb{, and }DV`.}
+format, including ID, TIME, EVID, and DV.}
 
 \item{control}{A list created by \code{initsControl()} specifying configuration for
 pooling, non-compartmental analysis, steady-state detection, fallback rules,
 statistical model components, and parameter selection metrics.}
+
+\item{verbose}{Logical (default = TRUE); when TRUE, displays key progress
+messages and stepwise updates during the initialization process. When FALSE,
+the function runs quietly without printing intermediate information.}
 }
 \value{
 An object of class \code{getPPKinits} containing recommended initial
@@ -47,21 +51,11 @@ mixed-effects pharmacokinetic models.
 }
 }
 \examples{
-\dontrun{
-## Intravenous bolus example
-dat_iv <- Bolus_1CPT
-init_iv <- getPPKinits(dat_iv)
-print(init_iv)
-
-## Infusion example
-dat_infusion <- Infusion_1CPT
-init_infusion <- getPPKinits(dat_infusion)
-print(init_infusion)
-
-## Oral example
-dat_oral <- Oral_1CPT
-init_oral <- getPPKinits(dat_oral)
-print(init_oral)
+\donttest{
+## Bolus example
+getPPKinits(Bolus_1CPT,verbose = TRUE)
+## Oral example (run quietly)
+getPPKinits(Oral_1CPT,verbose = FALSE)
 }
 
 }

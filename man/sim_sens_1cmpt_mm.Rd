@@ -10,7 +10,8 @@ sim_sens_1cmpt_mm(
   sim_km = list(mode = "auto", values = NULL),
   sim_vd = list(mode = "manual", values = NULL),
   sim_ka = list(mode = "manual", values = NULL),
-  route = c("iv", "oral")
+  route = c("iv", "oral"),
+  verbose = TRUE
 )
 }
 \arguments{
@@ -58,18 +59,18 @@ automatically derived. Model predictions and fit metrics are computed for each
 simulation to assess parameter sensitivity.
 }
 \examples{
-\donttest{
 # Example: IV dosing scenario with automatic Vmax and Km
+Sys.time()
 out <- sim_sens_1cmpt_mm(
-  dat = Bolus_1CPTMM,
+  dat = Bolus_1CPTMM[Bolus_1CPTMM$ID<50,],
   sim_vmax = list(mode = "auto", est.cl = 4),
   sim_km   = list(mode = "auto"),
   sim_vd   = list(mode = "manual", values = 70),
   sim_ka   = list(mode = "manual", values = NA),
-  route = "iv"
+  route = "iv",verbose=FALSE
 )
 head(out[out$rRMSE2==min(out$rRMSE2),])
-}
+Sys.time()
 
 }
 \seealso{

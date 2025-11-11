@@ -4,7 +4,7 @@
 \alias{processData}
 \title{Process time–concentration dataset for pharmacokinetic analysis}
 \usage{
-processData(dat)
+processData(dat, verbose = TRUE)
 }
 \arguments{
 \item{dat}{A data frame containing raw time–concentration data in the

@@ -44,9 +44,7 @@ using \code{Fit_1cmpt_oral}, and prediction-based metrics are calculated to asse
 performance.
 }
 \examples{
-\dontrun{
 run_npd_1cmpt_oral(dat = Oral_1CPT, input.ka = 1, input.cl = 4, input.vd = 70)
-}
 
 }
 \seealso{

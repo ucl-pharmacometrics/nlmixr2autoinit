@@ -13,7 +13,7 @@ run_npd_1cmpt_mm_oral(
   input.cl = exp(1),
   input.vd = exp(1),
   input.add = 1,
-  km_threshold = F
+  km_threshold = FALSE
 )
 }
 \arguments{
@@ -61,8 +61,14 @@ fitted using \code{Fit_1cmpt_mm_oral}, and prediction-based metrics are calculat
 to assess performance.
 }
 \examples{
-\dontrun{
-run_npd_1cmpt_mm_oral(dat = Oral_1CPTMM, input.cl = 4, input.vd = 70,est.method="focei")
+\donttest{
+  run_npd_1cmpt_mm_oral(
+    dat = Oral_1CPTMM,
+    input.ka = 1,
+    input.vmax = 1000,
+    input.km = 250,
+    input.vd = 70
+  )
 }
 
 }

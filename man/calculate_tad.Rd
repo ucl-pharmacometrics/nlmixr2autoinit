@@ -4,11 +4,14 @@
 \alias{calculate_tad}
 \title{Calculate time after dose for pharmacokinetic data}
 \usage{
-calculate_tad(dat)
+calculate_tad(dat, verbose = FALSE)
 }
 \arguments{
 \item{dat}{A data frame containing raw time–concentration data in the
 standard nlmixr2 format.}
+
+\item{verbose}{Logical; if TRUE, prints informational messages during
+processing (e.g., when generating dose numbers). Default is FALSE.}
 }
 \value{
 A modified data frame with added columns:

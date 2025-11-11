@@ -12,7 +12,7 @@ run_npd_1cmpt_mm_iv(
   npdmm_inputcl = exp(1),
   npdmm_inputvd = exp(1),
   input.add = 1,
-  km_threshold = F
+  km_threshold = FALSE
 )
 }
 \arguments{
@@ -53,10 +53,9 @@ for Vmax and Km are derived from the dataset to provide a representative
 starting point for nonlinear elimination.
 }
 \examples{
-\dontrun{
+\donttest{
 run_npd_1cmpt_mm_iv(
   dat = Bolus_1CPT,
-  est.method = "focei",
   npdmm_inputcl = 4,
   npdmm_inputvd = 70,
   km_threshold = TRUE

@@ -37,11 +37,9 @@ provides population-level estimates of additive and proportional residual
 unexplained variability (RUV).
 }
 \examples{
-\dontrun{
 dat <- Bolus_1CPT
 dat <- processData(dat)$dat
 getsigma(dat)
-}
 
 }
 \seealso{

@@ -26,9 +26,10 @@ including recommended initial estimates, ETA variance estimates, and parameter d
 It is the default S3 \code{print} method for objects of class \code{getPPKinits}.
 }
 \examples{
-\dontrun{
-# Assume `obj` is the output from getPPKinits()
-print(obj)
+\donttest{
+## Oral example
+init_oral <- getPPKinits(dat_oral)
+print(init_oral)
 }
 
 }

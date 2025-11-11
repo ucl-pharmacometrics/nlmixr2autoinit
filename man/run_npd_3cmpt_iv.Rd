@@ -59,12 +59,12 @@ fitted using \code{Fit_3cmpt_iv}, and prediction-based metrics are calculated to
 evaluate performance.
 }
 \examples{
-\dontrun{
+\donttest{
 run_npd_3cmpt_iv(
   dat = Bolus_2CPT,
   input.cl = 4,
-  input.vc3cmpt = 10,
-  input.vp3cmpt = 10,
+  input.vc3cmpt = 70,
+  input.vp3cmpt = 40,
   input.vp23cmpt = 10,
   input.q3cmpt = 4,
   input.q23cmpt = 4

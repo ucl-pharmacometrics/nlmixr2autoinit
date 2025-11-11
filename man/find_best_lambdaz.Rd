@@ -23,6 +23,7 @@ find_best_lambdaz(
 \itemize{
 \item "bolus" (default) - Excludes time of maximum concentration (Tmax) point
 \item "infusion" - Includes Tmax point in terminal phase evaluation
+\item "oral" - Starts regression from Tmax point
 }}
 
 \item{duration}{Numeric (optional). Duration of infusion administration, in the same

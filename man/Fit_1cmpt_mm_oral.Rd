@@ -50,7 +50,6 @@ Supports multiple estimation methods available in nlmixr2, and optionally
 returns only predicted concentrations to reduce memory use in simulation workflows.
 }
 \examples{
-\dontrun{
 dat <- Oral_1CPTMM
 # Fit using 'nls'
 Fit_1cmpt_mm_oral(
@@ -61,17 +60,6 @@ Fit_1cmpt_mm_oral(
   input.km = 250,
   input.vd = 70,
   input.add = 10
-)
-# Fit using 'focei' with custom control
-Fit_1cmpt_mm_oral(
-  data = dat,
-  est.method = "focei",
-  input.ka = 1,
-  input.vmax = 1000,
-  input.km = 250,
-  input.vd = 70,
-  input.add = 10,
-  control = foceiControl(rxControl = rxControl(maxSS = 200))
 )
 # Return only predicted concentrations
 Fit_1cmpt_mm_oral(
@@ -84,7 +72,6 @@ Fit_1cmpt_mm_oral(
   input.add = 10,
   return.pred.only = TRUE
 )
-}
 }
 \author{
 Zhonghui Huang

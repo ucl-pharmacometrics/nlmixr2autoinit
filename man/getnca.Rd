@@ -73,7 +73,6 @@ A list containing:
 Calculates key pharmacokinetic parameters using non-compartmental methods for both intravenous and oral administration data.
 }
 \examples{
-\dontrun{
 # IV bolus example
 dat <- data.frame(TIME = c(0.5, 1, 2, 4, 6, 8),
                   DV = c(12, 8, 5, 3, 2, 1))
@@ -86,8 +85,7 @@ getnca(x = dat$TIME, y = dat$DV, dose = 1, route = "infusion", duration = 1)
 
 # Oral administration example
 dat <- data.frame(TIME = c(0, 1, 2, 4, 6, 8),
-                  DV = c(0, 9, 12, 8, 4, 2))
+                  DV = c(0, 9, 12, 8, 6, 2))
 getnca(x = dat$TIME, y = dat$DV, route = "oral")
-}
 
 }

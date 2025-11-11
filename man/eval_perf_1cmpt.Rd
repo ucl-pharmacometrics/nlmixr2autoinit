@@ -45,7 +45,6 @@ Predictive performance is quantified using the \code{metrics.()} function.
 }
 \examples{
 
-\dontrun{
 eval_perf_1cmpt(
   dat = Oral_1CPT,
   est.method = "rxSolve",
@@ -54,7 +53,6 @@ eval_perf_1cmpt(
   vd = 70,
   route = "oral"
 )
-}
 
 }
 \seealso{

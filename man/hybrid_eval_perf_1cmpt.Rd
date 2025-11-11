@@ -21,7 +21,8 @@ hybrid_eval_perf_1cmpt(
   nca_efd_vd,
   nca_all_ka,
   nca_all_cl,
-  nca_all_vd
+  nca_all_vd,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -58,6 +59,11 @@ hybrid_eval_perf_1cmpt(
 \item{nca_all_cl}{Numeric; clearance estimated from naive pooled NCA using combined first- and repeated-dose data.}
 
 \item{nca_all_vd}{Numeric; volume of distribution estimated from naive pooled NCA using combined first- and repeated-dose data.}
+
+\item{verbose}{Logical; if TRUE (default), displays a textual progress bar during model
+evaluation using the 'progressr' package. Set to FALSE to run
+silently without showing progress information, which is recommended for
+automated analyses or CRAN checks.}
 }
 \value{
 A \code{data.frame} of unique parameter combinations with source labels and values.
@@ -67,4 +73,24 @@ Constructs a grid of all combinations of ka, cl, and vd parameters from
 different sources (e.g., simpcal, graph, NCA methods), and removes combinations
 that are redundant based on relative tolerance. Only oral routes consider ka value
 for deduplication. Any parameter value set that includes NA is removed up front.
+}
+\examples{
+dat <- Bolus_1CPT
+# Example parameter estimates from different methods
+sp_out_ka <- 1.2; sp_out_cl <- 3.5; sp_out_vd <- 50
+graph_out_ka <- 1.1; graph_out_cl <- 3.6; graph_out_vd <- 52
+nca_fd_ka <- 1.3; nca_fd_cl <- 3.4; nca_fd_vd <- 49
+nca_efd_ka <- NA;  nca_efd_cl <- NA;  nca_efd_vd <- NA
+nca_all_ka <- 1.25; nca_all_cl <- 3.55; nca_all_vd <- 51
+# Run hybrid evaluation (silent)
+ hybrid_eval_perf_1cmpt(
+  route = "oral",
+  dat = dat,
+  sp_out_ka = sp_out_ka, sp_out_cl = sp_out_cl, sp_out_vd = sp_out_vd,
+  graph_out_ka = graph_out_ka, graph_out_cl = graph_out_cl, graph_out_vd = graph_out_vd,
+  nca_fd_ka = nca_fd_ka, nca_fd_cl = nca_fd_cl, nca_fd_vd = nca_fd_vd,
+  nca_efd_ka = nca_efd_ka, nca_efd_cl = nca_efd_cl, nca_efd_vd = nca_efd_vd,
+  nca_all_ka = nca_all_ka, nca_all_cl = nca_all_cl, nca_all_vd = nca_all_vd,
+  verbose = FALSE
+)
 }

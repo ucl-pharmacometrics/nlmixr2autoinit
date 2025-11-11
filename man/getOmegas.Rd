@@ -2,7 +2,7 @@
 % Please edit documentation in R/getOmegas.R
 \name{getOmegas}
 \alias{getOmegas}
-\title{Generate ETA Variance and Covariance Table}
+\title{Generate ETA variance and covariance table}
 \usage{
 getOmegas()
 }
@@ -23,4 +23,7 @@ are assumed to be 0.1 and used to compute covariances as:
 \deqn{Cov(i, j) = sqrt(Var_i) * sqrt(Var_j) * Corr(i, j)}
 
 The resulting output format aligns with \code{Recommended_initial_estimates}.
+}
+\examples{
+getOmegas()
 }

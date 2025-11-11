@@ -56,21 +56,8 @@ multiple estimation methods provided by nlmixr2 and can optionally return
 only predicted concentrations to support efficient simulation workflows.
 }
 \examples{
-\dontrun{
+\donttest{
 dat <- Bolus_2CPT
-
-# Fit using 'nls' method
-Fit_3cmpt_iv(
-  data = dat,
-  est.method = "nls",
-  input.cl = 4,
-  input.vc3cmpt = 70,
-  input.vp3cmpt = 35,
-  input.vp23cmpt = 35,
-  input.q3cmpt = 4,
-  input.q23cmpt = 4,
-  input.add = 10
-)
 # Fit using 'focei' with custom control
 Fit_3cmpt_iv(
   data = dat,

@@ -48,7 +48,7 @@ using \code{Fit_2cmpt_iv}, and prediction-based metrics are calculated to assess
 performance.
 }
 \examples{
-\dontrun{
+\donttest{
 run_npd_2cmpt_iv(dat = Bolus_2CPT,
                            input.cl = 4,
                            input.vc2cmpt = 35,
