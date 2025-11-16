@@ -1,11 +1,30 @@
-# nlmixr2autoinit
-Automated Generation of Initial Estimates for Population Pharmacokinetic Modelling
+# nlmixr2
+
+<!-- badges: start -->
+![CRAN](https://img.shields.io/badge/CRAN-Released-green)
+[![CRAN version](https://www.r-pkg.org/badges/version/nlmixr2autoinit)](https://cran.r-project.org/package=nlmixr2autoinit)
+![downloads](https://cranlogs.r-pkg.org/badges/grand-total/nlmixr2autoinit)
+![downloads-month](https://cranlogs.r-pkg.org/badges/nlmixr2autoinit)
+<!-- badges: end -->
+
+nlmixr2autoinit provides automated methods for generating initial parameter estimates in population pharmacokinetic modeling. It integrates adaptive single-point methods, naive pooled graphic approaches, noncompartmental analysis methods, and parameter sweeping across pharmacokinetic models to derive initial estimates for PK structural parameters. The package also estimates residual unexplained variability and assigns initial values for inter-individual variability. The entire pipeline streamlines population PK model setup by reducing manual trial-and-error, enhancing model convergence, supporting reproducible workflows, and strengthening the overall robustness of nonlinear mixed-effects modeling in R. Together, these capabilities provide essential tools for automated model development.
 
 ## Installation
+
+You can install nlmixr2autoinit either from CRAN or from the development version on GitHub:
+
+From CRAN (stable release)
+``` r
+install.packages("nlmixr2autoinit", dependencies = TRUE)
+```
+
+From GitHub (development version)
 ``` r
 library(devtools)
 install_github("ucl-pharmacometrics/nlmixr2autoinit")
 ```
+For additional information on installing the broader nlmixr2 ecosystem,such as compiler configuration, system requirements, and platform-specific setup—please see the installation instructions in the main nlmixr2 repository(https://github.com/nlmixr2/nlmixr2).
+
 ## Example 1 (IV case)
 ``` r
 library(nlmixr2autoinit)
