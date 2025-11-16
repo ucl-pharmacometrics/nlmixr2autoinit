@@ -1,4 +1,4 @@
-# nlmixr2
+# nlmixr2autoinit
 
 <!-- badges: start -->
 ![CRAN](https://img.shields.io/badge/CRAN-Released-green)
