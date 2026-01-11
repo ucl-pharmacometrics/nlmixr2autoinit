@@ -5,6 +5,8 @@
 [![CRAN version](https://www.r-pkg.org/badges/version/nlmixr2autoinit)](https://cran.r-project.org/package=nlmixr2autoinit)
 ![downloads](https://cranlogs.r-pkg.org/badges/grand-total/nlmixr2autoinit)
 ![downloads-month](https://cranlogs.r-pkg.org/badges/nlmixr2autoinit)
+[![R-CMD-check](https://github.com/ucl-pharmacometrics/nlmixr2autoinit/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ucl-pharmacometrics/nlmixr2autoinit/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/ucl-pharmacometrics/nlmixr2autoinit/graph/badge.svg)](https://app.codecov.io/gh/ucl-pharmacometrics/nlmixr2autoinit)
 <!-- badges: end -->
 
 nlmixr2autoinit provides automated methods for generating initial parameter estimates in population pharmacokinetic modeling. It integrates adaptive single-point methods, naive pooled graphic approaches, noncompartmental analysis methods, and parameter sweeping across pharmacokinetic models to derive initial estimates for PK structural parameters. The package also estimates residual unexplained variability and assigns initial values for inter-individual variability. The entire pipeline streamlines population PK model setup by reducing manual trial-and-error, enhancing model convergence, supporting reproducible workflows, and strengthening the overall robustness of nonlinear mixed-effects modeling in R. Together, these capabilities provide essential tools for automated model development.
