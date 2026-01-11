@@ -351,6 +351,8 @@ processData<-function(dat,verbose = TRUE){
 dat <- dat %>%
   # Ensure CMT exists: if missing, initialize with 1
   { if (!"CMT" %in% colnames(.)) dplyr::mutate(., CMT = 1) else . } %>%
+  # Ensure MDV exists: if missing, initialize with EVID == 0
+  { if (!"MDV" %in% colnames(.)) dplyr::mutate(., MDV = as.numeric(EVID == 0)) else . } %>%
   dplyr::group_by(ID, resetflag) %>%
   dplyr::mutate(
     # Get observation compartment (EVID=0) for current reset group
