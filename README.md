@@ -7,7 +7,12 @@
 ![downloads-month](https://cranlogs.r-pkg.org/badges/nlmixr2autoinit)
 <!-- badges: end -->
 
-nlmixr2autoinit provides automated methods for generating initial parameter estimates in population pharmacokinetic modeling. It integrates adaptive single-point methods, naive pooled graphic approaches, noncompartmental analysis methods, and parameter sweeping across pharmacokinetic models to derive initial estimates for PK structural parameters. The package also estimates residual unexplained variability and assigns initial values for inter-individual variability. The entire pipeline streamlines population PK model setup by reducing manual trial-and-error, enhancing model convergence, supporting reproducible workflows, and strengthening the overall robustness of nonlinear mixed-effects modeling in R. Together, these capabilities provide essential tools for automated model development.
+nlmixr2autoinit provides an automated framework for deriving initial parameter 
+estimates for population pharmacokinetic (PopPK) models via multiple PK analysis 
+methods. 
+
+It aims to streamline model parameter initialization in R, reducing reliance 
+on manual trial-and-error and facilitating automated model development workflows. 
 
 ## Installation
 
