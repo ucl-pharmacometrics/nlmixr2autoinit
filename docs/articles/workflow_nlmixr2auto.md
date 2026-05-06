@@ -31,11 +31,13 @@ library(nlmixr2auto)
 param_table <- auto_param_table(dat = pheno_sd, nlmixr2autoinits = T)
 f1 <-
   ppkmodGen(
-    no.cmpt = 1,
-    eta.cl = 1,
-    param_table = param_table,
-    return.func = T,
-    out.dir = tempdir()
+    no.cmpt = 1, # One-compartment model
+    eta.cl = 1,  # Add inter-individual variability (IIV) on clearance (CL)
+                 # 1 = include ETA(CL)
+                 # 0 = No ETA(CL)
+    param_table = param_table, # Initial estimate 
+    return.func = T, # Return the model function object
+    out.dir = tempdir() # Output directory for generated files
   )
 # [Success] Model file created:
 # /tmp/RtmpRq7pPV/mod1.txt
