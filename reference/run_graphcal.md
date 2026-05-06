@@ -118,7 +118,7 @@ run_graphcal(dat, route="bolus")
 #> 
 #> 
 #> $time.spent
-#> [1] 0.004
+#> [1] 0.003
 #> 
 
 # Example 2 (oral case)
@@ -218,6 +218,6 @@ run_graphcal(dat, route="infusion")
 #> 
 #> 
 #> $time.spent
-#> [1] 0.003
+#> [1] 0.002
 #> 
 ```

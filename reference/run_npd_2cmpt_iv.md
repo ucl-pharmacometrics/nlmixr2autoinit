@@ -82,7 +82,7 @@ run_npd_2cmpt_iv(dat = Bolus_2CPT,
                            input.q2cmpt = 4)
 #> $npd.2cmpt_results
 #>     cl   vc vp    q   timespent
-#> 1 3.84 63.5 71 4.45 6.1093 secs
+#> 1 3.84 63.5 71 4.45 5.9268 secs
 #> 
 #> $npd.2cmpt.APE
 #> metrics.ape 
@@ -114,8 +114,8 @@ run_npd_2cmpt_iv(dat = Bolus_2CPT,
 #> 
 #> ── Time (sec $time): ──
 #> 
-#>            setup table compress    other
-#> elapsed 0.019126  0.11    0.002 5.954874
+#>           setup table compress   other
+#> elapsed 0.04076 0.092    0.001 5.77024
 #> 
 #> ── ($parFixed or $parFixedDf): ──
 #> 

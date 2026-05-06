@@ -95,11 +95,13 @@ full argument details.</p>
 <span><span class="va">param_table</span> <span class="op">&lt;-</span> <span class="fu">auto_param_table</span><span class="op">(</span>dat <span class="op">=</span> <span class="va">pheno_sd</span>, nlmixr2autoinits <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
 <span><span class="va">f1</span> <span class="op">&lt;-</span></span>
 <span>  <span class="fu">ppkmodGen</span><span class="op">(</span></span>
-<span>    no.cmpt <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>    eta.cl <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>    param_table <span class="op">=</span> <span class="va">param_table</span>,</span>
-<span>    return.func <span class="op">=</span> <span class="cn">T</span>,</span>
-<span>    out.dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>    no.cmpt <span class="op">=</span> <span class="fl">1</span>, <span class="co"># One-compartment model</span></span>
+<span>    eta.cl <span class="op">=</span> <span class="fl">1</span>,  <span class="co"># Add inter-individual variability (IIV) on clearance (CL)</span></span>
+<span>                 <span class="co"># 1 = include ETA(CL)</span></span>
+<span>                 <span class="co"># 0 = No ETA(CL)</span></span>
+<span>    param_table <span class="op">=</span> <span class="va">param_table</span>, <span class="co"># Initial estimate </span></span>
+<span>    return.func <span class="op">=</span> <span class="cn">T</span>, <span class="co"># Return the model function object</span></span>
+<span>    out.dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span> <span class="co"># Output directory for generated files</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="co"># [Success] Model file created:</span></span>
 <span><span class="co"># /tmp/RtmpRq7pPV/mod1.txt</span></span></code></pre></div>

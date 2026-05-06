@@ -6,7 +6,8 @@
 parameter estimates for PopPK models, using adaptive single-point
 methods, naïve pooled NCA, graphic methods, and simulation-based
 parameter sweeping to initialize both structural and statistical
-parameters.
+parameters. Details of the methods are described in
+<https://doi.org/10.1007/s10928-025-10000-z>.
 
 ## Getting Started
 
@@ -147,7 +148,7 @@ outs$Run.history$base.out
 We can see that each row represents a unique combination of estimation
 methods for $`K_a`$, $`CL`$, and $`V_d`$, and how each combination
 performs when the resulting parameters are used to predict the observed
-concentration–time data — allowing the best-performing combination to be
+concentration–time data allowing the best-performing combination to be
 selected automatically.
 
     #>   Ka Method CL Method Vd Method    Ka     CL    Vd     APE    MAE   MAPE   RMSE  rRMSE1  rRMSE2  min_count  metrics.rank
