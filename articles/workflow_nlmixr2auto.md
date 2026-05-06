@@ -1,0 +1,195 @@
+# Integration with nlmixr2auto
+
+`nlmixr2auto` incorporates an automated model building, evaluation, and
+selection procedure for population PK modelling.
+
+`nlmixr2autoinit` can provide the initial estimates required by
+nlmixr2auto, making the two packages a natural pair for automated
+population PK model development.
+
+## Connect to nlmixr2auto
+
+We can directly call `auto_param_table()` to convert the output of
+[`getPPKinits()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/getPPKinits.md)
+into the parameter table format required by `nlmixr2auto`. This table
+can then be passed to `ppkmodGen()`, the model builder in `nlmixr2auto`,
+which automatically generates a ready-to-fit nlmixr2 model function and
+writes it to an R file. Here, `out.dir = tempdir()` saves the generated
+R file to a temporary folder. See `?ppkmodGen` for full argument
+details.
+
+``` r
+
+# load library
+library(nlmixr2autoinit)
+library(nlmixr2auto)
+
+# Generate initial estimates
+param_table <- auto_param_table(dat = pheno_sd, nlmixr2autoinits = T)
+f1 <-
+  ppkmodGen(
+    no.cmpt = 1,
+    eta.cl = 1,
+    param_table = param_table,
+    return.func = T,
+    out.dir = tempdir()
+  )
+# [Success] Model file created:
+# /tmp/RtmpRq7pPV/mod1.txt
+```
+
+Print `f1` to verify the generated model function and inspect the
+initial estimates:
+
+``` r
+
+f1
+# function(){
+# ini({
+# lcl <- -4.744
+# lvc <- 0.223
+# eta.cl ~ 0.1
+# sigma_add <-5.0434
+# })
+# model({
+# cl = exp(lcl+eta.cl)
+# vc = exp(lvc)
+# d/dt(central) <- - cl / vc * central
+# cp <- central/vc
+# cp ~ add(sigma_add)
+# })
+# }
+# <environment: 0x64b7450b3120>
+```
+
+Once the model function is ready, pass it to `nlmixr2()` to fit the
+model. The example below uses `f1`, the model built with selectively
+applied initial estimates.
+
+``` r
+
+fit1 <- nlmixr2(f1, pheno_sd, est = "saem",  control = saemControl(print = 0,logLik = T))
+fit1
+#          OBJF     AIC      BIC Log-likelihood Condition#(Cov) Condition#(Cor)
+# FOCE 979.5392 1272.41 1284.584      -632.2051        35.73133        2.436503
+# 
+# ── Time (sec fit1$time): ──
+# 
+#            setup covariance  saem table compress    other
+# elapsed 0.003339   0.019015 9.913 0.123    0.027 1.897646
+# 
+# ── Population Parameters (fit1$parFixed or fit1$parFixedDf): ──
+# 
+#            Est.     SE %RSE    Back-transformed(95%CI) BSV(CV%) Shrink(SD)%
+# lcl       -5.15  0.148 2.87 0.00578 (0.00433, 0.00772)     91.0     -1.66% 
+# lvc       0.366 0.0274 7.48          1.44 (1.37, 1.52)                     
+# sigma_add  5.52                                   5.52                     
+#  
+#   Covariance Type (fit1$covMethod): linFim
+#   No correlations in between subject variability (BSV) matrix
+#   Full BSV covariance (fit1$omega) or correlation (fit1$omegaR; diagonals=SDs) 
+#   Distribution stats (mean/skewness/kurtosis/p-value) available in fit1$shrink 
+#   Censoring (fit1$censInformation): No censoring
+# 
+# ── Fit Data (object fit1 is a modified tibble): ──
+# # A tibble: 155 × 15
+#   ID     TIME    DV  PRED    RES IPRED    IRES   IWRES eta.cl    cp central      cl    vc   tad dosenum
+#   <fct> <dbl> <dbl> <dbl>  <dbl> <dbl>   <dbl>   <dbl>  <dbl> <dbl>   <dbl>   <dbl> <dbl> <dbl>   <dbl>
+# 1 1        2   17.3  17.2  0.100  17.2  0.0733  0.0133 -0.217  17.2    24.8 0.00465  1.44     2       1
+# 2 1      112.  31    28.9  2.07   30.6  0.366   0.0663 -0.217  30.6    44.2 0.00465  1.44     4      10
+# 3 2        2    9.7  10.3 -0.620  10.4 -0.651  -0.118  -0.474  10.4    14.9 0.00360  1.44     2       1
+```
+
+You can also selectively apply estimates from `nlmixr2autoinit` to
+individual parameters, leaving the remaining parameters at their default
+values. In the example below, only `lcl` is taken from the
+`nlmixr2autoinit`, and all other parameters retain the default value of
+1.
+
+``` r
+
+# Generate initial estimates
+inits.out<-auto_param_table(dat = pheno_sd, nlmixr2autoinits = T)
+param_table<-initialize_param_table()
+param_table$init[param_table$Name == "lcl"] <- inits.out$init[inits.out$Name == "lcl"]
+
+f2<-ppkmodGen(no.cmpt = 1, eta.cl = 1,
+              param_table = param_table, 
+              return.func=T,out.dir = tempdir())
+# [Success] Model file created:
+# /tmp/RtmpRq7pPV/mod1.txt
+```
+
+Print `f2` to verify the generated model function and inspect the
+initial estimates:
+
+``` r
+
+f2
+# function(){
+# ini({
+# lcl <- -4.744
+# lvc <- 1.0
+# eta.cl ~ 0.1
+# sigma_add <-1
+# })
+# model({
+# cl = exp(lcl+eta.cl)
+# vc = exp(lvc)
+# d/dt(central) <- - cl / vc * central
+# cp <- central/vc
+# cp ~ add(sigma_add)
+# })
+# }
+# <environment: 0x64b74404f3f8>
+```
+
+Run the model and check the results:
+
+``` r
+
+fit2<- nlmixr2(f2, pheno_sd, est="saem",control=saemControl(print = 0,logLik = T))
+fit2
+# ── nlmixr² SAEM OBJF by FOCEi approximation ──
+# 
+#          OBJF      AIC      BIC Log-likelihood Condition#(Cov) Condition#(Cor)
+# FOCE 980.6147 1273.486 1285.659      -632.7428        36.19762        2.434031
+# 
+# ── Time (sec fit2$time): ──
+# 
+#            setup covariance  saem table compress    other
+# elapsed 0.003744   0.025019 8.847  0.12    0.032 1.913237
+# 
+# ── Population Parameters (fit2$parFixed or fit2$parFixedDf): ──
+# 
+#            Est.     SE %RSE    Back-transformed(95%CI) BSV(CV%) Shrink(SD)%
+# lcl       -5.16  0.148 2.88 0.00576 (0.00431, 0.00771)     91.7     -1.65% 
+# lvc       0.366 0.0273 7.46          1.44 (1.37, 1.52)                     
+# sigma_add  5.51                                   5.51                     
+#  
+#   Covariance Type (fit2$covMethod): linFim
+#   No correlations in between subject variability (BSV) matrix
+#   Full BSV covariance (fit2$omega) or correlation (fit2$omegaR; diagonals=SDs) 
+#   Distribution stats (mean/skewness/kurtosis/p-value) available in fit2$shrink 
+#   Censoring (fit2$censInformation): No censoring
+# 
+# ── Fit Data (object fit2 is a modified tibble): ──
+# # A tibble: 155 × 15
+#   ID     TIME    DV  PRED    RES IPRED    IRES   IWRES eta.cl    cp central      cl    vc   tad dosenum
+#   <fct> <dbl> <dbl> <dbl>  <dbl> <dbl>   <dbl>   <dbl>  <dbl> <dbl>   <dbl>   <dbl> <dbl> <dbl>   <dbl>
+# 1 1        2   17.3  17.2  0.104  17.2  0.0778  0.0141 -0.216  17.2    24.8 0.00464  1.44     2       1
+# 2 1      112.  31    28.9  2.06   30.6  0.364   0.0660 -0.216  30.6    44.2 0.00464  1.44     4      10
+# 3 2        2    9.7  10.3 -0.617  10.3 -0.649  -0.118  -0.477  10.3    14.9 0.00357  1.44     2       1
+# # ℹ 152 more rows
+# # ℹ Use `print(n = ...)` to see more rows
+```
+
+## See Also
+
+- [Integration with
+  nlmixr2](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/workflow_nlmixr2.md)
+  — manual model building using estimates from
+  [`getPPKinits()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/getPPKinits.md)
+- [Parameter Sweeping and
+  Visualisation](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/parameter_sweeping.md)
+  — inspect and visualise the parameter sweep results

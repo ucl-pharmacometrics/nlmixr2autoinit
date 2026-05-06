@@ -1,0 +1,12 @@
+pandoc: 3.8.3
+pkgdown: 2.2.0
+pkgdown_sha: ~
+articles:
+  parameter_sweeping: parameter_sweeping.html
+  running_nlmixr2autoinit: running_nlmixr2autoinit.html
+  workflow_nlmixr2: workflow_nlmixr2.html
+  workflow_nlmixr2auto: workflow_nlmixr2auto.html
+last_built: 2026-05-06T21:18Z
+urls:
+  reference: https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference
+  article: https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles
