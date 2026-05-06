@@ -1,0 +1,89 @@
+url: https://ucl-pharmacometrics.github.io/nlmixr2autoinit
+template:
+  bootstrap: 5
+  params:
+    bootswatch: flatly
+development:
+  mode: release
+navbar:
+  left:
+  - text: Articles
+    menu:
+      - text: "Getting Started"
+      - text: "Running nlmixr2autoinit"
+        href: articles/running_nlmixr2autoinit.html
+      - text: "-------"
+      - text: "Workflow"
+      - text: "Integration with nlmixr2"
+        href: articles/workflow_nlmixr2.html
+      - text: "Integration with nlmixr2auto"
+        href: articles/workflow_nlmixr2auto.html
+      - text: "-------"
+      - text: "Method Tutorials"
+      - text: "Parameter Sweeping and Visualisation"
+        href: articles/parameter_sweeping.html
+  - text: Publications
+    href: https://link.springer.com/article/10.1007/s10928-025-10000-z
+  - text: Functions
+    href: reference/index.html
+  right:
+  - icon: fab fa-github
+    href: https://github.com/ucl-pharmacometrics/nlmixr2autoinit
+    aria-label: GitHub
+home:
+  title: nlmixr2autoinit - Automatic Initial Estimates for Population PK Modelling
+  description: >
+    Automated generation of initial parameter estimates for population
+    pharmacokinetic modelling, integrating NCA, naive pooled graphic methods,
+    adaptive single-point methods, and parameter sweeping.
+articles:
+  - title: Getting Started
+    navbar: ~
+    contents:
+      - running_nlmixr2autoinit
+  - title: Workflow Tutorials
+    navbar: ~
+    contents:
+      - workflow_nlmixr2
+      - workflow_nlmixr2auto
+  - title: Method Tutorials
+    navbar: ~
+    contents:
+      - parameter_sweeping
+reference:
+  - title: Main Function
+    desc: Primary function and control options for automated initial parameter estimation
+    contents:
+      - getPPKinits
+      - print.getPPKinits
+      - initsControl
+      - ends_with("_control")
+  - title: Graphic and NCA Methods
+    desc: Naive pooled graphic methods and noncompartmental analysis
+    contents:
+      - starts_with("graphcal_")
+      - starts_with("run_graphcal")
+      - starts_with("getnca")
+      - starts_with("run_pooled")
+      - starts_with("get_pooled")
+  - title: Single-Point Methods
+    desc: Adaptive single-point estimation functions
+    contents:
+      - starts_with("run_single_point")
+      - starts_with("run_ka")
+      - starts_with("ka_")
+  - title: Parameter Sweeping
+    desc: Model fitting and parameter sweeping across PK structures
+    contents:
+      - starts_with("Fit_")
+      - starts_with("run_npd_")
+      - starts_with("sim_sens_")
+  - title: Variability Estimation
+    desc: Residual and inter-individual variability estimation
+    contents:
+      - starts_with("getsigma")
+      - getOmegas
+  - title: All Other Functions
+    desc: Data processing and supporting utility functions
+    contents:
+      - matches(".")

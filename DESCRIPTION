@@ -16,7 +16,7 @@ Description: Provides automated methods for generating initial parameter estimat
     Huang Z, Fidler M, Lan M, Cheng IL, Kloprogge F, Standing JF (2025) 
     <doi:10.1007/s10928-025-10000-z>.
 License: GPL (>= 3)
-URL: https://github.com/ucl-pharmacometrics/nlmixr2autoinit
+URL: https://ucl-pharmacometrics.github.io/nlmixr2autoinit, https://github.com/ucl-pharmacometrics/nlmixr2autoinit
 BugReports: https://github.com/ucl-pharmacometrics/nlmixr2autoinit/issues
 Depends:
     nlmixr2data, R (>= 4.0)

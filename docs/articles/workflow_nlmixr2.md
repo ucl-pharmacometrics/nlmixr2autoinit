@@ -1,0 +1,226 @@
+# Integration with nlmixr2
+
+## Overview
+
+`nlmixr2autoinit` is designed to slot naturally into the `nlmixr2`
+ecosystem. Once initial estimates are generated with
+[`getPPKinits()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/getPPKinits.md),
+they can be extracted and used to write a model function with the
+initial values pre-filled automatically, ready to pass to `nlmixr2` for
+fitting.
+
+------------------------------------------------------------------------
+
+## Generating Initial Estimates
+
+The starting point is
+[`getPPKinits()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/getPPKinits.md),
+which analyses the dataset and returns recommended initial estimates:
+
+``` r
+library(nlmixr2autoinit)
+inits.out <- getPPKinits(pheno_sd)
+inits.out$Recommended_initial_estimates
+#            Parameters                      Methods   Values
+# 1                  Ka                           IV       NA
+# 2                  CL Adaptive single-point method   0.0087
+# 3                  Vd Adaptive single-point method   1.2500
+# 4                Vmax           Parameter sweeping   1.0572
+# 5                  Km           Parameter sweeping 120.0145
+# 6           Vc(2CMPT)           Parameter sweeping   1.2500
+# 7           Vp(2CMPT)           Parameter sweeping   0.1250
+# 8            Q(2CMPT)           Parameter sweeping   0.0174
+# 9           Vc(3CMPT)           Parameter sweeping   1.2500
+# 10          Vp(3CMPT)           Parameter sweeping   0.1250
+# 11         Vp2(3CMPT)           Parameter sweeping   0.1250
+# 12           Q(3CMPT)           Parameter sweeping   0.0174
+# 13          Q2(3CMPT)           Parameter sweeping   0.0174
+# 14     Sigma additive    Fallback (fixed fraction)   5.0434
+# 15 Sigma proportional    Fallback (fixed fraction)   0.2000
+```
+
+For `pheno_sd`, the primary structural parameters are `CL = 0.0087`,
+`Vd = 1.25` and `Sigma additive = 5.0434`.
+
+------------------------------------------------------------------------
+
+## Writing the Model
+
+The values from `Recommended_initial_estimates` can be read directly
+into the `ini` block. For `pheno_sd`, the one-compartment IV bolus model
+is:
+
+``` r
+ini({
+  tcl    <- log(0.0087)  # typical value of clearance (log scale)
+  tv     <- log(1.25)    # typical value of volume (log scale)
+
+  eta.cl + eta.v ~ c(1,
+                     0.01, 1)
+
+  add.err <- 5.0434      # additive residual variability
+})
+```
+
+You can also extract the estimates into named variables first, then
+reference them directly in the `ini` block:
+
+``` r
+est <- inits.out$Recommended_initial_estimates
+CL      = as.numeric(est$Values[est$Parameters == "CL"])
+Vd      = as.numeric(est$Values[est$Parameters == "Vd"])
+add_err = as.numeric(est$Values[est$Parameters == "Sigma additive"])
+
+pheno <- function() {
+  ini({
+    tcl     <-   log(CL) 
+    tv      <-   log(Vd)  
+    eta.cl + eta.v ~ c(0.1, 
+                       0.01, 0.1)
+    add.err <- add_err
+  })
+  model({
+    cl <- exp(tcl + eta.cl)
+    v  <- exp(tv  + eta.v)
+    ke <- cl / v
+    d/dt(A1) = -ke * A1
+    cp = A1 / v
+    cp ~ add(add.err)
+  })
+}
+fit <- nlmixr2(pheno, pheno_sd, est = "saem", 
+               control = saemControl(print = 0))
+```
+
+Print a summary of the model fit results:
+
+``` r
+print(fit)
+# ── nlmixr² SAEM OBJF by FOCEi approximation ──
+# 
+#  Gaussian/Laplacian Likelihoods: AIC(fit) or fit$objf etc. 
+#  FOCEi CWRES & Likelihoods: addCwres(fit) 
+# 
+# ── Time (sec fit$time): ──
+# 
+#            setup covariance  saem table compress    other
+# elapsed 0.002899   0.025013 8.602 0.117    0.046 1.968088
+# 
+# ── Population Parameters (fit$parFixed or fit$parFixedDf): ──
+# 
+#          Est.     SE %RSE   Back-transformed(95%CI) BSV(CV%) Shrink(SD)%
+# tcl     -5.02 0.0763 1.52 0.00662 (0.0057, 0.00768)     52.7      4.18% 
+# tv      0.349 0.0548 15.7         1.42 (1.27, 1.58)     41.9      1.55% 
+# add.err  2.74                                  2.74                     
+#  
+#   Covariance Type (fit$covMethod): linFim
+#   Correlations in between subject variability (BSV) matrix:
+#     cor:eta.v,eta.cl 
+#           0.927  
+#  
+# 
+#   Full BSV covariance (fit$omega) or correlation (fit$omegaR; diagonals=SDs) 
+#   Distribution stats (mean/skewness/kurtosis/p-value) available in fit$shrink 
+#   Censoring (fit$censInformation): No censoring
+# 
+# ── Fit Data (object fit is a modified tibble): ──
+# # A tibble: 155 × 17
+#   ID     TIME    DV  PRED    RES IPRED  IRES  IWRES  eta.cl   eta.v    cp    A1      cl     v      ke   tad dosenum
+#   <fct> <dbl> <dbl> <dbl>  <dbl> <dbl> <dbl>  <dbl>   <dbl>   <dbl> <dbl> <dbl>   <dbl> <dbl>   <dbl> <dbl>   <dbl>
+# 1 1        2   17.3  17.5 -0.173  18.5 -1.16 -0.421 -0.0909 -0.0544  18.5  24.8 0.00604  1.34 0.00450     2       1
+# 2 1      112.  31    28.1  2.94   30.0  1.02  0.371 -0.0909 -0.0544  30.0  40.3 0.00604  1.34 0.00450     4      10
+# 3 2        2    9.7  10.5 -0.784  12.4 -2.69 -0.982 -0.238  -0.167   12.4  14.9 0.00521  1.20 0.00435     2       1
+# # ℹ 152 more rows
+# # ℹ Use `print(n = ...)` to see more rows
+```
+
+If you plan to run multiple model structures, you can extract all
+parameters upfront at once and reuse them across models without
+repeating the lookup:
+
+``` r
+CL       <- as.numeric(est$Values[est$Parameters == "CL"])
+Vd       <- as.numeric(est$Values[est$Parameters == "Vd"])
+Ka       <- as.numeric(est$Values[est$Parameters == "Ka"])
+Vmax     <- as.numeric(est$Values[est$Parameters == "Vmax"])
+Km       <- as.numeric(est$Values[est$Parameters == "Km"])
+Vc2cmt  <- as.numeric(est$Values[est$Parameters == "Vc(2CMPT)"])
+Vp2cmt  <- as.numeric(est$Values[est$Parameters == "Vp(2CMPT)"])
+Q2cmt   <- as.numeric(est$Values[est$Parameters == "Q(2CMPT)"])
+Vc3cmt  <- as.numeric(est$Values[est$Parameters == "Vc(3CMPT)"])
+Vp3cmt  <- as.numeric(est$Values[est$Parameters == "Vp(3CMPT)"])
+Vp23cmt <- as.numeric(est$Values[est$Parameters == "Vp2(3CMPT)"])
+Q3cmt   <- as.numeric(est$Values[est$Parameters == "Q(3CMPT)"])
+Q23cmt  <- as.numeric(est$Values[est$Parameters == "Q2(3CMPT)"])
+add_err  <- as.numeric(est$Values[est$Parameters == "Sigma additive"])
+prop_err <- as.numeric(est$Values[est$Parameters == "Sigma proportional"])
+
+two_cmt_iv <- function() {
+  ini({
+    tcl <- CL
+    tvc <- Vc2cmt
+    tvp <- Vp2cmt
+    tq  <- Q2cmt
+    eta.cl + eta.vc ~ c(1,
+                        0.01, 1)
+    add.err <- add_err
+  })
+  model({
+    cl <- exp(tcl + eta.cl)
+    vc <- exp(tvc + eta.vc)
+    vp <- exp(tvp)
+    q  <- exp(tq)
+    d/dt(central)    = -(cl/vc) * central - (q/vc)  * central + (q/vp)  * peripheral
+    d/dt(peripheral) =  (q/vc)  * central -  (q/vp)  * peripheral
+    cp = central / vc
+    cp ~ add(add.err)
+  })
+}
+fit_2cmt <- nlmixr2( two_cmt_iv, pheno_sd, est="saem",control=saemControl(print = 0,logLik = T))
+```
+
+Print a summary of the model fit results:
+
+``` r
+# print(fit_2cmt)
+#            setup covariance   saem table compress   other
+# elapsed 0.003354   0.042016 85.371 0.141    0.042 2.58763
+# 
+# ── Population Parameters (fit_2cmt$parFixed or fit_2cmt$parFixedDf): ──
+# 
+#           Est.     SE %RSE    Back-transformed(95%CI) BSV(CV%) Shrink(SD)%
+# tcl       -5.1 0.0879 1.72 0.00609 (0.00513, 0.00724)     57.8     -6.89% 
+# tvc     -0.554  0.156 28.1        0.575 (0.423, 0.78)     68.1     -9.03% 
+# tvp     -0.215 0.0859 39.9       0.806 (0.681, 0.954)                     
+# tq       0.103  0.633  617          1.11 (0.32, 3.83)                     
+# add.err   3.03                                   3.03                     
+#  
+#   Covariance Type (fit_2cmt$covMethod): linFim
+#   Correlations in between subject variability (BSV) matrix:
+#     cor:eta.vc,eta.cl 
+#            0.942  
+#  
+# 
+#   Full BSV covariance (fit_2cmt$omega) or correlation (fit_2cmt$omegaR; diagonals=SDs) 
+#   Distribution stats (mean/skewness/kurtosis/p-value) available in fit_2cmt$shrink 
+#   Censoring (fit_2cmt$censInformation): No censoring
+# 
+# ── Fit Data (object fit_2cmt is a modified tibble): ──
+# # A tibble: 155 × 19
+#   ID     TIME    DV  PRED    RES IPRED   IRES  IWRES  eta.cl  eta.vc    cp central peripheral      cl    vc    vp     q   tad dosenum
+#   <fct> <dbl> <dbl> <dbl>  <dbl> <dbl>  <dbl>  <dbl>   <dbl>   <dbl> <dbl>   <dbl>      <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl>   <dbl>
+# 1 1        2   17.3  17.9 -0.611  18.5 -1.18  -0.390 -0.0706 -0.0769  18.5    9.83      14.9  0.00568 0.532 0.806  1.11     2       1
+# 2 1      112.  31    29.2  1.76   30.5  0.457  0.151 -0.0706 -0.0769  30.5   16.3       24.7  0.00568 0.532 0.806  1.11     4      10
+# 3 2        2    9.7  10.7 -1.05   12.1 -2.37  -0.782 -0.285  -0.304   12.1    5.12       9.75 0.00458 0.424 0.806  1.11     2       1
+# # ℹ 152 more rows
+# # ℹ Use `print(n = ...)` to see more rows
+```
+
+## See Also
+
+- [Integration with
+  nlmixr2auto](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/workflow_nlmixr2auto.md)
+  — automated model selection using `nlmixr2auto`
+- [Parameter Sweeping and
+  Visualisation](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/parameter_sweeping.md)
+  — inspect and visualise the parameter sweep results

@@ -1,0 +1,202 @@
+# Running nlmixr2autoinit
+
+## Overview
+
+`nlmixr2autoinit` is a tool for automatically generating initial
+parameter estimates for PopPK models, using adaptive single-point
+methods, naïve pooled NCA, graphic methods, and simulation-based
+parameter sweeping to initialize both structural and statistical
+parameters.
+
+## Getting Started
+
+To get started, you need:
+
+- **A concentration–time dataset** in standard nlmixr2-style format. The
+  key required columns are:
+
+| Column | Description                                      |
+|--------|--------------------------------------------------|
+| `ID`   | Subject identifier                               |
+| `TIME` | Time after first dose (hours)                    |
+| `AMT`  | Dose amount (for dosing records)                 |
+| `DV`   | Observed concentration (for observation records) |
+| `EVID` | Event ID: `0` = observation, `1` = dose          |
+
+Additional columns such as `MDV` (missing dependent variable) and
+`ADDL`/`II` (additional doses/interdose interval) are supported when
+present.
+
+You can inspect the built-in example datasets to see the expected
+structure:
+
+``` r
+library(nlmixr2autoinit)
+#> Loading required package: nlmixr2data
+head(Bolus_1CPT)
+#>   ID TIME     DV   LNDV MDV   AMT EVID  DOSE     V   CL SS II SD CMT
+#> 1  1 0.00    0.0 0.0000   1 60000    1 60000 65.14 4.07 99  0  1   1
+#> 2  1 0.25 1126.1 7.0265   0     0    0 60000 65.14 4.07 99  0  1   1
+#> 3  1 0.50  869.9 6.7683   0     0    0 60000 65.14 4.07 99  0  1   1
+#> 4  1 0.75  883.6 6.7840   0     0    0 60000 65.14 4.07 99  0  1   1
+#> 5  1 1.00 1244.0 7.1260   0     0    0 60000 65.14 4.07 99  0  1   1
+#> 6  1 1.50  995.2 6.9029   0     0    0 60000 65.14 4.07 99  0  1   1
+```
+
+### Supported data
+
+`nlmixr2autoinit` is compatible with a wide range of PK data types and
+study designs.
+
+Dose routes
+
+✅ IV bolus ✅ IV infusion ✅ Extravascular dosing
+
+Dosing regimens
+
+✅ Single dose ✅ Multiple dose ✅ Mixed single & multiple dose
+
+Data types
+
+✅ Rich data ✅ Sparse data ✅ Mixed rich & sparse data
+
+> Mixed dose routes and datasets where all subjects share a single
+> identical time point are not supported.
+
+## Run an example
+
+Call
+[`getPPKinits()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/getPPKinits.md)
+with your dataset. The function automatically detects the route of
+administration and data characteristics.
+
+``` r
+library(nlmixr2autoinit)
+outs <- getPPKinits(dat = theo_sd)
+```
+
+To review the detected data information:
+
+``` r
+outs$Datainfo
+```
+
+    #>                               Infometrics      Value
+    #> 1                              Dose Route       oral
+    #> 2                               Dose Type first_dose
+    #> 3                      Number of Subjects         12
+    #> 4                  Number of Observations        123
+    #> 5  Subjects with First-Dose Interval Data         12
+    #> 6 Observations in the First-Dose Interval        123
+    #> 7        Subjects with Multiple-Dose Data          0
+    #> 8       Observations after Multiple Doses          0
+
+The recommended initial estimates, automatically selected by the
+algorithm, can be accessed directly via:
+
+``` r
+outs$Recommended_initial_estimates
+#            Parameters               Methods   Values
+# 1                  Ka Naive pooled NCA (FD)   1.5800
+# 2                  CL Naive pooled NCA (FD)   3.0400
+# 3                  Vd Naive pooled NCA (FD)  33.0000
+# 4                Vmax    Parameter sweeping 105.3596
+# 5                  Km    Parameter sweeping  35.0367
+# 6           Vc(2CMPT)    Parameter sweeping  31.9000
+# 7           Vp(2CMPT)    Parameter sweeping   3.1900
+# 8            Q(2CMPT)    Parameter sweeping   6.0800
+# 9           Vc(3CMPT)    Parameter sweeping  31.9000
+# 10          Vp(3CMPT)    Parameter sweeping   3.1900
+# 11         Vp2(3CMPT)    Parameter sweeping   3.1900
+# 12           Q(3CMPT)    Parameter sweeping   6.0800
+# 13          Q2(3CMPT)    Parameter sweeping   6.0800
+# 14     Sigma additive           Model-based   0.1065
+# 15 Sigma proportional           Model-based   0.0262
+```
+
+## Inspecting the Run History
+
+`$Run.history` records every method combination attempted and evaluated
+through the pipeline. To access any component, use
+`<outname>$Run.history$<component>`.
+
+| Component           | Description                                                                                 |
+|---------------------|---------------------------------------------------------------------------------------------|
+| `$base.out`         | Method combinations and performance metrics for base PK parameters ($K_{a}$, $CL$, $V_{d}$) |
+| `$sim.2cmpt`        | Simulated parameters for 2-compartment models                                               |
+| `$sim.3cmpt`        | Simulated parameters for 3-compartment models                                               |
+| `$sim.vmax.km`      | Simulated $V_{max}$ and $K_{m}$ values                                                      |
+| `$single.point.out` | Results from single-point estimation methods                                                |
+| `$nca.out`          | Results from NCA-based estimation                                                           |
+| `$ka.wanger.nelson` | Results from Wagner-Nelson method for $K_{a}$ estimation                                    |
+| `$graph.out`        | Results from graphical estimation methods                                                   |
+| `$sigma.out`        | Results from residual variability estimation                                                |
+
+For example, the estimation details for the base PK parameters ($CL$,
+$V_{d}$, and $K_{a}$) can be accessed via:
+
+``` r
+outs$Run.history$base.out
+```
+
+We can see that each row represents a unique combination of estimation
+methods for $K_{a}$, $CL$, and $V_{d}$, and how each combination
+performs when the resulting parameters are used to predict the observed
+concentration–time data — allowing the best-performing combination to be
+selected automatically.
+
+    #>   Ka Method CL Method Vd Method    Ka     CL    Vd     APE    MAE   MAPE   RMSE  rRMSE1  rRMSE2  min_count  metrics.rank
+    #> 1    simpcal   simpcal   simpcal 0.858   2.04  22.1  244.081  1.984  47.623  2.388  44.851  52.053          0             7
+    #> 2      graph     graph     graph 1.550   2.97  31.9  136.998  1.114  28.773  1.449  27.227  44.965          0             2
+    #> 3     nca_fd    nca_fd    nca_fd 1.580   3.04  33.0  137.533  1.118  28.216  1.466  27.533  44.926          1             1
+    #> 4      graph   simpcal   simpcal 1.550   2.04  22.1  293.129  2.383  60.335  2.836  53.277  56.930          0             9
+    #> 5    simpcal     graph   simpcal 0.858   2.97  22.1  175.088  1.423  34.700  1.788  33.591  49.650          0             5
+    #> 6      graph     graph   simpcal 1.550   2.97  22.1  226.693  1.843  48.796  2.321  43.601  56.119          0             8
+    #> 7    simpcal   simpcal     graph 0.858   2.04  31.9  175.953  1.431  37.066  1.812  34.032  50.086          0             6
+    #> 8      graph   simpcal     graph 1.550   2.04  31.9  162.314  1.320  40.016  1.558  29.260  48.782          0             4
+    #> 9    simpcal     graph     graph 0.858   2.97  31.9  150.146  1.221  25.191  1.705  32.033  45.691          0             3
+
+**Note:** `metrics.rank` ranks all method combinations by predictive
+performance (rank 1 = best), based on the metric specified in
+[`initsControl()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/initsControl.md)
+(default: `rRMSE2`). The combination with rank 1 is used as the
+recommended initial estimates. `min_count` indicates how many metrics
+are simultaneously at their minimum for a given method combination when
+multiple metrics are used as selection criteria.
+
+## Controlling the Pipeline
+
+[`getPPKinits()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/getPPKinits.md)
+accepts a `control` argument via
+[`initsControl()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/initsControl.md)
+to customise the pipeline behaviour. For example, you can enable a
+fallback value of $K_{a} = 1$, `nlmixr2autoinit` will assign $K_{a} = 1$
+if the default algorithm is unable to compute it automatically from the
+dataset:
+
+``` r
+inits.out <- getPPKinits(
+  dat = theo_md,
+  control = initsControl(
+    fallback.control = fallback_control(enable_ka_fallback = TRUE)
+  )
+)
+```
+
+See
+[`?initsControl`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/initsControl.md)
+for the full list of options.
+
+## What’s Next?
+
+- **[Integration with
+  nlmixr2](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/workflow_nlmixr2.md)**
+  — learn how to pass these initial estimates directly into an `nlmixr2`
+  model definition.
+- **[Integration with
+  nlmixr2auto](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/workflow_nlmixr2auto.md)**
+  — trigger automated model selection with `nlmixr2auto`.
+- **[Parameter Sweeping and
+  Visualisation](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/parameter-sweeping.md)**
+  — explore how parameter sweeping works and how to visualise the sweep
+  results.
