@@ -26,10 +26,10 @@ library(devtools)
 install_github("ucl-pharmacometrics/nlmixr2autoinit")
 ```
 
-For additional information on installing the broader nlmixr2
-ecosystem,such as compiler configuration, system requirements, and
-platform-specific setup—please see the installation instructions in the
-main nlmixr2 repository (<https://github.com/nlmixr2/nlmixr2>).
+For additional information on installing the broader nlmixr2 ecosystem
+please see the installation instructions in the main nlmixr2 repository
+(<https://github.com/nlmixr2/nlmixr2>). A nlmixr2autoinit tutorial is
+available at <https://ucl-pharmacometrics.github.io/nlmixr2autoinit>.
 
 ## Example 1 (IV case)
 

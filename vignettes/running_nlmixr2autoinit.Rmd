@@ -192,5 +192,5 @@ See `?initsControl` for the full list of options.
 
 - **[Integration with nlmixr2](workflow_nlmixr2.html)** — learn how to pass these initial estimates directly into an `nlmixr2` model definition.
 - **[Integration with nlmixr2auto](workflow_nlmixr2auto.html)** — trigger automated model selection with `nlmixr2auto`.
-- **[Parameter Sweeping and Visualisation](parameter-sweeping.html)** — explore how parameter sweeping works and how to visualise the sweep results.
+- **[Parameter Sweeping and Visualisation](parameter_sweeping.html)** — explore how parameter sweeping works and how to visualise the sweep results.
 
