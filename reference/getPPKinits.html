@@ -134,7 +134,76 @@ mixed-effects pharmacokinetic models.</p></li>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #000000;">Estimating half-life....................</span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">Half-life estimation complete: </span>Estimated t1/2 = 11.26 h</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #000000;">Evaluating the predictive performance of calculated one-compartment model parameters....................</span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in loadNamespace(x):</span> there is no package called ‘progress’</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Base PK parameter analysis finished. Estimated ka: NA, estimated CL: 4, estimated Vd: 66 </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #000000;">Run parameter sweeping on nonlinear elimination kinetics PK parameters....................</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #000000;">Run parameter sweeping on multi-compartmental PK parameters....................</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ===============Initial Parameter Estimation Summary ===============</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Recommended initial estimates :</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            Parameters               Methods    Values</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                  Ka                    IV        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                  CL Naive pooled NCA (MD)     4.000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                  Vd Naive pooled NCA (MD)    66.000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                Vmax    Parameter sweeping 21551.820</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5                  Km    Parameter sweeping  5321.437</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6           Vc(2CMPT)    Parameter sweeping    66.000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7           Vp(2CMPT)    Parameter sweeping     6.600</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8            Q(2CMPT)    Parameter sweeping     1.000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9           Vc(3CMPT)    Parameter sweeping    47.601</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10          Vp(3CMPT)    Parameter sweeping     9.520</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11         Vp2(3CMPT)    Parameter sweeping     9.520</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12           Q(3CMPT)    Parameter sweeping     8.000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13          Q2(3CMPT)    Parameter sweeping     8.000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14     Sigma additive           Model-based    11.111</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15 Sigma proportional           Model-based     0.114</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Time spent :</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "31.148s"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ETA variances and derived covariances:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         Parameters                  Methods Values</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           eta.ka             fixed_values    0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2           eta.cl             fixed_values    0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3           eta.vc             fixed_values    0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4           eta.vp             fixed_values    0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5            eta.q             fixed_values    0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6          eta.vp2             fixed_values    0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7           eta.q2             fixed_values    0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8         eta.vmax             fixed_values    0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9           eta.km             fixed_values    0.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 cor.eta_vmax_km eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11   cor.eta_cl_vc eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12   cor.eta_cl_vp eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13  cor.eta_cl_vp2 eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14    cor.eta_cl_q eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15   cor.eta_cl_q2 eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16   cor.eta_vc_vp eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17  cor.eta_vc_vp2 eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18    cor.eta_vc_q eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19   cor.eta_vc_q2 eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20  cor.eta_vp_vp2 eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21    cor.eta_vp_q eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22   cor.eta_vp_q2 eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23   cor.eta_vp2_q eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24  cor.eta_vp2_q2 eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25    cor.eta_q_q2 eta_corr_derived (r=0.1)   0.01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Note: The ETA variances and covariances listed above are predefined default initialization values automatically assigned by the package.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Parameter descriptions:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [1] "Ka: absorption constant rate"                                                       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [2] "CL: clearance"                                                                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [3] "Vd: volume of distribution"                                                         </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [4] "Vmax: maximum metabolic rate"                                                       </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [5] "Km: Michaelis constant"                                                             </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [6] "Vc: volume of distribution of the central compartment"                              </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [7] "Vp: volume of distribution of the peripheral compartment"                           </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [8] "Vp2: volume of distribution of the second peripheral compartment"                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  [9] "Q: inter-compartmental clearance"                                                   </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [10] "Q2: inter-compartmental clearance between central and second peripheral compartment"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [11] "Sigma additive: standard deviation of additive residual error"                      </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [12] "Sigma proportional: standard deviation of proportional residual error"              </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> =============== End of Summary ===============</span>
 <span class="r-in"><span><span class="co">## Oral example (run quietly)</span></span></span>
 <span class="r-in"><span><span class="fu">getPPKinits</span><span class="op">(</span><span class="va">Oral_1CPT</span>,verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ===============Initial Parameter Estimation Summary ===============</span>
@@ -158,7 +227,7 @@ mixed-effects pharmacokinetic models.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 15 Sigma proportional           Model-based     0.105</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time spent :</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "68.613s"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "53.546s"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ETA variances and derived covariances:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         Parameters                  Methods Values</span>
