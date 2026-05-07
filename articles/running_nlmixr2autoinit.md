@@ -204,6 +204,6 @@ for the full list of options.
   nlmixr2auto](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/workflow_nlmixr2auto.md)**
   — trigger automated model selection with `nlmixr2auto`.
 - **[Parameter Sweeping and
-  Visualisation](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/parameter-sweeping.md)**
+  Visualisation](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/articles/parameter_sweeping.md)**
   — explore how parameter sweeping works and how to visualise the sweep
   results.
