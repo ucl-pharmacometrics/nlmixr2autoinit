@@ -218,6 +218,6 @@ run_graphcal(dat, route="infusion")
 #> 
 #> 
 #> $time.spent
-#> [1] 0.004
+#> [1] 0.003
 #> 
 ```

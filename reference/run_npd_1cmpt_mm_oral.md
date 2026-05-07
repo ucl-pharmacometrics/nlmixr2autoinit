@@ -101,7 +101,7 @@ Zhonghui Huang
   )
 #> $npd.1cmpt.mm_results
 #>     ka vmax  km   vd timespent
-#> 1 0.87 1050 352 66.1 2.79 secs
+#> 1 0.87 1050 352 66.1 2.48 secs
 #> 
 #> $npd.1cmpt.mm.APE
 #> metrics.ape 
@@ -133,8 +133,8 @@ Zhonghui Huang
 #> 
 #> ── Time (sec $time): ──
 #> 
-#>            setup table compress    other
-#> elapsed 0.024731 0.102    0.001 2.626269
+#>           setup table   other
+#> elapsed 0.02116 0.105 2.32484
 #> 
 #> ── ($parFixed or $parFixedDf): ──
 #> 

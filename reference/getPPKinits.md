@@ -128,7 +128,7 @@ getPPKinits(Oral_1CPT,verbose = FALSE)
 #> 15 Sigma proportional           Model-based     0.105
 #> 
 #> Time spent :
-#> [1] "66.044s"
+#> [1] "68.613s"
 #> 
 #> ETA variances and derived covariances:
 #>         Parameters                  Methods Values
