@@ -67,7 +67,7 @@ Zhonghui Huang
 run_npd_1cmpt_iv(dat = Bolus_1CPT, input.cl = 4, input.vd = 70)
 #> $npd.1cmpt_results
 #>     cl   vd   timespent
-#> 1 3.82 63.5 1.7696 secs
+#> 1 3.82 63.5 1.7273 secs
 #> 
 #> $npd.1cmpt.APE
 #> metrics.ape 
@@ -99,8 +99,8 @@ run_npd_1cmpt_iv(dat = Bolus_1CPT, input.cl = 4, input.vd = 70)
 #> 
 #> ── Time (sec $time): ──
 #> 
-#>            setup table    other
-#> elapsed 0.024107 0.111 1.615893
+#>            setup table compress    other
+#> elapsed 0.021034  0.09    0.001 1.594966
 #> 
 #> ── ($parFixed or $parFixedDf): ──
 #> 
