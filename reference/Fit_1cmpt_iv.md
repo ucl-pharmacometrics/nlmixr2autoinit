@@ -86,7 +86,7 @@ Fit_1cmpt_iv(
 #> ── Time (sec value$time): ──
 #> 
 #>            setup table compress    other
-#> elapsed 0.024138 0.108    0.001 2.774862
+#> elapsed 0.023683 0.107    0.001 2.651317
 #> 
 #> ── (value$parFixed or value$parFixedDf): ──
 #> 
