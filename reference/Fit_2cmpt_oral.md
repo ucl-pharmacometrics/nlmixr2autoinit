@@ -104,8 +104,8 @@ Fit_2cmpt_oral(
 #> 
 #> ── Time (sec value$time): ──
 #> 
-#>            setup table    other
-#> elapsed 0.020585 0.201 15.80742
+#>           setup table    other
+#> elapsed 0.02263 0.236 19.57337
 #> 
 #> ── (value$parFixed or value$parFixedDf): ──
 #> 

@@ -105,7 +105,7 @@ result <- run_single_point(
 # Step 5: View results
 print(result$singlepoint.results)
 #>      ka   cl   vd           starttime time.spent
-#> 1 0.889 3.28 52.4 2026-05-08 00:01:20      1.202
+#> 1 0.889 3.28 52.4 2026-05-08 00:13:03      1.456
 #>                                                         single_point.message
 #> 1 CL and Vd were calculated directly from steady-state and single-dose data.
 ```
