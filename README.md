@@ -5,8 +5,10 @@
 [![CRAN version](https://www.r-pkg.org/badges/version/nlmixr2autoinit)](https://cran.r-project.org/package=nlmixr2autoinit)
 ![downloads](https://cranlogs.r-pkg.org/badges/grand-total/nlmixr2autoinit)
 ![downloads-month](https://cranlogs.r-pkg.org/badges/nlmixr2autoinit)
-
+[![R-CMD-check](https://github.com/ucl-pharmacometrics/nlmixr2autoinit/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ucl-pharmacometrics/nlmixr2autoinit/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/ucl-pharmacometrics/nlmixr2autoinit/graph/badge.svg)](https://app.codecov.io/gh/ucl-pharmacometrics/nlmixr2autoinit)
 <!-- badges: end -->
+
 
 nlmixr2autoinit provides an automated framework for deriving initial parameter 
 estimates for population pharmacokinetic (PopPK) models via multiple PK analysis 
