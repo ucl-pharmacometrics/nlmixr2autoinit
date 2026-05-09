@@ -83,7 +83,7 @@ print(inits.out)
 #> 15 Sigma proportional           Model-based     0.114
 #> 
 #> Time spent :
-#> [1] "39.834s"
+#> [1] "42.577s"
 #> 
 #> ETA variances and derived covariances:
 #>         Parameters                  Methods Values
