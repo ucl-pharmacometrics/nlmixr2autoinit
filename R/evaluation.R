@@ -154,7 +154,7 @@ eval_perf_1cmpt <- function(dat,
   # Defensive checks
   if (any(is.na(c(cl, vd))) || cl <= 0 || vd <= 0 ||
       (route == "oral" && (is.na(ka) || ka <= 0))) {
-    return(rep(NA, 5))
+    return(rep(NA, 6))
   }
 
   model_func <- if (route == "oral")
@@ -180,7 +180,7 @@ eval_perf_1cmpt <- function(dat,
     return(NULL))
 
   if (is.null(sim))
-    return(rep(NA, 5))
+    return(rep(NA, 6))
 
   obs <- dat[dat$EVID == 0, ]$DV
   pred <- sim$cp
@@ -226,14 +226,14 @@ eval_perf_1cmpt <- function(dat,
 #'
 #' @return A `data.frame` of unique parameter combinations with source labels and values.
 #' @examples
-#' dat <- Bolus_1CPT
+#' dat <- Oral_1CPT
 #' # Example parameter estimates from different methods
 #' sp_out_ka <- 1.2; sp_out_cl <- 3.5; sp_out_vd <- 50
 #' graph_out_ka <- 1.1; graph_out_cl <- 3.6; graph_out_vd <- 52
 #' nca_fd_ka <- 1.3; nca_fd_cl <- 3.4; nca_fd_vd <- 49
 #' nca_efd_ka <- NA;  nca_efd_cl <- NA;  nca_efd_vd <- NA
 #' nca_all_ka <- 1.25; nca_all_cl <- 3.55; nca_all_vd <- 51
-#' # Run hybrid evaluation (silent)
+#' # Run hybrid evaluation
 #'  hybrid_eval_perf_1cmpt(
 #'   route = "oral",
 #'   dat = dat,
