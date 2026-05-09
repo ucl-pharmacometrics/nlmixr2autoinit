@@ -166,14 +166,14 @@ automated analyses or CRAN checks.</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">Bolus_1CPT</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="va">Oral_1CPT</span></span></span>
 <span class="r-in"><span><span class="co"># Example parameter estimates from different methods</span></span></span>
 <span class="r-in"><span><span class="va">sp_out_ka</span> <span class="op">&lt;-</span> <span class="fl">1.2</span>; <span class="va">sp_out_cl</span> <span class="op">&lt;-</span> <span class="fl">3.5</span>; <span class="va">sp_out_vd</span> <span class="op">&lt;-</span> <span class="fl">50</span></span></span>
 <span class="r-in"><span><span class="va">graph_out_ka</span> <span class="op">&lt;-</span> <span class="fl">1.1</span>; <span class="va">graph_out_cl</span> <span class="op">&lt;-</span> <span class="fl">3.6</span>; <span class="va">graph_out_vd</span> <span class="op">&lt;-</span> <span class="fl">52</span></span></span>
 <span class="r-in"><span><span class="va">nca_fd_ka</span> <span class="op">&lt;-</span> <span class="fl">1.3</span>; <span class="va">nca_fd_cl</span> <span class="op">&lt;-</span> <span class="fl">3.4</span>; <span class="va">nca_fd_vd</span> <span class="op">&lt;-</span> <span class="fl">49</span></span></span>
 <span class="r-in"><span><span class="va">nca_efd_ka</span> <span class="op">&lt;-</span> <span class="cn">NA</span>;  <span class="va">nca_efd_cl</span> <span class="op">&lt;-</span> <span class="cn">NA</span>;  <span class="va">nca_efd_vd</span> <span class="op">&lt;-</span> <span class="cn">NA</span></span></span>
 <span class="r-in"><span><span class="va">nca_all_ka</span> <span class="op">&lt;-</span> <span class="fl">1.25</span>; <span class="va">nca_all_cl</span> <span class="op">&lt;-</span> <span class="fl">3.55</span>; <span class="va">nca_all_vd</span> <span class="op">&lt;-</span> <span class="fl">51</span></span></span>
-<span class="r-in"><span><span class="co"># Run hybrid evaluation (silent)</span></span></span>
+<span class="r-in"><span><span class="co"># Run hybrid evaluation</span></span></span>
 <span class="r-in"><span> <span class="fu">hybrid_eval_perf_1cmpt</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  route <span class="op">=</span> <span class="st">"oral"</span>,</span></span>
 <span class="r-in"><span>  dat <span class="op">=</span> <span class="va">dat</span>,</span></span>
@@ -185,15 +185,15 @@ automated analyses or CRAN checks.</p></dd>
 <span class="r-in"><span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ka_source cl_source vd_source ka_value cl_value vd_value     APE     MAE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   simpcal   simpcal   simpcal     1.20     3.50       50 1434780 206.413</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     graph     graph     graph     1.10     3.60       52 1424299 204.906</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3    nca_fd    nca_fd    nca_fd     1.30     3.40       49 1452438 208.954</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   nca_all   nca_all   nca_all     1.25     3.55       51 1407249 202.453</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   simpcal   simpcal   simpcal     1.20     3.50       50 1295206 186.441</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     graph     graph     graph     1.10     3.60       52 1181548 170.080</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3    nca_fd    nca_fd    nca_fd     1.30     3.40       49 1399833 201.502</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   nca_all   nca_all   nca_all     1.25     3.55       51 1264984 182.091</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     MAPE    RMSE rRMSE1 rRMSE2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 63.235 363.167 58.743 54.581</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 62.148 367.619 59.463 54.864</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3 66.146 361.330 58.446 54.361</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4 61.619 358.910 58.055 54.249</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 70.636 303.815 60.170 53.821</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 67.323 278.543 55.165 52.327</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 75.713 326.924 64.747 55.029</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4 69.050 297.320 58.884 53.558</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

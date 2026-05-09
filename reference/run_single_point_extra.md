@@ -166,7 +166,7 @@ run_single_point_extra(
 )
 #> $singlepoint.results
 #>   ka   cl   vd           starttime time.spent
-#> 1 NA 3.04 67.6 2026-05-09 21:43:33      1.345
+#> 1 NA 3.04 67.6 2026-05-09 22:07:59      1.557
 #>                                                         single_point.message
 #> 1 CL and Vd were calculated directly from steady-state and single-dose data.
 #> 

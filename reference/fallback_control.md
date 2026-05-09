@@ -6,7 +6,7 @@ Control settings for fallback rules in parameter estimation
 
 ``` r
 fallback_control(
-  enable_ka_fallback = FALSE,
+  enable_ka_fallback = TRUE,
   sigma_method_additive = "model",
   sigma_method_proportional = "model",
   sigma_fallback_fraction = 0.2

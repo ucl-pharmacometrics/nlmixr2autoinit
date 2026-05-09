@@ -128,7 +128,7 @@ getPPKinits(Bolus_1CPT,verbose = TRUE)
 #> 15 Sigma proportional           Model-based     0.114
 #> 
 #> Time spent :
-#> [1] "40.876s"
+#> [1] "37.477s"
 #> 
 #> ETA variances and derived covariances:
 #>         Parameters                  Methods Values
@@ -197,7 +197,7 @@ getPPKinits(Oral_1CPT,verbose = FALSE)
 #> 15 Sigma proportional           Model-based     0.105
 #> 
 #> Time spent :
-#> [1] "71.401s"
+#> [1] "66.287s"
 #> 
 #> ETA variances and derived covariances:
 #>         Parameters                  Methods Values

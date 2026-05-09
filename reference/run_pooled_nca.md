@@ -134,6 +134,6 @@ run_pooled_nca(
 #> [1] "[Message]: 1: Selected 10 points (higher Rsquare) Rsquare=0.9976 lambdaz=0.0630"
 #> 
 #> $time.spent
-#> [1] 0.006
+#> [1] 0.005
 #> 
 ```

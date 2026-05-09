@@ -125,14 +125,14 @@ values.
 ## Examples
 
 ``` r
-dat <- Bolus_1CPT
+dat <- Oral_1CPT
 # Example parameter estimates from different methods
 sp_out_ka <- 1.2; sp_out_cl <- 3.5; sp_out_vd <- 50
 graph_out_ka <- 1.1; graph_out_cl <- 3.6; graph_out_vd <- 52
 nca_fd_ka <- 1.3; nca_fd_cl <- 3.4; nca_fd_vd <- 49
 nca_efd_ka <- NA;  nca_efd_cl <- NA;  nca_efd_vd <- NA
 nca_all_ka <- 1.25; nca_all_cl <- 3.55; nca_all_vd <- 51
-# Run hybrid evaluation (silent)
+# Run hybrid evaluation
  hybrid_eval_perf_1cmpt(
   route = "oral",
   dat = dat,
@@ -144,13 +144,13 @@ nca_all_ka <- 1.25; nca_all_cl <- 3.55; nca_all_vd <- 51
   verbose = FALSE
 )
 #>   ka_source cl_source vd_source ka_value cl_value vd_value     APE     MAE
-#> 1   simpcal   simpcal   simpcal     1.20     3.50       50 1434780 206.413
-#> 2     graph     graph     graph     1.10     3.60       52 1424299 204.906
-#> 3    nca_fd    nca_fd    nca_fd     1.30     3.40       49 1452438 208.954
-#> 4   nca_all   nca_all   nca_all     1.25     3.55       51 1407249 202.453
+#> 1   simpcal   simpcal   simpcal     1.20     3.50       50 1295206 186.441
+#> 2     graph     graph     graph     1.10     3.60       52 1181548 170.080
+#> 3    nca_fd    nca_fd    nca_fd     1.30     3.40       49 1399833 201.502
+#> 4   nca_all   nca_all   nca_all     1.25     3.55       51 1264984 182.091
 #>     MAPE    RMSE rRMSE1 rRMSE2
-#> 1 63.235 363.167 58.743 54.581
-#> 2 62.148 367.619 59.463 54.864
-#> 3 66.146 361.330 58.446 54.361
-#> 4 61.619 358.910 58.055 54.249
+#> 1 70.636 303.815 60.170 53.821
+#> 2 67.323 278.543 55.165 52.327
+#> 3 75.713 326.924 64.747 55.029
+#> 4 69.050 297.320 58.884 53.558
 ```
