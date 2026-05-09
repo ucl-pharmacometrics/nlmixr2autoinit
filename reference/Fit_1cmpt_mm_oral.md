@@ -98,7 +98,7 @@ Fit_1cmpt_mm_oral(
 #> ── Time (sec value$time): ──
 #> 
 #>            setup table compress    other
-#> elapsed 0.028341 0.137    0.001 3.907659
+#> elapsed 0.023849 0.134    0.001 3.660151
 #> 
 #> ── (value$parFixed or value$parFixedDf): ──
 #> 
