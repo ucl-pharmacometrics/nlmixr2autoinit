@@ -91,8 +91,8 @@ run_npd_2cmpt_oral(
   input.q2cmpt = 4
 )
 #> $npd.2cmpt_results
-#>     ka   cl vc vp    q    timespent
-#> 1 1.06 3.88 72 51 3.29 10.5266 secs
+#>     ka   cl vc vp    q   timespent
+#> 1 1.06 3.88 72 51 3.29 7.8558 secs
 #> 
 #> $npd.2cmpt.APE
 #> metrics.ape 
@@ -125,7 +125,7 @@ run_npd_2cmpt_oral(
 #> ── Time (sec $time): ──
 #> 
 #>            setup table compress    other
-#> elapsed 0.018555 0.169    0.001 10.28944
+#> elapsed 0.020307 0.199    0.001 7.605693
 #> 
 #> ── ($parFixed or $parFixedDf): ──
 #> 

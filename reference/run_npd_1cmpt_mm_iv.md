@@ -90,7 +90,7 @@ run_npd_1cmpt_mm_iv(
 )
 #> $npd.1cmpt.mm_results
 #>       vmax       km   vd timespent
-#> 1 8.45e+10 2.21e+10 63.5 2.97 secs
+#> 1 8.45e+10 2.21e+10 63.5  2.2 secs
 #> 
 #> $npd.1cmpt.mm.APE
 #> metrics.ape 
@@ -122,8 +122,8 @@ run_npd_1cmpt_mm_iv(
 #> 
 #> ── Time (sec $time): ──
 #> 
-#>            setup table    other
-#> elapsed 0.018351 0.119 2.794649
+#>            setup table compress    other
+#> elapsed 0.037549 0.088    0.001 2.054451
 #> 
 #> ── ($parFixed or $parFixedDf): ──
 #> 
