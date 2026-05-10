@@ -88,6 +88,6 @@ graphcal_oral(dat, dose = 100, route = "oral")
 #> 
 #> 
 #> $time.spent
-#> [1] 0.005
+#> [1] 0.003
 #> 
 ```

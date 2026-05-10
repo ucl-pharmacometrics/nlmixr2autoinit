@@ -104,5 +104,5 @@ half_life <- get_hf(dat = fdat)$half_life_median
 #> Half-life estimation complete: Estimated t1/2 = 11 h
 run_single_point_base(dat = fdat, half_life = half_life, route = route)$summary
 #>     cl   vd          start.time time.spent
-#> 1 3.04 67.6 2026-05-10 01:03:08       1.29
+#> 1 3.04 67.6 2026-05-10 21:26:54      1.341
 ```
