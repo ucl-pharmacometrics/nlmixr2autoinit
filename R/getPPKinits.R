@@ -437,7 +437,12 @@ getPPKinits <- function(dat,
     min(base.out$`Relative Root Mean Squared Error (rRMSE1)`, na.rm = TRUE)
 
   # Only apply defensive fallback when rRMSE2 is the only selected metric
+  # if (identical(selmetrics, "rRMSE2") &&
+  #     rRMSE1_selected > 10 * rRMSE1_min) {
   if (identical(selmetrics, "rRMSE2") &&
+      !is.na(rRMSE1_selected) &&
+      !is.na(rRMSE1_min) &&
+      is.finite(rRMSE1_min) &&
       rRMSE1_selected > 10 * rRMSE1_min) {
     # Define fallback metric set
     fallback_metrics <- c("Relative Root Mean Squared Error (rRMSE1)")
