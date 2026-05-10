@@ -73,7 +73,7 @@ Zhonghui Huang
 run_npd_1cmpt_oral(dat = Oral_1CPT, input.ka = 1, input.cl = 4, input.vd = 70)
 #> $npd.1cmpt_results
 #>     ka   cl   vd   timespent
-#> 1 1.02 3.89 71.2 4.0411 secs
+#> 1 1.02 3.89 71.2 3.2844 secs
 #> 
 #> $npd.1cmpt.APE
 #> metrics.ape 
@@ -106,7 +106,7 @@ run_npd_1cmpt_oral(dat = Oral_1CPT, input.ka = 1, input.cl = 4, input.vd = 70)
 #> ── Time (sec $time): ──
 #> 
 #>            setup table compress    other
-#> elapsed 0.021155  0.39    0.001 3.604845
+#> elapsed 0.018686 0.111    0.001 3.134314
 #> 
 #> ── ($parFixed or $parFixedDf): ──
 #> 

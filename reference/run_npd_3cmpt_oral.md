@@ -108,8 +108,8 @@ run_npd_3cmpt_oral(
 #> exit of dop853 at x = 0.0000000000000000e+00, more than nmax = 70000 are needed
 #> exit of dop853 at x = 0.0000000000000000e+00, more than nmax = 70000 are needed
 #> $npd.3cmpt_results
-#>     ka   cl vc  vp vp2        q       q2    timespent
-#> 1 1.79 3.87 96 Inf   0 1.03e-15 1.47e+15 41.9668 secs
+#>     ka   cl vc  vp vp2        q       q2   timespent
+#> 1 1.79 3.87 96 Inf   0 1.03e-15 1.47e+15 36.253 secs
 #> 
 #> $npd.3cmpt.APE
 #> metrics.ape 
@@ -140,7 +140,7 @@ run_npd_3cmpt_oral(
 #> ── Time (sec $time): ──
 #> 
 #>            setup table compress    other
-#> elapsed 0.020752 1.088    0.001 40.81625
+#> elapsed 0.047873 0.952    0.001 35.22213
 #> 
 #> ── ($parFixed or $parFixedDf): ──
 #> 

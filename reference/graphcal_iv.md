@@ -77,6 +77,6 @@ graphcal_iv(dat, dose = 100)
 #> 
 #> 
 #> $time.spent
-#> [1] 0.003
+#> [1] 0.002
 #> 
 ```
