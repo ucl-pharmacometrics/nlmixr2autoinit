@@ -101,7 +101,7 @@ run_npd_3cmpt_iv(
 )
 #> $npd.3cmpt_results
 #>     cl   vc   vp  vp2    q   q2    timespent
-#> 1 3.79 62.6 60.2 19.3 1.88 3.51 29.2262 secs
+#> 1 3.79 62.6 60.2 19.3 1.88 3.51 50.3747 secs
 #> 
 #> $npd.3cmpt.APE
 #> metrics.ape 
@@ -134,7 +134,7 @@ run_npd_3cmpt_iv(
 #> ── Time (sec $time): ──
 #> 
 #>            setup table compress    other
-#> elapsed 0.017532 0.125    0.019 29.02647
+#> elapsed 0.020429 0.152    0.001 50.13757
 #> 
 #> ── ($parFixed or $parFixedDf): ──
 #> 

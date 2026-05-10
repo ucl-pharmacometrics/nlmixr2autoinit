@@ -201,7 +201,7 @@ getnca(x = dat$TIME, y = dat$DV, dose = 1, route = "infusion", duration = 1)
 #> [1] "[Message]: 1: Selected 4 points (higher Rsquare) Rsquare=0.9826 lambdaz=0.2617"
 #> 
 #> $time.spent
-#> [1] 0.038
+#> [1] 0.002
 #> 
 
 # Oral administration example
