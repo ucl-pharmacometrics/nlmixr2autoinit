@@ -40,7 +40,6 @@ Roxygen: list(markdown = TRUE)
 Suggests: 
     testthat (>= 3.0.0),
     progress,
-    knitr,
     rmarkdown
 VignetteBuilder: knitr
 Config/testthat/edition: 3
