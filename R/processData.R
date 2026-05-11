@@ -347,20 +347,24 @@ processData<-function(dat,verbose = TRUE){
   for (col in existing_columns) {
     dat[[col]] <- as.numeric(dat[[col]])
   }
-
 # Process compartment logic per ID/reset group
 dat <- dat %>%
   # Ensure CMT exists: if missing, initialize with 1
   { if (!"CMT" %in% colnames(.)) dplyr::mutate(., CMT = 1) else . } %>%
+  # Ensure MDV exists: if missing, initialize with EVID == 0
+  { if (!"MDV" %in% colnames(.)) dplyr::mutate(., MDV = as.numeric(EVID == 0)) else . } %>%
   dplyr::group_by(ID, resetflag) %>%
   dplyr::mutate(
     # Get observation compartment (EVID=0) for current reset group
     obs_cmt = dplyr::first(CMT[EVID == 0], na_rm = TRUE),
 
     # Count unique compartments in current group
-    n_unique_cmt = dplyr::n_distinct(CMT)
+    n_unique_cmt = dplyr::n_distinct(CMT),
+    n_unique_obs_cmt = dplyr::n_distinct(CMT[EVID == 0 & MDV == 0], na.rm = TRUE)
   ) %>%
   dplyr::ungroup() %>%
+  # Remove individuals with no observations
+  dplyr::filter(n_unique_obs_cmt >= 1) %>%
   # Route determination logic
   dplyr::mutate(
     route = dplyr::case_when(
@@ -381,7 +385,7 @@ dat <- dat %>%
       TRUE ~ NA_character_
     )
   ) %>%
-  dplyr::select(-obs_cmt,-n_unique_cmt)
+  dplyr::select(-obs_cmt,-n_unique_cmt, -n_unique_obs_cmt)
 
 # Error handling for unsupported configurations
 invalid_groups <- dat %>%
