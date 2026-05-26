@@ -33,3 +33,31 @@ test_that("processData identifies oral route for Oral_1CPT", {
 test_that("processData dat retains required columns", {
   expect_true(all(c("ID", "TIME", "EVID", "DV") %in% colnames(result_bolus$dat)))
 })
+
+test_that("processData converts character IDs to integers", {
+  d <- data.frame(
+    ID   = c("A", "A", "B", "B"),
+    EVID = c(1, 0, 1, 0),
+    CMT  = c(1, 2, 1, 2),
+    AMT  = c(1, 0, 1, 0),
+    TIME = c(0, 1, 0, 1),
+    DV   = c(NA, 1.5, NA, 1)
+  )
+  result <- processData(d, verbose = FALSE)
+  expect_type(result$dat$ID, "integer")
+  expect_equal(sort(unique(result$dat$ID)), 1:2)
+})
+
+test_that("processData converts factor IDs to integers", {
+  d <- data.frame(
+    ID   = factor(c("A", "A", "B", "B")),
+    EVID = c(1, 0, 1, 0),
+    CMT  = c(1, 2, 1, 2),
+    AMT  = c(1, 0, 1, 0),
+    TIME = c(0, 1, 0, 1),
+    DV   = c(NA, 1.5, NA, 1)
+  )
+  result <- processData(d, verbose = FALSE)
+  expect_type(result$dat$ID, "integer")
+  expect_equal(sort(unique(result$dat$ID)), 1:2)
+})
