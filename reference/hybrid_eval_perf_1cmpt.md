@@ -125,6 +125,7 @@ values.
 ## Examples
 
 ``` r
+# \donttest{
 dat <- Oral_1CPT
 # Example parameter estimates from different methods
 sp_out_ka <- 1.2; sp_out_cl <- 3.5; sp_out_vd <- 50
@@ -153,4 +154,5 @@ nca_all_ka <- 1.25; nca_all_cl <- 3.55; nca_all_vd <- 51
 #> 2 67.323 278.543 55.165 52.327
 #> 3 75.713 326.924 64.747 55.029
 #> 4 69.050 297.320 58.884 53.558
+# }
 ```
