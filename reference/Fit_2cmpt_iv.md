@@ -78,52 +78,47 @@ Zhonghui Huang
 ``` r
  # \donttest{
 dat <- Bolus_2CPT
-# Fit using 'nls'
+# Run simulation
 Fit_2cmpt_iv(
   data = dat,
-  est.method = "nls",
+  est.method = "rxSolve",
   input.cl = 4,
   input.vc2cmpt = 70,
   input.vp2cmpt = 40,
   input.q2cmpt = 4,
   input.add = 10
 )
-#> ── nlmixr² nls with LM algorithm ──
-#> 
-#>          OBJF       AIC       BIC Log-likelihood Condition#(Cov)
-#> Pop 514200463 514213265 514213299     -257106628        141.5109
-#>     Condition#(Cor)
-#> Pop        3.803254
-#> 
-#> ── Time (sec value$time): ──
-#> 
-#>            setup table compress    other
-#> elapsed 0.023514 0.119    0.001 6.129486
-#> 
-#> ── (value$parFixed or value$parFixedDf): ──
-#> 
-#>          Est.        SE     %RSE Back-transformed(95%CI) BSV(SD) Shrink(SD)%
-#> tcl     1.345 5.454e-05 0.004056    3.837 (3.836, 3.837)                    
-#> tv1     4.151 6.161e-05 0.001484    63.52 (63.52, 63.53)                    
-#> tv2     4.262 0.0004842  0.01136    70.99 (70.92, 71.05)                    
-#> tq      1.492 0.0004336  0.02906     4.446 (4.442, 4.45)                    
-#> add.err 271.8                                      271.8                    
-#>  
-#>   Covariance Type (value$covMethod): r (LM)
-#>   Censoring (value$censInformation): No censoring
-#>   Minimization message (value$message):  
-#>     Relative error in the sum of squares is at most `ftol'. 
-#> 
-#> ── Fit Data (object value is a modified tibble): ──
-#> # A tibble: 6,960 × 18
-#>   ID     TIME    DV IPRED  IRES  IWRES    cp  centre    A2    cl    v1    v2
-#>   <fct> <dbl> <dbl> <dbl> <dbl>  <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl>
-#> 1 1      0.25 1041. 1829. -788. -2.90  1829. 116167. 2050.  3.84  63.5  71.0
-#> 2 1      0.5  1629  1771. -142. -0.522 1771. 112489. 4003.  3.84  63.5  71.0
-#> 3 1      0.75  878. 1715. -837. -3.08  1715. 108957. 5862.  3.84  63.5  71.0
-#> # ℹ 6,957 more rows
-#> # ℹ 6 more variables: q <dbl>, k <dbl>, k12 <dbl>, k21 <dbl>, tad <dbl>,
-#> #   dosenum <dbl>
+#> ── Solved rxode2 object ──
+#> ── Parameters (value$params): ──
+#> # A tibble: 120 × 6
+#>    id      tcl   tv1   tv2    tq add.err
+#>    <fct> <dbl> <dbl> <dbl> <dbl>   <dbl>
+#>  1 1      1.39  4.25  3.69  1.39      10
+#>  2 2      1.39  4.25  3.69  1.39      10
+#>  3 3      1.39  4.25  3.69  1.39      10
+#>  4 4      1.39  4.25  3.69  1.39      10
+#>  5 5      1.39  4.25  3.69  1.39      10
+#>  6 6      1.39  4.25  3.69  1.39      10
+#>  7 7      1.39  4.25  3.69  1.39      10
+#>  8 8      1.39  4.25  3.69  1.39      10
+#>  9 9      1.39  4.25  3.69  1.39      10
+#> 10 10     1.39  4.25  3.69  1.39      10
+#> # ℹ 110 more rows
+#> ── Initial Conditions (value$inits): ──
+#> centre     A2 
+#>      0      0 
+#> ── First part of data (object): ──
+#> # A tibble: 6,960 × 14
+#>      id  time    cl    v1    v2     q      k    k12   k21    cp ipredSim   sim
+#>   <int> <dbl> <dbl> <dbl> <dbl> <dbl>  <dbl>  <dbl> <dbl> <dbl>    <dbl> <dbl>
+#> 1     1  0.25  4.01  70.1  40.0  4.01 0.0573 0.0573 0.100 1664.    1664. 1670.
+#> 2     1  0.5   4.01  70.1  40.0  4.01 0.0573 0.0573 0.100 1618.    1618. 1606.
+#> 3     1  0.75  4.01  70.1  40.0  4.01 0.0573 0.0573 0.100 1573.    1573. 1548.
+#> 4     1  1     4.01  70.1  40.0  4.01 0.0573 0.0573 0.100 1531.    1531. 1531.
+#> 5     1  1.5   4.01  70.1  40.0  4.01 0.0573 0.0573 0.100 1451.    1451. 1439.
+#> 6     1  2     4.01  70.1  40.0  4.01 0.0573 0.0573 0.100 1377.    1377. 1359.
+#> # ℹ 6,954 more rows
+#> # ℹ 2 more variables: centre <dbl>, A2 <dbl>
 # Return only predicted concentrations
 Fit_2cmpt_iv(
   data = dat,

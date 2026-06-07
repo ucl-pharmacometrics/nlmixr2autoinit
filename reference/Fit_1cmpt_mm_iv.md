@@ -73,48 +73,44 @@ Zhonghui Huang
 ``` r
  # \donttest{
 dat <- Bolus_1CPTMM
-# Fit using 'nls'
+# Run simulation
 Fit_1cmpt_mm_iv(
   data = dat,
-  est.method = "nls",
+  est.method = "rxSolve",
   input.vmax = 1000,
   input.km = 250,
   input.vd = 70,
   input.add = 10)
-#> ── nlmixr² nls with LM algorithm ──
-#> 
-#>           OBJF        AIC        BIC Log-likelihood Condition#(Cov)
-#> Pop 9965284803 9965297584 9965297611    -4982648788            1571
-#>     Condition#(Cor)
-#> Pop        110.2663
-#> 
-#> ── Time (sec value$time): ──
-#> 
-#>            setup table compress    other
-#> elapsed 0.026109 0.111    0.001 2.478891
-#> 
-#> ── (value$parFixed or value$parFixedDf): ──
-#> 
-#>          Est.        SE      %RSE Back-transformed(95%CI) BSV(SD) Shrink(SD)%
-#> lvmax   6.917 8.768e-05  0.001268       1009 (1009, 1009)                    
-#> lkm     5.378 0.0003263  0.006067    216.6 (216.4, 216.7)                    
-#> tv      4.074 3.048e-05 0.0007481    58.78 (58.78, 58.78)                    
-#> add.err  1198                                        1198                    
-#>  
-#>   Covariance Type (value$covMethod): r (LM)
-#>   Censoring (value$censInformation): No censoring
-#>   Minimization message (value$message):  
-#>     Relative error in the sum of squares is at most `ftol'. 
-#> 
-#> ── Fit Data (object value is a modified tibble): ──
-#> # A tibble: 6,960 × 14
-#>   ID     EVID  TIME    DV IPRED   IRES   IWRES    cp centre  vmax    km     v
-#>   <fct> <int> <dbl> <dbl> <dbl>  <dbl>   <dbl> <dbl>  <dbl> <dbl> <dbl> <dbl>
-#> 1 1         0  0.25  868.  677.  190.   0.159   677. 39809. 1009.  217.  58.8
-#> 2 1         0  0.5   750.  674.   76.1  0.0635  674. 39618. 1009.  217.  58.8
-#> 3 1         0  0.75  553   671. -118.  -0.0983  671. 39427. 1009.  217.  58.8
-#> # ℹ 6,957 more rows
-#> # ℹ 2 more variables: tad <dbl>, dosenum <dbl>
+#> ── Solved rxode2 object ──
+#> ── Parameters (value$params): ──
+#> # A tibble: 120 × 5
+#>    id    lvmax   lkm    tv add.err
+#>    <fct> <dbl> <dbl> <dbl>   <dbl>
+#>  1 1      6.91  5.52  4.25      10
+#>  2 2      6.91  5.52  4.25      10
+#>  3 3      6.91  5.52  4.25      10
+#>  4 4      6.91  5.52  4.25      10
+#>  5 5      6.91  5.52  4.25      10
+#>  6 6      6.91  5.52  4.25      10
+#>  7 7      6.91  5.52  4.25      10
+#>  8 8      6.91  5.52  4.25      10
+#>  9 9      6.91  5.52  4.25      10
+#> 10 10     6.91  5.52  4.25      10
+#> # ℹ 110 more rows
+#> ── Initial Conditions (value$inits): ──
+#> centre 
+#>      0 
+#> ── First part of data (object): ──
+#> # A tibble: 6,960 × 10
+#>      id  evid  time  vmax    km     v    cp ipredSim   sim centre
+#>   <int> <int> <dbl> <dbl> <dbl> <dbl> <dbl>    <dbl> <dbl>  <dbl>
+#> 1     1     0  0.25 1002.  250.  70.1  568.     568.  569. 39826.
+#> 2     1     0  0.5  1002.  250.  70.1  566.     566.  572. 39652.
+#> 3     1     0  0.75 1002.  250.  70.1  563.     563.  568. 39478.
+#> 4     1     0  1    1002.  250.  70.1  561.     561.  560. 39305.
+#> 5     1     0  1.5  1002.  250.  70.1  556.     556.  572. 38958.
+#> 6     1     0  2    1002.  250.  70.1  551.     551.  554. 38613.
+#> # ℹ 6,954 more rows
 
 # Return only predicted concentrations
 Fit_1cmpt_mm_iv(

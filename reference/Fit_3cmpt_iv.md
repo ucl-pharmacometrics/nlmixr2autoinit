@@ -88,10 +88,10 @@ Zhonghui Huang
 ``` r
 # \donttest{
 dat <- Bolus_2CPT
-# Fit using 'nls'
+# Run simulation
 Fit_3cmpt_iv(
   data = dat,
-  est.method = "nls",
+  est.method = "rxSolve",
   input.cl = 4,
   input.vc3cmpt = 70,
   input.vp3cmpt = 35,
@@ -100,44 +100,38 @@ Fit_3cmpt_iv(
   input.q23cmpt = 4,
   input.add = 10
 )
-#> ── nlmixr² nls with LM algorithm ──
-#> 
-#>          OBJF       AIC       BIC Log-likelihood Condition#(Cov)
-#> Pop 513582699 513595505 513595553     -256797745        32043.11
-#>     Condition#(Cor)
-#> Pop        227.6006
-#> 
-#> ── Time (sec value$time): ──
-#> 
-#>            setup table compress    other
-#> elapsed 0.023982 0.163    0.001 23.80602
-#> 
-#> ── (value$parFixed or value$parFixedDf): ──
-#> 
-#>           Est.        SE     %RSE Back-transformed(95%CI) BSV(SD) Shrink(SD)%
-#> tcl      1.333 6.246e-05 0.004687    3.791 (3.791, 3.792)                    
-#> tv1      4.136 8.781e-05 0.002123    62.55 (62.54, 62.56)                    
-#> tv2      4.099  0.001428  0.03483    60.29 (60.13, 60.46)                    
-#> tv3      2.947  0.005467   0.1855    19.05 (18.84, 19.25)                    
-#> tq      0.6376   0.00451   0.7074    1.892 (1.875, 1.909)                    
-#> tq2      1.253  0.002118    0.169    3.501 (3.486, 3.515)                    
-#> add.err  271.6                                      271.6                    
-#>  
-#>   Covariance Type (value$covMethod): r (LM)
-#>   Censoring (value$censInformation): No censoring
-#>   Minimization message (value$message):  
-#>     Relative error in the sum of squares is at most `ftol'. 
-#> 
-#> ── Fit Data (object value is a modified tibble): ──
-#> # A tibble: 6,960 × 23
-#>   ID     TIME    DV IPRED  IRES  IWRES    cp  centre    A2    A3    cl    v1
-#>   <fct> <dbl> <dbl> <dbl> <dbl>  <dbl> <dbl>   <dbl> <dbl> <dbl> <dbl> <dbl>
-#> 1 1      0.25 1041. 1850. -809. -2.98  1850. 115716.  888. 1611.  3.79  62.5
-#> 2 1      0.5  1629  1785. -156. -0.575 1785. 111662. 1737. 3093.  3.79  62.5
-#> 3 1      0.75  878. 1724. -846. -3.12  1724. 107825. 2550. 4455.  3.79  62.5
-#> # ℹ 6,957 more rows
-#> # ℹ 11 more variables: v2 <dbl>, v3 <dbl>, q <dbl>, q2 <dbl>, k <dbl>,
-#> #   k12 <dbl>, k21 <dbl>, k13 <dbl>, k31 <dbl>, tad <dbl>, dosenum <dbl>
+#> ── Solved rxode2 object ──
+#> ── Parameters (value$params): ──
+#> # A tibble: 120 × 8
+#>    id      tcl   tv1   tv2   tv3    tq   tq2 add.err
+#>    <fct> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>   <dbl>
+#>  1 1      1.39  4.25  3.56  1.61  1.39  1.39      10
+#>  2 2      1.39  4.25  3.56  1.61  1.39  1.39      10
+#>  3 3      1.39  4.25  3.56  1.61  1.39  1.39      10
+#>  4 4      1.39  4.25  3.56  1.61  1.39  1.39      10
+#>  5 5      1.39  4.25  3.56  1.61  1.39  1.39      10
+#>  6 6      1.39  4.25  3.56  1.61  1.39  1.39      10
+#>  7 7      1.39  4.25  3.56  1.61  1.39  1.39      10
+#>  8 8      1.39  4.25  3.56  1.61  1.39  1.39      10
+#>  9 9      1.39  4.25  3.56  1.61  1.39  1.39      10
+#> 10 10     1.39  4.25  3.56  1.61  1.39  1.39      10
+#> # ℹ 110 more rows
+#> ── Initial Conditions (value$inits): ──
+#> centre     A2     A3 
+#>      0      0      0 
+#> ── First part of data (object): ──
+#> # A tibble: 6,960 × 19
+#>      id  time    cl    v1    v2    v3     q    q2      k    k12   k21    k13
+#>   <int> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>  <dbl>  <dbl> <dbl>  <dbl>
+#> 1     1  0.25  4.01  70.1  35.2  5.00  4.01  4.01 0.0573 0.0573 0.114 0.0573
+#> 2     1  0.5   4.01  70.1  35.2  5.00  4.01  4.01 0.0573 0.0573 0.114 0.0573
+#> 3     1  0.75  4.01  70.1  35.2  5.00  4.01  4.01 0.0573 0.0573 0.114 0.0573
+#> 4     1  1     4.01  70.1  35.2  5.00  4.01  4.01 0.0573 0.0573 0.114 0.0573
+#> 5     1  1.5   4.01  70.1  35.2  5.00  4.01  4.01 0.0573 0.0573 0.114 0.0573
+#> 6     1  2     4.01  70.1  35.2  5.00  4.01  4.01 0.0573 0.0573 0.114 0.0573
+#> # ℹ 6,954 more rows
+#> # ℹ 7 more variables: k31 <dbl>, cp <dbl>, ipredSim <dbl>, sim <dbl>,
+#> #   centre <dbl>, A2 <dbl>, A3 <dbl>
 # Return only predicted concentrations
 Fit_3cmpt_iv(
   data = dat,

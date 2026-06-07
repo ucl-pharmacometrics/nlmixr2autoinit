@@ -74,49 +74,45 @@ Zhonghui Huang
 ``` r
 # \donttest{
 dat <- Oral_1CPT
-# Fit using 'nls'
+# Run simulation
 Fit_1cmpt_oral(
   data = dat,
-  est.method = "nls",
+  est.method = "rxSolve",
   input.ka = 1,
   input.cl = 4,
   input.vd = 70,
   input.add = 10
 )
-#> ── nlmixr² nls with LM algorithm ──
-#> 
-#>          OBJF       AIC       BIC Log-likelihood Condition#(Cov)
-#> Pop 367749941 367762717 367762744     -183881354        26.63713
-#>     Condition#(Cor)
-#> Pop        5.628552
-#> 
-#> ── Time (sec value$time): ──
-#> 
-#>            setup table compress    other
-#> elapsed 0.023927 0.169    0.001 5.439073
-#> 
-#> ── (value$parFixed or value$parFixedDf): ──
-#> 
-#>            Est.        SE     %RSE Back-transformed(95%CI) BSV(SD) Shrink(SD)%
-#> tka     0.01948 0.0002116    1.087      1.02 (1.019, 1.02)                    
-#> tcl       1.358   4.8e-05 0.003533       3.89 (3.89, 3.89)                    
-#> tv        4.266 9.224e-05 0.002162    71.24 (71.23, 71.25)                    
-#> add.err   230.1                                      230.1                    
-#>  
-#>   Covariance Type (value$covMethod): r (LM)
-#>   Censoring (value$censInformation): No censoring
-#>   Minimization message (value$message):  
-#>     Relative error in the sum of squares is at most `ftol'. 
-#> 
-#> ── Fit Data (object value is a modified tibble): ──
-#> # A tibble: 6,960 × 16
-#>   ID     EVID  TIME    DV IPRED  IRES   IWRES    cp  depot centre    ka    cl
-#>   <fct> <int> <dbl> <dbl> <dbl> <dbl>   <dbl> <dbl>  <dbl>  <dbl> <dbl> <dbl>
-#> 1 1         0  0.25  205.  188.  16.6  0.0723  188. 46499. 13406.  1.02  3.89
-#> 2 1         0  0.5   311.  331. -20.9 -0.0906  331. 36036. 23613.  1.02  3.89
-#> 3 1         0  0.75  389.  440. -50.8 -0.221   440. 27927. 31344.  1.02  3.89
-#> # ℹ 6,957 more rows
-#> # ℹ 4 more variables: v <dbl>, k <dbl>, tad <dbl>, dosenum <dbl>
+#> ── Solved rxode2 object ──
+#> ── Parameters (value$params): ──
+#> # A tibble: 120 × 5
+#>    id      tka   tcl    tv add.err
+#>    <fct> <dbl> <dbl> <dbl>   <dbl>
+#>  1 1         0  1.39  4.25      10
+#>  2 2         0  1.39  4.25      10
+#>  3 3         0  1.39  4.25      10
+#>  4 4         0  1.39  4.25      10
+#>  5 5         0  1.39  4.25      10
+#>  6 6         0  1.39  4.25      10
+#>  7 7         0  1.39  4.25      10
+#>  8 8         0  1.39  4.25      10
+#>  9 9         0  1.39  4.25      10
+#> 10 10        0  1.39  4.25      10
+#> # ℹ 110 more rows
+#> ── Initial Conditions (value$inits): ──
+#>  depot centre 
+#>      0      0 
+#> ── First part of data (object): ──
+#> # A tibble: 6,960 × 12
+#>      id  evid  time    ka    cl     v      k    cp ipredSim   sim  depot centre
+#>   <int> <int> <dbl> <dbl> <dbl> <dbl>  <dbl> <dbl>    <dbl> <dbl>  <dbl>  <dbl>
+#> 1     1     0  0.25     1  4.01  70.1 0.0573  188.     188.  187. 46728. 13173.
+#> 2     1     0  0.5      1  4.01  70.1 0.0573  332.     332.  336. 36392. 23246.
+#> 3     1     0  0.75     1  4.01  70.1 0.0573  441.     441.  440. 28342. 30905.
+#> 4     1     0  1        1  4.01  70.1 0.0573  523.     523.  524. 22073. 36689.
+#> 5     1     0  1.5      1  4.01  70.1 0.0573  631.     631.  645. 13388. 44205.
+#> 6     1     0  2        1  4.01  70.1 0.0573  687.     687.  699.  8120. 48144.
+#> # ℹ 6,954 more rows
 # Return only predicted concentrations
 Fit_1cmpt_oral(
   data = dat,

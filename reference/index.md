@@ -96,23 +96,6 @@ Model fitting and parameter sweeping across PK structures
 - [`Fit_3cmpt_oral()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/Fit_3cmpt_oral.md)
   : Fit oral pharmacokinetic data to a three-compartment linear
   elimination model
-- [`run_npd_1cmpt_iv()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_1cmpt_iv.md)
-  : Run and evaluate a one-compartment IV model
-- [`run_npd_1cmpt_mm_iv()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_1cmpt_mm_iv.md)
-  : Run and evaluate a one-compartment IV Michaelis-Menten model
-- [`run_npd_1cmpt_mm_oral()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_1cmpt_mm_oral.md)
-  : Run and evaluate a one-compartment oral model with Michaelis-Menten
-  kinetics
-- [`run_npd_1cmpt_oral()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_1cmpt_oral.md)
-  : Run and evaluate a one-compartment oral model
-- [`run_npd_2cmpt_iv()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_2cmpt_iv.md)
-  : Run and evaluate a two-compartment IV model
-- [`run_npd_2cmpt_oral()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_2cmpt_oral.md)
-  : Run and evaluate a two-compartment oral model
-- [`run_npd_3cmpt_iv()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_3cmpt_iv.md)
-  : Run and evaluate a three-compartment IV model
-- [`run_npd_3cmpt_oral()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_3cmpt_oral.md)
-  : Run and evaluate a three-compartment oral model
 - [`sim_sens_1cmpt_mm()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/sim_sens_1cmpt_mm.md)
   : Parameter sweeping for a one-compartment Michaelis-Menten model
 - [`sim_sens_2cmpt()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/sim_sens_2cmpt.md)
@@ -272,31 +255,6 @@ Data processing and supporting utility functions
 
 - [`run_ka_solution()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_ka_solution.md)
   : Estimate the absorption rate constant using pointwise methods
-
-- [`run_npd_1cmpt_iv()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_1cmpt_iv.md)
-  : Run and evaluate a one-compartment IV model
-
-- [`run_npd_1cmpt_mm_iv()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_1cmpt_mm_iv.md)
-  : Run and evaluate a one-compartment IV Michaelis-Menten model
-
-- [`run_npd_1cmpt_mm_oral()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_1cmpt_mm_oral.md)
-  : Run and evaluate a one-compartment oral model with Michaelis-Menten
-  kinetics
-
-- [`run_npd_1cmpt_oral()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_1cmpt_oral.md)
-  : Run and evaluate a one-compartment oral model
-
-- [`run_npd_2cmpt_iv()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_2cmpt_iv.md)
-  : Run and evaluate a two-compartment IV model
-
-- [`run_npd_2cmpt_oral()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_2cmpt_oral.md)
-  : Run and evaluate a two-compartment oral model
-
-- [`run_npd_3cmpt_iv()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_3cmpt_iv.md)
-  : Run and evaluate a three-compartment IV model
-
-- [`run_npd_3cmpt_oral()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_npd_3cmpt_oral.md)
-  : Run and evaluate a three-compartment oral model
 
 - [`run_pooled_nca()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/run_pooled_nca.md)
   : Performs non-compartmental analysis on pooled data
