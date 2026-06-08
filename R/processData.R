@@ -257,6 +257,24 @@ processData<-function(dat,verbose = TRUE){
       .
     }
 
+  # Remove subjects with no observations (e.g. dose-only individuals)
+  ids_with_obs <- unique(dat$ID[!is.na(dat$EVID) & dat$EVID == 0])
+  n_removed_ids <- dplyr::n_distinct(dat$ID) - length(ids_with_obs)
+  dat <- dat[dat$ID %in% ids_with_obs, ]
+  if (n_removed_ids > 0) {
+    msg <- paste(
+      "Removed", n_removed_ids,
+      "subject(s) with no observations"
+    )
+    evid_messages <- c(evid_messages, msg)
+  }
+  if (nrow(dat) == 0) {
+    stop(
+      "No subjects with observations remain after filtering. ",
+      "Cannot proceed."
+    )
+  }
+
   # Final message output
   if(length(evid_messages) > 0) {
     message(crayon::black(paste(evid_messages, collapse = "\n")))
