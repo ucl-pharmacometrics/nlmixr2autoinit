@@ -129,6 +129,11 @@ processData<-function(dat,verbose = TRUE){
   column_names <- toupper(colnames(dat))
   colnames(dat) <- toupper(colnames(dat))
 
+  # Convert ID to integer (supports numeric, character, and factor IDs)
+  if ("ID" %in% colnames(dat)) {
+    dat[["ID"]] <- as.integer(as.factor(dat[["ID"]]))
+  }
+
   # Convert key columns to numeric format
   column.list <- c("TIME",
                 "DV",
