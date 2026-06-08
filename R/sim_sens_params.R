@@ -213,29 +213,35 @@ sim_sens_1cmpt_mm <- function(dat,
       dplyr::mutate(row = dplyr::row_number()) %>%
       purrr::pmap_dfr(function(Vmax, Km, Vd, Ka, row) {
         p(sprintf("Running simulation: Vmax=%.2f, Km=%.2f", Vmax, Km))
-        sim_out <- if (route == "iv") {
-          suppressMessages(suppressWarnings(Fit_1cmpt_mm_iv(
-            data = dat[dat$EVID != 2,],
-            est.method = "rxSolve",
-            input.vmax = Vmax,
-            input.km = Km,
-            input.vd = Vd,
-            input.add = 0
-          )))
-        } else {
-          suppressMessages(suppressWarnings(Fit_1cmpt_mm_oral(
-            data = dat[dat$EVID != 2,],
-            est.method = "rxSolve",
-            input.ka = Ka,
-            input.vmax = Vmax,
-            input.km = Km,
-            input.vd = Vd,
-            input.add = 0
-          )))
-        }
+        sim_out <- tryCatch(
+          if (route == "iv") {
+            suppressMessages(suppressWarnings(Fit_1cmpt_mm_iv(
+              data = dat[dat$EVID != 2,],
+              est.method = "rxSolve",
+              input.vmax = Vmax,
+              input.km = Km,
+              input.vd = Vd,
+              input.add = 0
+            )))
+          } else {
+            suppressMessages(suppressWarnings(Fit_1cmpt_mm_oral(
+              data = dat[dat$EVID != 2,],
+              est.method = "rxSolve",
+              input.ka = Ka,
+              input.vmax = Vmax,
+              input.km = Km,
+              input.vd = Vd,
+              input.add = 0
+            )))
+          },
+          error = function(e) NULL
+        )
 
-        met <-
+        met <- if (is.null(sim_out)) {
+          rep(NA_real_, 6)
+        } else {
           metrics.(pred.x = sim_out$cp, obs.y = dat[dat$EVID == 0,]$DV)
+        }
         elapsed <-
           round(difftime(Sys.time(), start_time, units = "secs"), 2)
         # rm(sim_out)
@@ -497,32 +503,38 @@ sim_sens_2cmpt <- function(dat,
       dplyr::mutate(row = dplyr::row_number()) %>%
       purrr::pmap_dfr(function(Vc, Vp, Q, CL, Ka, row) {
         p(sprintf("Running simulation: Vc=%.2f, Vp=%.2f", Vc, Vp))
-        sim_out <- if (route == "iv") {
-          suppressMessages(suppressWarnings(Fit_2cmpt_iv(
-            data = dat[dat$EVID != 2,],
-            est.method = "rxSolve",
-            input.cl = CL,
-            input.vc2cmpt = Vc,
-            input.vp2cmpt = Vp,
-            input.q2cmpt = Q,
-            input.add = 0
-          )))
+        sim_out <- tryCatch(
+          if (route == "iv") {
+            suppressMessages(suppressWarnings(Fit_2cmpt_iv(
+              data = dat[dat$EVID != 2,],
+              est.method = "rxSolve",
+              input.cl = CL,
+              input.vc2cmpt = Vc,
+              input.vp2cmpt = Vp,
+              input.q2cmpt = Q,
+              input.add = 0
+            )))
 
+          } else {
+            suppressMessages(suppressWarnings(Fit_2cmpt_oral(
+              data = dat[dat$EVID != 2,],
+              est.method = "rxSolve",
+              input.ka = Ka,
+              input.cl = CL,
+              input.vc2cmpt = Vc,
+              input.vp2cmpt = Vp,
+              input.q2cmpt = Q,
+              input.add = 0
+            )))
+          },
+          error = function(e) NULL
+        )
+
+        met <- if (is.null(sim_out)) {
+          rep(NA_real_, 6)
         } else {
-          suppressMessages(suppressWarnings(Fit_2cmpt_oral(
-            data = dat[dat$EVID != 2,],
-            est.method = "rxSolve",
-            input.ka = Ka,
-            input.cl = CL,
-            input.vc2cmpt = Vc,
-            input.vp2cmpt = Vp,
-            input.q2cmpt = Q,
-            input.add = 0
-          )))
-        }
-
-        met <-
           metrics.(pred.x = sim_out$cp, obs.y = dat[dat$EVID == 0,]$DV)
+        }
         elapsed <-
           round(difftime(Sys.time(), start_time, units = "secs"), 2)
 
@@ -881,13 +893,19 @@ sim_sens_3cmpt <- function(dat,
           Vp1,
           Vp2
         ))
-        sim_out <- if (route == "iv") {
-          suppressMessages(suppressWarnings(Fit_3cmpt_iv(dat[dat$EVID != 2, ], "rxSolve", CL, Vc, Vp1, Vp2, Q1, Q2, input.add = 0)))
+        sim_out <- tryCatch(
+          if (route == "iv") {
+            suppressMessages(suppressWarnings(Fit_3cmpt_iv(dat[dat$EVID != 2, ], "rxSolve", CL, Vc, Vp1, Vp2, Q1, Q2, input.add = 0)))
+          } else {
+            suppressMessages(suppressWarnings(Fit_3cmpt_oral(dat[dat$EVID != 2, ], "rxSolve", Ka, CL, Vc, Vp1, Vp2, Q1, Q2, input.add = 0)))
+          },
+          error = function(e) NULL
+        )
+        met <- if (is.null(sim_out)) {
+          rep(NA_real_, 6)
         } else {
-          suppressMessages(suppressWarnings(Fit_3cmpt_oral(dat[dat$EVID != 2, ], "rxSolve", Ka, CL, Vc, Vp1, Vp2, Q1, Q2, input.add = 0)))
-        }
-        met <-
           metrics.(pred.x = sim_out$cp, obs.y = dat[dat$EVID == 0,]$DV)
+        }
         elapsed <-
           round(difftime(Sys.time(), start_time, units = "secs"), 2)
 
