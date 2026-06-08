@@ -8,7 +8,7 @@ administration.
 ## Usage
 
 ``` r
-getPPKinits(dat, control = initsControl(), verbose = TRUE)
+getPPKinits(dat, control = initsControl(), ncores = 2, verbose = TRUE)
 ```
 
 ## Arguments
@@ -25,6 +25,11 @@ getPPKinits(dat, control = initsControl(), verbose = TRUE)
   specifying configuration for pooling, non-compartmental analysis,
   steady-state detection, fallback rules, statistical model components,
   and parameter selection metrics.
+
+- ncores:
+
+  Number of cores to use for parallelization, passed to `rxControl()`.
+  Default is 2.
 
 - verbose:
 
@@ -127,7 +132,7 @@ getPPKinits(pheno_sd[pheno_sd$ID<11,])
 #> 15 Sigma proportional Fallback (fixed fraction)   0.2000
 #> 
 #> Time spent :
-#> [1] "39.664s"
+#> [1] "41.842s"
 #> 
 #> ETA variances and derived covariances:
 #>         Parameters                  Methods Values

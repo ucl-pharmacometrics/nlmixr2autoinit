@@ -27,6 +27,7 @@ hybrid_eval_perf_1cmpt(
   nca_all_ka,
   nca_all_cl,
   nca_all_vd,
+  ncores = 2,
   verbose = TRUE
 )
 ```
@@ -109,6 +110,11 @@ hybrid_eval_perf_1cmpt(
 
   Numeric; volume of distribution estimated from naive pooled NCA using
   combined first- and repeated-dose data.
+
+- ncores:
+
+  Number of cores to use for parallelization, passed to `rxControl()`.
+  Default is 2.
 
 - verbose:
 

@@ -55,7 +55,7 @@ using concentration–time data from bolus, infusion, or oral administration.</p
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">getPPKinits</span><span class="op">(</span><span class="va">dat</span>, control <span class="op">=</span> <span class="fu"><a href="initsControl.html">initsControl</a></span><span class="op">(</span><span class="op">)</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">getPPKinits</span><span class="op">(</span><span class="va">dat</span>, control <span class="op">=</span> <span class="fu"><a href="initsControl.html">initsControl</a></span><span class="op">(</span><span class="op">)</span>, ncores <span class="op">=</span> <span class="fl">2</span>, verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -71,6 +71,11 @@ format, including ID, TIME, EVID, and DV.</p></dd>
 <dd><p>A list created by <code><a href="initsControl.html">initsControl()</a></code> specifying configuration for
 pooling, non-compartmental analysis, steady-state detection, fallback rules,
 statistical model components, and parameter selection metrics.</p></dd>
+
+
+<dt id="arg-ncores">ncores<a class="anchor" aria-label="anchor" href="#arg-ncores"></a></dt>
+<dd><p>Number of cores to use for parallelization, passed to
+<code>rxControl()</code>. Default is 2.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -157,7 +162,7 @@ mixed-effects pharmacokinetic models.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 15 Sigma proportional Fallback (fixed fraction)   0.2000</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Time spent :</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "39.664s"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "41.842s"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ETA variances and derived covariances:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         Parameters                  Methods Values</span>

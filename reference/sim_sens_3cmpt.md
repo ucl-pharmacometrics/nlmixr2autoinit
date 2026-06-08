@@ -19,6 +19,7 @@ sim_sens_3cmpt(
   sim_cl = list(mode = "manual", values = NULL),
   sim_ka = list(mode = "manual", values = NULL),
   route = c("iv", "oral"),
+  ncores = 2,
   verbose = TRUE
 )
 ```
@@ -92,6 +93,11 @@ sim_sens_3cmpt(
 - route:
 
   Dosing route, either "iv" or "oral". Default is "iv".
+
+- ncores:
+
+  Number of cores to use for parallelization, passed to `rxControl()`.
+  Default is 2.
 
 - verbose:
 

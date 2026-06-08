@@ -13,7 +13,8 @@ eval_perf_1cmpt(
   ka = NULL,
   cl = NULL,
   vd = NULL,
-  route = c("bolus", "infusion", "oral")
+  route = c("bolus", "infusion", "oral"),
+  ncores = 2
 )
 ```
 
@@ -45,6 +46,11 @@ eval_perf_1cmpt(
 
   A character string indicating the route of administration. Must be one
   of `"oral"`, `"infusion"`, or `"bolus"`. Defaults to `"bolus"`.
+
+- ncores:
+
+  Number of cores to use for parallelization, passed to `rxControl()`.
+  Default is 2.
 
 ## Value
 

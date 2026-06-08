@@ -15,6 +15,7 @@ Fit_1cmpt_iv(
   input.cl,
   input.vd,
   input.add,
+  ncores = 2,
   return.pred.only = FALSE,
   ...
 )
@@ -42,6 +43,11 @@ Fit_1cmpt_iv(
 - input.add:
 
   Initial estimate of the additive residual error.
+
+- ncores:
+
+  Number of cores to use for parallelization, passed to `rxControl()`.
+  Default is 2.
 
 - return.pred.only:
 

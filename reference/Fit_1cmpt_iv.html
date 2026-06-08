@@ -64,6 +64,7 @@ only predicted concentrations to support efficient simulation workflows.</p>
 <span>  <span class="va">input.cl</span>,</span>
 <span>  <span class="va">input.vd</span>,</span>
 <span>  <span class="va">input.add</span>,</span>
+<span>  ncores <span class="op">=</span> <span class="fl">2</span>,</span>
 <span>  return.pred.only <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -92,6 +93,11 @@ only predicted concentrations to support efficient simulation workflows.</p>
 
 <dt id="arg-input-add">input.add<a class="anchor" aria-label="anchor" href="#arg-input-add"></a></dt>
 <dd><p>Initial estimate of the additive residual error.</p></dd>
+
+
+<dt id="arg-ncores">ncores<a class="anchor" aria-label="anchor" href="#arg-ncores"></a></dt>
+<dd><p>Number of cores to use for parallelization, passed to
+<code>rxControl()</code>. Default is 2.</p></dd>
 
 
 <dt id="arg-return-pred-only">return.pred.only<a class="anchor" aria-label="anchor" href="#arg-return-pred-only"></a></dt>

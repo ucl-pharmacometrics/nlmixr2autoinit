@@ -18,6 +18,7 @@ Fit_2cmpt_oral(
   input.vp2cmpt,
   input.q2cmpt,
   input.add,
+  ncores = 2,
   return.pred.only = FALSE,
   ...
 )
@@ -58,6 +59,11 @@ Fit_2cmpt_oral(
 - input.add:
 
   Initial estimate of the additive residual error.
+
+- ncores:
+
+  Number of cores to use for parallelization, passed to `rxControl()`.
+  Default is 2.
 
 - return.pred.only:
 
