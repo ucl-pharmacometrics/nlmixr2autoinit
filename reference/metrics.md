@@ -69,7 +69,7 @@ obs.y  <- rnorm(100, mean = 100, sd = 10)
 pred.x <- obs.y + rnorm(100, mean = 0, sd = 5)
 metrics.(pred.x = pred.x, obs.y = obs.y)
 #>    metrics.ape    metrics.mae   metrics.mape   metrics.rmse metrics.rrmse1 
-#>     428.655239       4.286552       4.341247       5.260210       5.230581 
+#>     432.823235       4.328232       4.373712       5.310275       5.271171 
 #> metrics.rrmse2 
-#>       5.373396 
+#>       5.421026 
 ```

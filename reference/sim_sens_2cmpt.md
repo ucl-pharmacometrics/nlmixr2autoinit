@@ -104,7 +104,7 @@ Zhonghui Huang
 ``` r
 # \donttest{
 out <- sim_sens_2cmpt(
-  dat = Bolus_2CPT[Bolus_2CPT$ID<50,],
+  dat = Bolus_2CPT[Bolus_2CPT$ID<6,],
   sim_cl = list(mode = "manual", values = 4),
   sim_vc = list(mode = "manual", values = 50),
   sim_vp = list(mode = "auto"),
@@ -114,9 +114,9 @@ out <- sim_sens_2cmpt(
 )
 head(out[out$rRMSE2==min(out$rRMSE2),])
 #> # A tibble: 1 × 12
-#>      Vc    Vp     Q    CL Ka        APE   MAE  MAPE  RMSE rRMSE1 rRMSE2
-#>   <dbl> <dbl> <dbl> <dbl> <lgl>   <dbl> <dbl> <dbl> <dbl>  <dbl>  <dbl>
-#> 1    50    50     8     4 NA    466827.  164.  42.9  273.   48.2   44.3
+#>      Vc    Vp     Q    CL Ka       APE   MAE  MAPE  RMSE rRMSE1 rRMSE2
+#>   <dbl> <dbl> <dbl> <dbl> <lgl>  <dbl> <dbl> <dbl> <dbl>  <dbl>  <dbl>
+#> 1    50   100     8     4 NA    53184.  183.  63.4  309.   55.5   54.5
 #> # ℹ 1 more variable: Cumulative.Time.Sec <dbl>
 # }
 ```

@@ -73,15 +73,13 @@ function.
 ## Examples
 
 ``` r
-
 eval_perf_1cmpt(
-  dat = Oral_1CPT,
+  dat = pheno_sd,
   est.method = "rxSolve",
-  ka = 1,
-  cl = 4,
-  vd = 70,
-  route = "oral"
+  cl = 0.006,
+  vd = 1,
+  route = "bolus"
 )
-#>        APE        MAE       MAPE       RMSE     rRMSE1     rRMSE2 
-#> 921381.710    132.630     75.620    230.715     45.693     48.466 
+#>      APE      MAE     MAPE     RMSE   rRMSE1   rRMSE2 
+#> 1928.878   12.444   51.833   22.003   86.028   45.394 
 ```
