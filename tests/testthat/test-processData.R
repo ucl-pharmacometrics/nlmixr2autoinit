@@ -61,3 +61,20 @@ test_that("processData converts factor IDs to integers", {
   expect_type(result$dat$ID, "integer")
   expect_equal(sort(unique(result$dat$ID)), 1:2)
 })
+
+test_that("processData output is identical for numeric, character, and factor IDs", {
+  d_num <- Oral_1CPT[Oral_1CPT$ID %in% 1:5, ]
+  d_chr <- d_num
+  d_chr$ID <- c("a", "b", "c", "d", "e")[d_chr$ID]
+  d_fac <- d_num
+  d_fac$ID <- as.factor(d_chr$ID)
+
+  r_num <- processData(d_num, verbose = FALSE)
+  r_chr <- processData(d_chr, verbose = FALSE)
+  r_fac <- processData(d_fac, verbose = FALSE)
+
+  expect_equal(r_chr$dat,      r_num$dat)
+  expect_equal(r_fac$dat,      r_num$dat)
+  expect_equal(r_chr$Datainfo, r_num$Datainfo)
+  expect_equal(r_fac$Datainfo, r_num$Datainfo)
+})
