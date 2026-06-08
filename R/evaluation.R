@@ -391,6 +391,16 @@ hybrid_eval_perf_1cmpt <- function(route = "bolus",
 
   param_grid_unique <- rbind(base_combos, hybrid_filtered)
 
+  # Empty grid would make `do.call(rbind, ...)` below return NULL and trip
+  # the caller's `colnames<-`; surface a clear error instead.
+  if (nrow(param_grid_unique) == 0) {
+    stop(
+      "hybrid_eval_perf_1cmpt: no valid parameter sources available ",
+      "(all of simpcal/graph/nca CL and Vd were NA). ",
+      "Insufficient data to evaluate one-compartment predictive performance."
+    )
+  }
+
   col_order <- c("ka_source", "cl_source", "vd_source",
                    setdiff(names(param_grid_unique),
                            c("ka_source", "cl_source", "vd_source")))

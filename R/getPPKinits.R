@@ -86,6 +86,19 @@ getPPKinits <- function(dat,
   process_result$Datainfo$Value[process_result$Datainfo$Infometrics == "Dose Route"]
   Datainfo<-process_result$Datainfo
 
+  # With <2 observations all downstream estimators are NA and the 1cmpt
+  # evaluation fails deep inside `colnames<-` on an empty results table.
+  n_obs_total <- suppressWarnings(as.integer(
+    Datainfo$Value[Datainfo$Infometrics == "Number of Observations"]
+  ))
+  if (!is.na(n_obs_total) && n_obs_total < 2) {
+    stop(
+      "Cannot estimate PK parameters: only ", n_obs_total,
+      " observation(s) remain after data filtering. ",
+      "At least 2 observations are required."
+    )
+  }
+
   # Reset ID
   dat <- dat %>%
     dplyr::mutate(ID = ID + (resetflag - 1) * max(dat$ID, na.rm = TRUE))
