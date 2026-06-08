@@ -86,48 +86,48 @@ Zhonghui Huang
 
 ``` r
 # \donttest{
-getPPKinits(pheno_sd)
+getPPKinits(pheno_sd[pheno_sd$ID<11,])
 #> 
 #> 
 #> Infometrics                               Value          
 #> ----------------------------------------  ---------------
 #> Dose Route                                bolus          
 #> Dose Type                                 combined_doses 
-#> Number of Subjects                        59             
-#> Number of Observations                    155            
-#> Subjects with First-Dose Interval Data    35             
-#> Observations in the First-Dose Interval   35             
-#> Subjects with Multiple-Dose Data          56             
-#> Observations after Multiple Doses         120            
+#> Number of Subjects                        10             
+#> Number of Observations                    30             
+#> Subjects with First-Dose Interval Data    10             
+#> Observations in the First-Dose Interval   10             
+#> Subjects with Multiple-Dose Data          10             
+#> Observations after Multiple Doses         20             
 #> ----------------------------------------  ------
 #> Estimating half-life....................
-#> Half-life estimation complete: Estimated t1/2 = 16.44 h
+#> Half-life estimation complete: Estimated t1/2 = 1.47 h
 #> Evaluating the predictive performance of calculated one-compartment model parameters....................
-#> Base PK parameter analysis finished. Estimated ka: NA, estimated CL: 0.0087, estimated Vd: 1.25 
+#> Base PK parameter analysis finished. Estimated ka: NA, estimated CL: 0.0112, estimated Vd: 0.351 
 #> Run parameter sweeping on nonlinear elimination kinetics PK parameters....................
 #> Run parameter sweeping on multi-compartmental PK parameters....................
 #> ===============Initial Parameter Estimation Summary ===============
 #> 
 #> Recommended initial estimates :
-#>            Parameters                      Methods   Values
-#> 1                  Ka                           IV       NA
-#> 2                  CL Adaptive single-point method   0.0087
-#> 3                  Vd Adaptive single-point method   1.2500
-#> 4                Vmax           Parameter sweeping   1.0572
-#> 5                  Km           Parameter sweeping 120.0145
-#> 6           Vc(2CMPT)           Parameter sweeping   1.2500
-#> 7           Vp(2CMPT)           Parameter sweeping   0.1250
-#> 8            Q(2CMPT)           Parameter sweeping   0.0174
-#> 9           Vc(3CMPT)           Parameter sweeping   1.2500
-#> 10          Vp(3CMPT)           Parameter sweeping   0.1250
-#> 11         Vp2(3CMPT)           Parameter sweeping   0.1250
-#> 12           Q(3CMPT)           Parameter sweeping   0.0174
-#> 13          Q2(3CMPT)           Parameter sweeping   0.0174
-#> 14     Sigma additive    Fallback (fixed fraction)   5.0434
-#> 15 Sigma proportional    Fallback (fixed fraction)   0.2000
+#>            Parameters                   Methods   Values
+#> 1                  Ka                        IV       NA
+#> 2                  CL    Naive pooled NCA (all)   0.0112
+#> 3                  Vd    Naive pooled NCA (all)   0.3510
+#> 4                Vmax        Parameter sweeping   1.2057
+#> 5                  Km        Parameter sweeping 119.9200
+#> 6           Vc(2CMPT)        Parameter sweeping   0.3510
+#> 7           Vp(2CMPT)        Parameter sweeping   0.3510
+#> 8            Q(2CMPT)        Parameter sweeping   0.0224
+#> 9           Vc(3CMPT)        Parameter sweeping   0.3510
+#> 10          Vp(3CMPT)        Parameter sweeping   0.1755
+#> 11         Vp2(3CMPT)        Parameter sweeping   0.3510
+#> 12           Q(3CMPT)        Parameter sweeping   0.0224
+#> 13          Q2(3CMPT)        Parameter sweeping   0.0224
+#> 14     Sigma additive Fallback (fixed fraction)   4.8307
+#> 15 Sigma proportional Fallback (fixed fraction)   0.2000
 #> 
 #> Time spent :
-#> [1] "19.407s"
+#> [1] "39.664s"
 #> 
 #> ETA variances and derived covariances:
 #>         Parameters                  Methods Values
