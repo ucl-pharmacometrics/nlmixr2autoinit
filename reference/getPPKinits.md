@@ -127,7 +127,7 @@ getPPKinits(pheno_sd)
 #> 15 Sigma proportional    Fallback (fixed fraction)   0.2000
 #> 
 #> Time spent :
-#> [1] "23.698s"
+#> [1] "19.279s"
 #> 
 #> ETA variances and derived covariances:
 #>         Parameters                  Methods Values
