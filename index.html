@@ -85,30 +85,30 @@
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ucl-pharmacometrics.github.io/nlmixr2autoinit">nlmixr2autoinit</a></span><span class="op">)</span></span>
 <span><span class="va">inits.out</span><span class="op">&lt;-</span><span class="fu"><a href="reference/getPPKinits.html">getPPKinits</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="va">Bolus_1CPT</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># Infometrics                               Value          </span></span>
 <span><span class="co"># ----------------------------------------  ---------------</span></span>
-<span><span class="co">#  Dose Route                                bolus          </span></span>
+<span><span class="co"># Dose Route                                bolus          </span></span>
 <span><span class="co"># Dose Type                                 combined_doses </span></span>
-<span><span class="co"># Total Number of Subjects                  120            </span></span>
-<span><span class="co"># Total Number of Observations              6951           </span></span>
+<span><span class="co"># Number of Subjects                        120            </span></span>
+<span><span class="co"># Number of Observations                    6951           </span></span>
 <span><span class="co"># Subjects with First-Dose Interval Data    120            </span></span>
 <span><span class="co"># Observations in the First-Dose Interval   2276           </span></span>
 <span><span class="co"># Subjects with Multiple-Dose Data          120            </span></span>
 <span><span class="co"># Observations after Multiple Doses         4675           </span></span>
 <span><span class="co"># ----------------------------------------  ------</span></span>
 <span><span class="co"># Estimating half-life....................</span></span>
-<span><span class="co"># Half-life estimation complete: Estimated t½ = 11.26 h</span></span>
+<span><span class="co"># Half-life estimation complete: Estimated t1/2 = 11.26 h</span></span>
 <span><span class="co"># Evaluating the predictive performance of calculated one-compartment model parameters....................</span></span>
-<span><span class="co"># (hybrid mode: parameters combined across sources)....................</span></span>
 <span><span class="co"># Base PK parameter analysis finished. Estimated ka: NA, estimated CL: 4, estimated Vd: 66 </span></span>
-<span><span class="co"># Run parameter sweeping on nonlinear eliminiation kinetics PK parameters....................</span></span>
-<span><span class="co"># Run parameter sweeping on multi-compartmental PK parameters.................... </span></span>
+<span><span class="co"># Run parameter sweeping on nonlinear elimination kinetics PK parameters....................</span></span>
+<span><span class="co"># Run parameter sweeping on multi-compartmental PK parameters....................</span></span>
+<span><span class="co"># &gt; inits.out                                                                     </span></span>
 <span><span class="co"># </span></span>
-<span><span class="co"># &gt; inits.out</span></span>
 <span><span class="co"># ===============Initial Parameter Estimation Summary ===============</span></span>
-<span><span class="co">#   </span></span>
-<span><span class="co">#   Recommended initial estimates :</span></span>
-<span><span class="co">#   Parameters               Methods    Values</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Recommended initial estimates :</span></span>
+<span><span class="co">#            Parameters               Methods    Values</span></span>
 <span><span class="co"># 1                  Ka                    IV        NA</span></span>
 <span><span class="co"># 2                  CL Naive pooled NCA (MD)     4.000</span></span>
 <span><span class="co"># 3                  Vd Naive pooled NCA (MD)    66.000</span></span>
@@ -126,10 +126,10 @@
 <span><span class="co"># 15 Sigma proportional           Model-based     0.114</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># Time spent :</span></span>
-<span><span class="co"># [1] "53.291s"</span></span>
+<span><span class="co"># [1] "44.972s"</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># ETA variances and derived covariances:</span></span>
-<span><span class="co">#   Parameters                  Methods Values</span></span>
+<span><span class="co">#         Parameters                  Methods Values</span></span>
 <span><span class="co"># 1           eta.ka             fixed_values    0.1</span></span>
 <span><span class="co"># 2           eta.cl             fixed_values    0.1</span></span>
 <span><span class="co"># 3           eta.vc             fixed_values    0.1</span></span>
@@ -155,74 +155,78 @@
 <span><span class="co"># 23   cor.eta_vp2_q eta_corr_derived (r=0.1)   0.01</span></span>
 <span><span class="co"># 24  cor.eta_vp2_q2 eta_corr_derived (r=0.1)   0.01</span></span>
 <span><span class="co"># 25    cor.eta_q_q2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># Note: The ETA variances and covariances listed above are predefined default initialization values automatically assigned by the package.</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># Parameter descriptions:</span></span>
-<span><span class="co"># [1] "Ka: absorption constant rate"                                                       </span></span>
-<span><span class="co"># [2] "CL: clearance"                                                                      </span></span>
-<span><span class="co"># [3] "Vd: volumn of distribution"                                                         </span></span>
-<span><span class="co"># [4] "Vmax: maximum metobolic rate"                                                       </span></span>
-<span><span class="co"># [5] "Km: Michaelis constant"                                                             </span></span>
-<span><span class="co"># [6] "Vc: volume of distribution of the central compartment"                              </span></span>
-<span><span class="co"># [7] "Vp: volume of distribution of the peripheral compartment"                           </span></span>
-<span><span class="co"># [8] "Vp: volume of distribution of the second peripheral compartment"                    </span></span>
-<span><span class="co"># [9] "Q: inter-compartmental clearance"                                                   </span></span>
+<span><span class="co">#  [1] "Ka: absorption constant rate"                                                       </span></span>
+<span><span class="co">#  [2] "CL: clearance"                                                                      </span></span>
+<span><span class="co">#  [3] "Vd: volume of distribution"                                                         </span></span>
+<span><span class="co">#  [4] "Vmax: maximum metabolic rate"                                                       </span></span>
+<span><span class="co">#  [5] "Km: Michaelis constant"                                                             </span></span>
+<span><span class="co">#  [6] "Vc: volume of distribution of the central compartment"                              </span></span>
+<span><span class="co">#  [7] "Vp: volume of distribution of the peripheral compartment"                           </span></span>
+<span><span class="co">#  [8] "Vp2: volume of distribution of the second peripheral compartment"                   </span></span>
+<span><span class="co">#  [9] "Q: inter-compartmental clearance"                                                   </span></span>
 <span><span class="co"># [10] "Q2: inter-compartmental clearance between central and second peripheral compartment"</span></span>
-<span><span class="co"># [11] "Sigma additive: stanadard deviation of additive residual additive error"            </span></span>
-<span><span class="co"># [12] "Sigma proportional: stanadard deviation of proportional residual additive error"    </span></span>
+<span><span class="co"># [11] "Sigma additive: standard deviation of additive residual error"                      </span></span>
+<span><span class="co"># [12] "Sigma proportional: standard deviation of proportional residual error"              </span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># =============== End of Summary ===============</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="example-2-oral-case">Example 2 (Oral case)<a class="anchor" aria-label="anchor" href="#example-2-oral-case"></a>
+<h2 id="example-2-using-multiple-cores">Example 2 (Using multiple cores)<a class="anchor" aria-label="anchor" href="#example-2-using-multiple-cores"></a>
 </h2>
+<p>By default, <code><a href="reference/getPPKinits.html">getPPKinits()</a></code> runs with 2 cores. You can increase performance by setting <code>ncores</code> to half of your available system cores:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ucl-pharmacometrics.github.io/nlmixr2autoinit">nlmixr2autoinit</a></span><span class="op">)</span></span>
-<span><span class="va">inits.out</span><span class="op">&lt;-</span><span class="fu"><a href="reference/getPPKinits.html">getPPKinits</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="va">Oral_1CPT</span><span class="op">)</span></span>
-<span></span>
+<span><span class="co"># Use half of the available system cores to speed up parameter sweeping</span></span>
+<span><span class="va">ncores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html" class="external-link">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">inits.out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/getPPKinits.html">getPPKinits</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="va">Bolus_1CPT</span>, ncores <span class="op">=</span> <span class="va">ncores</span><span class="op">)</span></span>
+<span><span class="va">inits.out</span></span>
 <span><span class="co"># Infometrics                               Value          </span></span>
 <span><span class="co"># ----------------------------------------  ---------------</span></span>
-<span><span class="co"># Dose Route                                oral           </span></span>
+<span><span class="co"># Dose Route                                bolus          </span></span>
 <span><span class="co"># Dose Type                                 combined_doses </span></span>
-<span><span class="co"># Total Number of Subjects                  120            </span></span>
-<span><span class="co"># Total Number of Observations              6947           </span></span>
+<span><span class="co"># Number of Subjects                        120            </span></span>
+<span><span class="co"># Number of Observations                    6951           </span></span>
 <span><span class="co"># Subjects with First-Dose Interval Data    120            </span></span>
-<span><span class="co"># Observations in the First-Dose Interval   2273           </span></span>
+<span><span class="co"># Observations in the First-Dose Interval   2276           </span></span>
 <span><span class="co"># Subjects with Multiple-Dose Data          120            </span></span>
-<span><span class="co"># Observations after Multiple Doses         4674           </span></span>
+<span><span class="co"># Observations after Multiple Doses         4675           </span></span>
 <span><span class="co"># ----------------------------------------  ------</span></span>
-<span><span class="co">#   Estimating half-life....................</span></span>
-<span><span class="co"># Half-life estimation complete: Estimated t½ = 11.65 h</span></span>
+<span><span class="co"># Estimating half-life....................</span></span>
+<span><span class="co"># Half-life estimation complete: Estimated t1/2 = 11.26 h</span></span>
 <span><span class="co"># Evaluating the predictive performance of calculated one-compartment model parameters....................</span></span>
-<span><span class="co"># (hybrid mode: parameters combined across sources)....................</span></span>
-<span><span class="co"># Base PK parameter analysis finished. Estimated ka: 0.888, estimated CL: 4.2, estimated Vd: 66.7 </span></span>
-<span><span class="co"># Run parameter sweeping on nonlinear eliminiation kinetics PK parameters....................</span></span>
-<span><span class="co"># Run parameter sweeping on multi-compartmental PK parameters.................... </span></span>
+<span><span class="co"># Base PK parameter analysis finished. Estimated ka: NA, estimated CL: 4, estimated Vd: 66 </span></span>
+<span><span class="co"># Run parameter sweeping on nonlinear elimination kinetics PK parameters....................</span></span>
+<span><span class="co"># Run parameter sweeping on multi-compartmental PK parameters....................</span></span>
 <span><span class="co"># &gt; inits.out                                                                     </span></span>
+<span><span class="co"># </span></span>
 <span><span class="co"># ===============Initial Parameter Estimation Summary ===============</span></span>
-<span><span class="co">#   </span></span>
-<span><span class="co">#   Recommended initial estimates :</span></span>
-<span><span class="co">#   Parameters            Methods    Values</span></span>
-<span><span class="co"># 1                  Ka    Graphic methods     0.888</span></span>
-<span><span class="co"># 2                  CL    Graphic methods     4.200</span></span>
-<span><span class="co"># 3                  Vd    Graphic methods    66.700</span></span>
-<span><span class="co"># 4                Vmax Parameter sweeping 18079.559</span></span>
-<span><span class="co"># 5                  Km Parameter sweeping  4251.513</span></span>
-<span><span class="co"># 6           Vc(2CMPT) Parameter sweeping    57.983</span></span>
-<span><span class="co"># 7           Vp(2CMPT) Parameter sweeping    11.597</span></span>
-<span><span class="co"># 8            Q(2CMPT) Parameter sweeping     4.200</span></span>
-<span><span class="co"># 9           Vc(3CMPT) Parameter sweeping    57.983</span></span>
-<span><span class="co"># 10          Vp(3CMPT) Parameter sweeping     5.798</span></span>
-<span><span class="co"># 11         Vp2(3CMPT) Parameter sweeping     5.798</span></span>
-<span><span class="co"># 12           Q(3CMPT) Parameter sweeping     2.100</span></span>
-<span><span class="co"># 13          Q2(3CMPT) Parameter sweeping     2.100</span></span>
-<span><span class="co"># 14     Sigma additive        Model-based     9.529</span></span>
-<span><span class="co"># 15 Sigma proportional        Model-based     0.105</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Recommended initial estimates :</span></span>
+<span><span class="co">#            Parameters               Methods    Values</span></span>
+<span><span class="co"># 1                  Ka                    IV        NA</span></span>
+<span><span class="co"># 2                  CL Naive pooled NCA (MD)     4.000</span></span>
+<span><span class="co"># 3                  Vd Naive pooled NCA (MD)    66.000</span></span>
+<span><span class="co"># 4                Vmax    Parameter sweeping 21551.820</span></span>
+<span><span class="co"># 5                  Km    Parameter sweeping  5321.437</span></span>
+<span><span class="co"># 6           Vc(2CMPT)    Parameter sweeping    66.000</span></span>
+<span><span class="co"># 7           Vp(2CMPT)    Parameter sweeping     6.600</span></span>
+<span><span class="co"># 8            Q(2CMPT)    Parameter sweeping     1.000</span></span>
+<span><span class="co"># 9           Vc(3CMPT)    Parameter sweeping    47.601</span></span>
+<span><span class="co"># 10          Vp(3CMPT)    Parameter sweeping     9.520</span></span>
+<span><span class="co"># 11         Vp2(3CMPT)    Parameter sweeping     9.520</span></span>
+<span><span class="co"># 12           Q(3CMPT)    Parameter sweeping     8.000</span></span>
+<span><span class="co"># 13          Q2(3CMPT)    Parameter sweeping     8.000</span></span>
+<span><span class="co"># 14     Sigma additive           Model-based    11.111</span></span>
+<span><span class="co"># 15 Sigma proportional           Model-based     0.114</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># Time spent :</span></span>
-<span><span class="co"># [1] "39.635s"</span></span>
+<span><span class="co"># [1] "40.771s"</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># ETA variances and derived covariances:</span></span>
-<span><span class="co">#   Parameters                  Methods Values</span></span>
+<span><span class="co">#         Parameters                  Methods Values</span></span>
 <span><span class="co"># 1           eta.ka             fixed_values    0.1</span></span>
 <span><span class="co"># 2           eta.cl             fixed_values    0.1</span></span>
 <span><span class="co"># 3           eta.vc             fixed_values    0.1</span></span>
@@ -248,20 +252,93 @@
 <span><span class="co"># 23   cor.eta_vp2_q eta_corr_derived (r=0.1)   0.01</span></span>
 <span><span class="co"># 24  cor.eta_vp2_q2 eta_corr_derived (r=0.1)   0.01</span></span>
 <span><span class="co"># 25    cor.eta_q_q2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># Note: The ETA variances and covariances listed above are predefined default initialization values automatically assigned by the package.</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># Parameter descriptions:</span></span>
-<span><span class="co"># [1] "Ka: absorption constant rate"                                                       </span></span>
-<span><span class="co"># [2] "CL: clearance"                                                                      </span></span>
-<span><span class="co"># [3] "Vd: volumn of distribution"                                                         </span></span>
-<span><span class="co"># [4] "Vmax: maximum metobolic rate"                                                       </span></span>
-<span><span class="co"># [5] "Km: Michaelis constant"                                                             </span></span>
-<span><span class="co"># [6] "Vc: volume of distribution of the central compartment"                              </span></span>
-<span><span class="co"># [7] "Vp: volume of distribution of the peripheral compartment"                           </span></span>
-<span><span class="co"># [8] "Vp: volume of distribution of the second peripheral compartment"                    </span></span>
-<span><span class="co"># [9] "Q: inter-compartmental clearance"                                                   </span></span>
+<span><span class="co">#  [1] "Ka: absorption constant rate"                                                       </span></span>
+<span><span class="co">#  [2] "CL: clearance"                                                                      </span></span>
+<span><span class="co">#  [3] "Vd: volume of distribution"                                                         </span></span>
+<span><span class="co">#  [4] "Vmax: maximum metabolic rate"                                                       </span></span>
+<span><span class="co">#  [5] "Km: Michaelis constant"                                                             </span></span>
+<span><span class="co">#  [6] "Vc: volume of distribution of the central compartment"                              </span></span>
+<span><span class="co">#  [7] "Vp: volume of distribution of the peripheral compartment"                           </span></span>
+<span><span class="co">#  [8] "Vp2: volume of distribution of the second peripheral compartment"                   </span></span>
+<span><span class="co">#  [9] "Q: inter-compartmental clearance"                                                   </span></span>
 <span><span class="co"># [10] "Q2: inter-compartmental clearance between central and second peripheral compartment"</span></span>
-<span><span class="co"># [11] "Sigma additive: stanadard deviation of additive residual additive error"            </span></span>
-<span><span class="co"># [12] "Sigma proportional: stanadard deviation of proportional residual additive error"    </span></span>
+<span><span class="co"># [11] "Sigma additive: standard deviation of additive residual error"                      </span></span>
+<span><span class="co"># [12] "Sigma proportional: standard deviation of proportional residual error"              </span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="example-3-oral-case">Example 3 (Oral case)<a class="anchor" aria-label="anchor" href="#example-3-oral-case"></a>
+</h2>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">inits.out</span><span class="op">&lt;-</span><span class="fu"><a href="reference/getPPKinits.html">getPPKinits</a></span><span class="op">(</span>dat <span class="op">=</span> <span class="va">Oral_1CPT</span>,ncores<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
+<span><span class="va">inits.out</span></span>
+<span><span class="co"># ===============Initial Parameter Estimation Summary ===============</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Recommended initial estimates :</span></span>
+<span><span class="co">#            Parameters               Methods    Values</span></span>
+<span><span class="co"># 1                  Ka Naive pooled NCA (MD)     1.000</span></span>
+<span><span class="co"># 2                  CL Naive pooled NCA (MD)     4.120</span></span>
+<span><span class="co"># 3                  Vd Naive pooled NCA (MD)    70.600</span></span>
+<span><span class="co"># 4                Vmax    Parameter sweeping 17735.186</span></span>
+<span><span class="co"># 5                  Km    Parameter sweeping  4251.513</span></span>
+<span><span class="co"># 6           Vc(2CMPT)    Parameter sweeping    66.700</span></span>
+<span><span class="co"># 7           Vp(2CMPT)    Parameter sweeping     6.670</span></span>
+<span><span class="co"># 8            Q(2CMPT)    Parameter sweeping     1.030</span></span>
+<span><span class="co"># 9           Vc(3CMPT)    Parameter sweeping    66.700</span></span>
+<span><span class="co"># 10          Vp(3CMPT)    Parameter sweeping     6.670</span></span>
+<span><span class="co"># 11         Vp2(3CMPT)    Parameter sweeping     6.670</span></span>
+<span><span class="co"># 12           Q(3CMPT)    Parameter sweeping     1.030</span></span>
+<span><span class="co"># 13          Q2(3CMPT)    Parameter sweeping     1.030</span></span>
+<span><span class="co"># 14     Sigma additive           Model-based     9.529</span></span>
+<span><span class="co"># 15 Sigma proportional           Model-based     0.105</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Time spent :</span></span>
+<span><span class="co"># [1] "58.415s"</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># ETA variances and derived covariances:</span></span>
+<span><span class="co">#         Parameters                  Methods Values</span></span>
+<span><span class="co"># 1           eta.ka             fixed_values    0.1</span></span>
+<span><span class="co"># 2           eta.cl             fixed_values    0.1</span></span>
+<span><span class="co"># 3           eta.vc             fixed_values    0.1</span></span>
+<span><span class="co"># 4           eta.vp             fixed_values    0.1</span></span>
+<span><span class="co"># 5            eta.q             fixed_values    0.1</span></span>
+<span><span class="co"># 6          eta.vp2             fixed_values    0.1</span></span>
+<span><span class="co"># 7           eta.q2             fixed_values    0.1</span></span>
+<span><span class="co"># 8         eta.vmax             fixed_values    0.1</span></span>
+<span><span class="co"># 9           eta.km             fixed_values    0.1</span></span>
+<span><span class="co"># 10 cor.eta_vmax_km eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 11   cor.eta_cl_vc eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 12   cor.eta_cl_vp eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 13  cor.eta_cl_vp2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 14    cor.eta_cl_q eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 15   cor.eta_cl_q2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 16   cor.eta_vc_vp eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 17  cor.eta_vc_vp2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 18    cor.eta_vc_q eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 19   cor.eta_vc_q2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 20  cor.eta_vp_vp2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 21    cor.eta_vp_q eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 22   cor.eta_vp_q2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 23   cor.eta_vp2_q eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 24  cor.eta_vp2_q2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># 25    cor.eta_q_q2 eta_corr_derived (r=0.1)   0.01</span></span>
+<span><span class="co"># Note: The ETA variances and covariances listed above are predefined default initialization values automatically assigned by the package.</span></span>
+<span><span class="co"># </span></span>
+<span><span class="co"># Parameter descriptions:</span></span>
+<span><span class="co">#  [1] "Ka: absorption constant rate"                                                       </span></span>
+<span><span class="co">#  [2] "CL: clearance"                                                                      </span></span>
+<span><span class="co">#  [3] "Vd: volume of distribution"                                                         </span></span>
+<span><span class="co">#  [4] "Vmax: maximum metabolic rate"                                                       </span></span>
+<span><span class="co">#  [5] "Km: Michaelis constant"                                                             </span></span>
+<span><span class="co">#  [6] "Vc: volume of distribution of the central compartment"                              </span></span>
+<span><span class="co">#  [7] "Vp: volume of distribution of the peripheral compartment"                           </span></span>
+<span><span class="co">#  [8] "Vp2: volume of distribution of the second peripheral compartment"                   </span></span>
+<span><span class="co">#  [9] "Q: inter-compartmental clearance"                                                   </span></span>
+<span><span class="co"># [10] "Q2: inter-compartmental clearance between central and second peripheral compartment"</span></span>
+<span><span class="co"># [11] "Sigma additive: standard deviation of additive residual error"                      </span></span>
+<span><span class="co"># [12] "Sigma proportional: standard deviation of proportional residual error"              </span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># =============== End of Summary ===============</span></span></code></pre></div>
 </div>
