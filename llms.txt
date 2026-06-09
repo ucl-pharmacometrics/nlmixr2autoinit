@@ -133,7 +133,8 @@ inits.out<-getPPKinits(dat = Bolus_1CPT)
 By default,
 [`getPPKinits()`](https://ucl-pharmacometrics.github.io/nlmixr2autoinit/reference/getPPKinits.md)
 runs with 2 cores. You can increase performance by setting `ncores` to
-half of your available system cores:
+half of your available system cores, or manually specify a fixed number
+(e.g., `ncores = 8`) depending on your machine:
 
 ``` r
 
