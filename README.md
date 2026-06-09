@@ -130,7 +130,8 @@ inits.out<-getPPKinits(dat = Bolus_1CPT)
 ## Example 2 (Using multiple cores)
 
 By default, `getPPKinits()` runs with 2 cores. You can increase performance by
-setting `ncores` to half of your available system cores:
+setting `ncores` to half of your available system cores, or manually specify a
+fixed number (e.g., `ncores = 8`) depending on your machine:
 
 ``` r
 library(nlmixr2autoinit)
