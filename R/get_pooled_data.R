@@ -198,32 +198,37 @@ get_pooled_data <- function(dat,
       dplyr::pull(interval) %>%
       as.numeric()
 
-    # Compute tad_check based on logical control
-    dat <- dat %>%
-      dplyr::mutate(tad_check = if (pooled_ctrl$tad_rounding) {
-        round(tad) <= round(most_common_ii)
-      } else {
-        tad <= most_common_ii
-      })
+    # Skip repeated-dose pooling when no subject has >=2 dose rows
+    # (most_common_ii is empty). Leaves datpooled_efd / datpooled_all
+    # as the NA sentinels set during initialization.
+    if (length(most_common_ii) > 0) {
+      # Compute tad_check based on logical control
+      dat <- dat %>%
+        dplyr::mutate(tad_check = if (pooled_ctrl$tad_rounding) {
+          round(tad) <= round(most_common_ii)
+        } else {
+          tad <= most_common_ii
+        })
 
-    # Filter based on tad_check
-    efd_data <- dat %>%
-      dplyr::filter(
-        (dose_number != 1 & EVID == 0 & tad_check) |
-          (dose_number == 1 & iiobs > 0 & tad_check)
-      ) %>%
-      dplyr::arrange(ID, resetflag, TIME, dplyr::desc(AMT))
-
-    pooled_results$datpooled_efd <-
-      do.call(bin.time, c(list(dat = efd_data), bin_args))
-
-    if (dose_type == "combined_doses") {
-      all_data <- dat %>%
-        dplyr::filter((EVID == 0 & tad_check) | EVID == 1) %>%
+      # Filter based on tad_check
+      efd_data <- dat %>%
+        dplyr::filter(
+          (dose_number != 1 & EVID == 0 & tad_check) |
+            (dose_number == 1 & iiobs > 0 & tad_check)
+        ) %>%
         dplyr::arrange(ID, resetflag, TIME, dplyr::desc(AMT))
 
-      pooled_results$datpooled_all <-
-        do.call(bin.time, c(list(dat = all_data), bin_args))
+      pooled_results$datpooled_efd <-
+        do.call(bin.time, c(list(dat = efd_data), bin_args))
+
+      if (dose_type == "combined_doses") {
+        all_data <- dat %>%
+          dplyr::filter((EVID == 0 & tad_check) | EVID == 1) %>%
+          dplyr::arrange(ID, resetflag, TIME, dplyr::desc(AMT))
+
+        pooled_results$datpooled_all <-
+          do.call(bin.time, c(list(dat = all_data), bin_args))
+      }
     }
   }
 
