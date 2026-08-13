@@ -1,7 +1,7 @@
 Type: Package
 Package: nlmixr2autoinit
 Title: Automatic Generation of Initial Estimates for Population Pharmacokinetic Modeling
-Version: 1.0.1
+Version: 1.0.1.9000
 Authors@R: c(person("Zhonghui","Huang", role = c("aut", "cre"), email = "huangzhonghui22@gmail.com"),
    person("Joseph", "Standing", role = "ctb", email = "j.standing@ucl.ac.uk"),
    person("Matthew", "Fidler", role = "ctb", email = "matthew.fidler@gmail.com"),
