@@ -117,8 +117,8 @@ Fit_2cmpt_oral(
 #>  9 9         0  1.39  4.25  3.69   2.3      10
 #> 10 10        0  1.39  4.25  3.69   2.3      10
 #> ── Initial Conditions (value$inits): ──
-#> depot    A1    A2 
-#>     0     0     0 
+#>       depot     central peripheral1 
+#>           0           0           0 
 #> ── First part of data (object): ──
 #> # A tibble: 580 × 16
 #>      id  time    ka    cl    v1    v2     q      k   k12   k21    cp ipredSim
@@ -130,6 +130,6 @@ Fit_2cmpt_oral(
 #> 5     1  1.5      1  4.01  70.1  40.0  9.97 0.0573 0.142 0.249  564.     564.
 #> 6     1  2        1  4.01  70.1  40.0  9.97 0.0573 0.142 0.249  591.     591.
 #> # ℹ 574 more rows
-#> # ℹ 4 more variables: sim <dbl>, depot <dbl>, A1 <dbl>, A2 <dbl>
+#> # ℹ 4 more variables: sim <dbl>, depot <dbl>, central <dbl>, peripheral1 <dbl>
 # }
 ```

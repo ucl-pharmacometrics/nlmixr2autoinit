@@ -128,8 +128,8 @@ Fit_3cmpt_oral(
 #>  9 9         0  1.39  4.25  3.56  3.56  1.39  1.39      10
 #> 10 10        0  1.39  4.25  3.56  3.56  1.39  1.39      10
 #> ── Initial Conditions (value$inits): ──
-#> depot    A1    A2    A3 
-#>     0     0     0     0 
+#>       depot     central peripheral1 peripheral2 
+#>           0           0           0           0 
 #> ── First part of data (object): ──
 #> # A tibble: 580 × 21
 #>      id  time    ka    cl    v1    v2    v3    q1    q2      k    k12   k21
@@ -142,6 +142,6 @@ Fit_3cmpt_oral(
 #> 6     1  2        1  4.01  70.1  35.2  35.2  4.01  4.01 0.0573 0.0573 0.114
 #> # ℹ 574 more rows
 #> # ℹ 9 more variables: k13 <dbl>, k31 <dbl>, cp <dbl>, ipredSim <dbl>,
-#> #   sim <dbl>, depot <dbl>, A1 <dbl>, A2 <dbl>, A3 <dbl>
+#> #   sim <dbl>, depot <dbl>, central <dbl>, peripheral1 <dbl>, peripheral2 <dbl>
 # }
 ```
